@@ -14,7 +14,7 @@ export class AuthController {
             user: {
                 id: 1,
                 lastName: "Максбетов",
-                phoneNumber: 79123456789,
+                phoneNumber: "+79123456789",
                 telegramID: 135462
             }
         }, status: HttpStatus.CREATED

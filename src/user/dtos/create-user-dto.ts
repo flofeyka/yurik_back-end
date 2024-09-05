@@ -8,7 +8,7 @@ export class CreateUserDto {
 
     @IsPhoneNumber()
     @ApiProperty({description: "Номер телефона. Обязательное поле", example: "+79123456789"})
-    phoneNumber: number;
+    phoneNumber: string;
 
     @IsString()
     @MinLength(8)

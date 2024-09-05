@@ -22,8 +22,8 @@ export class User {
     middleName: string;
 
     @ApiProperty({ title: "Номер телефона. Обязательное поле", example: 89123456789 })
-    @Column({ nullable: true, type: "bigint" })
-    phoneNumber: number;
+    @Column({ nullable: true })
+    phoneNumber: string;
 
     @ApiProperty({ title: "ID Telegram", example: 312531 })
     @Column({ nullable: false })

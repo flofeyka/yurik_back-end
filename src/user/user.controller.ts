@@ -3,6 +3,8 @@ import { UserService } from "./user.service";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/auth/auth.guard";
 import { EditUserDto } from "./dtos/edit-user-dto";
+import { RequestType } from "../../types/types";
+
 
 @ApiTags("Users API")
 @Controller("users")
@@ -14,7 +16,7 @@ export class UserController {
     @ApiResponse({status: HttpStatus.BAD_GATEWAY})
     @Put("/edit")
     @UseGuards(AuthGuard)
-    async EditData(@Req() request, @Body() userDto: EditUserDto) {
+    async EditData(@Req() request: RequestType, @Body() userDto: EditUserDto) {
         return this.userService.editUser(request.user.id, userDto)
     }
 

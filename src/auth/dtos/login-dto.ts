@@ -2,8 +2,8 @@ import { ApiProperty } from "@nestjs/swagger";
 
 export class LoginDto {
     @ApiProperty({title: "Номер телефона", example: "+79993001234"})
-    phoneNumber: string;
+    readonly phoneNumber: string;
 
     @ApiProperty({title: "Пароль(Временно)", example: "qwerty1234"})
-    password: string;
+    readonly password: string;
 }

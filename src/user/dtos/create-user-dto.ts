@@ -4,17 +4,17 @@ import { IsNotEmpty, IsPhoneNumber, IsString, Min, MinLength } from "class-valid
 export class CreateUserDto {
     @IsNotEmpty()
     @ApiProperty({description: "Фамилия. Обязательное поле", example: "Максбетов"})
-    lastName: string;
+    readonly lastName: string;
 
     @IsPhoneNumber()
     @ApiProperty({description: "Номер телефона. Обязательное поле", example: "+79123456789"})
-    phoneNumber: string;
+    readonly phoneNumber: string;
 
     @IsString()
     @MinLength(8)
-    password: string;
+    readonly password: string;
 
     @IsNotEmpty()
     @ApiProperty({description: "ID Telegram", example: 392210})
-    telegramID: number;
+    readonly telegramID: number;
 }

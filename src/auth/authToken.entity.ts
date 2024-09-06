@@ -5,10 +5,10 @@ import { EncryptionTransformer } from "typeorm-encrypted";
 @Unique('userId', ['token'])
 export class AuthToken {
     @PrimaryGeneratedColumn()
-    id: number;
+    readonly id: number;
 
     @Column()
-    userId: number;
+    readonly userId: number;
 
     @Column({
         unique: true, transformer: new EncryptionTransformer({
@@ -18,5 +18,5 @@ export class AuthToken {
             iv: 'ff5ac19190424b1d88f9419ef949ae56'
         })
     })
-    token: string;
+    readonly token: string;
 }

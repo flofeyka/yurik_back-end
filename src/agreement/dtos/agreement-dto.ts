@@ -1,12 +1,17 @@
-import { Agreement } from "../entities/agreement.entity";
+import { Agreement, MemberEntity } from "../entities/agreement.entity";
 
 //Доделать информацию подающуяся на выходе.
 export class AgreementDto {
-  constructor(model) {
+  constructor(model: Agreement) {
     Object.assign(this, {
-      id: model.id,
-      title: model.title,
-      steps: model.steps,
+      ...model,
+      members: [...model.members.map((member: MemberEntity) => {
+        return {
+          id: member.id,
+          isConfirmed: member.isConfirmed,
+          status: member.status
+        };
+      })]
     });
   }
 }

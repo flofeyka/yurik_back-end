@@ -18,6 +18,11 @@ export class CreateAgreementDto {
   // @IsString()
   // readonly text: string;
 
+  @ApiProperty({title: 'Пароль от аккаунта', example: "qwerty123456"})
+  @IsString()
+
+  readonly password: string;
+
   @ApiProperty({ title: "Стоимость услуг", example: 15000 })
   @IsNumber()
   readonly price: number;

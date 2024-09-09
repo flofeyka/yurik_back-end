@@ -1,46 +1,55 @@
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+
+export interface Member {
+  id: number;
+  status: "client" | "contractor";
+}
+
+export interface MemberEntity extends Member {
+  isConfirmed: boolean;
+  code: number | undefined;
+}
 
 @Entity()
 export class Agreement {
-  @PrimaryColumn()
-  readonly id: number;
+  @PrimaryGeneratedColumn()
+  public readonly id: number;
 
   @Column()
-  readonly title: string;
+  public readonly title: string;
 
   @Column()
-  readonly text: string;
+  public readonly text: string;
 
   @Column()
-  readonly initiator: "client" | "contractor";
+  public readonly initiator: "client" | "contractor";
 
-  @Column()
-  readonly status: "At work" | "Declined" | "At a lawyer";
+  @Column({ default: "In confirm process" })
+  public readonly status: "At work" | "Declined" | "At a lawyer" | "In confirm process";
 
-  @Column({type: "float"})
-  readonly price: number;
+  @Column({ type: "float" })
+  public readonly price: number;
 
-  @Column("json", { array: true, nullable: false, default: [] })
-  readonly members: Array<{
-    id: number;
-    status: "client" | "contractor";
-    isConfirmed: boolean;
-  }>
+  @Column("jsonb", { array: false, nullable: false, default: [] })
+  public readonly members!: Array<MemberEntity>;
 
-  @Column("json", {array: true, default: []})
-  readonly steps: Array<{
+  @Column("jsonb", { array: false, default: [] })
+  public readonly steps!: Array<{
     title: string;
-    images: Array<string>,
+    images: Array<string>;
     responsible: number;
-    isComplete: boolean,
-    comment: string | null,
-    start: Date,
-    end: Date
-  }>
+    isComplete: boolean;
+    comment: string | null;
+    start: Date;
+    end: Date;
+  }>;
+
+  @Column({ default: false })
+  public readonly isConfirmByAllMembers: boolean;
 
   @Column()
-  readonly start: Date;
+  public readonly start: Date;
 
   @Column()
-  readonly end: Date;
+  public readonly end: Date;
 }

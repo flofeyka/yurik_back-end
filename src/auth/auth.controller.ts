@@ -1,6 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from "@nestjs/common";
 import { AuthService } from "./auth.service";
-import { ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CreateUserDto } from "src/user/dtos/create-user-dto";
 import { LoginDto } from "./dtos/login-dto";
 import { UserDto } from "../user/dtos/user-dto";
@@ -15,6 +15,8 @@ export interface tokenAndUserType {
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
+
+    @ApiOperation({summary: 'Регистрация пользователя в системе'})
     @ApiResponse({
         example: {
             token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZmlyc3ROYW1lIjoi0JzQsNC60YHQuNC8IiwibGFzdE5hbWUiOiLQnNCw0LrRgdCx0LXRgtC-0LIiLCJtaWRkbGVOYW1lIjoi0KLQsNCz0LjRgNC-0LLQuNGHIn0.CXGuFj9yUwDaQdGsl3aO3dYwKpqQEEd2fsSqv_FsjXI",
@@ -46,6 +48,7 @@ export class AuthController {
         return await this.authService.signUp(userDto);
     }
 
+    @ApiOperation({summary: 'Авторизация существующего пользователя в системе'})
     @ApiResponse({
         example: {
             token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZmlyc3ROYW1lIjoi0JzQsNC60YHQuNC8IiwibGFzdE5hbWUiOiLQnNCw0LrRgdCx0LXRgtC-0LIiLCJtaWRkbGVOYW1lIjoi0KLQsNCz0LjRgNC-0LLQuNGHIn0.CXGuFj9yUwDaQdGsl3aO3dYwKpqQEEd2fsSqv_FsjXI",

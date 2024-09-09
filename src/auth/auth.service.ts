@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable, UnauthorizedException, UseGuards } from "@nestjs/common";
+import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import {User} from "../user/user.entity";
-import { Repository } from "typeorm";
+import { InsertResult, Repository } from "typeorm";
 import { JwtService } from "@nestjs/jwt";
 import { AuthToken } from "./authToken.entity";
 import { UserService } from "src/user/user.service";
@@ -43,7 +43,7 @@ export class AuthService {
   }
 
   async signIn(loginDto: LoginDto): Promise<tokenAndUserType> {
-    const { phoneNumber, password } = loginDto;
+    const { phoneNumber, password }: {phoneNumber: string; password: string} = loginDto;
 
     const existingUser: User = await this.usersRepository.findOne({ where: { phoneNumber } });
 
@@ -66,7 +66,11 @@ export class AuthService {
   }
 
   async generateToken(user: User) {
-    const payload = {
+    const payload: {
+      id: number;
+      telegramID: number;
+      lastName: string;
+    } = {
       id: user.id,
       telegramID: user.telegramID,
       lastName: user.lastName
@@ -86,21 +90,33 @@ export class AuthService {
       return tokenCreated.token;
     }
 
-    const tokenCreated = await this.tokenRepository.createQueryBuilder().insert().into(AuthToken).values([{
+    const tokenCreated: InsertResult = await this.tokenRepository.createQueryBuilder().insert().into(AuthToken).values([{
       userId: user.id,
       token
     }]).execute();
 
-    const tokenFound = await this.tokenRepository.findOne({ where: { id: tokenCreated.identifiers[0].id } });
+    const tokenFound: AuthToken = await this.tokenRepository.findOne({ where: { id: tokenCreated.identifiers[0].id } });
 
     return tokenFound.token;
   }
 
-  async findToken(token: string) {
-    const tokenFound = await this.tokenRepository.findOne({ where: { token } });
+  async findToken(token: string): Promise<{
+    isAuth: boolean;
+    userData: {
+      id: number;
+      telegramID: number;
+      lastName: string;
+    } | undefined
+  }> {
+    const verifiedToken = this.jwtService.verify(token);
+    if(!verifiedToken) {
+      throw new UnauthorizedException("User is not authorized")
+    }
+
+    const tokenFound: AuthToken = await this.tokenRepository.findOne({ where: { token } });
     return {
-      isAuth: !!tokenFound,
-      userData: this.jwtService.verify(token)
+      isAuth: !!tokenFound && !!verifiedToken,
+      userData: verifiedToken
     };
   }
 }

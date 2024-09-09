@@ -7,6 +7,8 @@ import { Agent } from 'https';
 export class GigachatService {
     constructor(private readonly httpService: HttpService) { }
 
+    //Добавить возможность сохранения диалогов Gigachat и получать доступ к ним.
+
     async getToken() {
         const requestUID = uuidv4();
 

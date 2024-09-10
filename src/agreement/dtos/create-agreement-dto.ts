@@ -6,10 +6,6 @@ export class CreateAgreementDto {
   @IsString()
   readonly title: string;
 
-  @ApiProperty({title: 'Инициатор договора', example: 123})
-  @IsString()
-  readonly initiator: number;
-
   // @ApiProperty({title: "Временные детали договора"})
   // @IsString()
   // status: "At work" | "Declined" | "At a lawyer"

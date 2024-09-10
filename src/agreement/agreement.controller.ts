@@ -63,7 +63,7 @@ export class AgreementController {
   }
 
   @ApiOperation({ summary: "Отправка СМС-кода для подтверждения участия в договоре" })
-  @Post("/sendSMS/:agreementId")
+  @Post("/sendCode/:agreementId")
   @UseGuards(AuthGuard)
   async sendCode(@Req() request: RequestType, @Param("agreementId") agreementId: number): Promise<{
     isSent: boolean;

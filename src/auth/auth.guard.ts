@@ -11,8 +11,8 @@ export class AuthGuard implements CanActivate {
         const req = context.switchToHttp().getRequest();
 
         try {
-            const authHeader = req.headers.authorization;
-            const token = authHeader && authHeader.split(" ")[1];
+            const token = req.cookies.access_token;
+            console.log(token);
 
             if(!token) {
                 throw new UnauthorizedException({message: "Пользователь не авторизован"});
@@ -23,7 +23,6 @@ export class AuthGuard implements CanActivate {
                 throw new UnauthorizedException({message: "Пользователь не авторизован"});
             }
 
-            console.log(userData);
 
             req.user = userData.userData;
             return true;

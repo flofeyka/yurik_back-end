@@ -24,7 +24,7 @@ export class AgreementService {
     }
 
     for (let i of agreementDto.members) {
-      const member: Agreement = await this.findAgreement(i.id);
+      const member: User = await this.userService.findUser(i.id);
       if (!member) {
         throw new NotFoundException(`Пользователь с айди ${i.id} не найден в системе.`);
       }
@@ -37,7 +37,7 @@ export class AgreementService {
       }
     }
 
-    if (agreementDto.members.find(member => member.id === userId).status === "client") {
+    if (agreementDto.members.find((member: Member) => member.id === userId)) {
       throw new BadRequestException("Нельзя заключить договор с самим собой.");
     }
 
@@ -46,6 +46,7 @@ export class AgreementService {
     const agreementCreated: InsertResult = await this.agreementRepository.createQueryBuilder().insert().into(Agreement).values(
       [{
         ...agreementDto,
+        initiator: userId,
         members: [
           {
             id: userId,
@@ -207,7 +208,11 @@ export class AgreementService {
     }
 
     this.findMember(agreement, initiatorId);
-    this.findMember(agreement, memberId);
+    const found = agreement.members.find((member: MemberEntity) => member.id === memberId);
+
+    if(found) {
+      throw new BadRequestException("Участник уже состоит в договоре");
+    }
 
     const user: User = await this.userService.findUser(memberId);
 

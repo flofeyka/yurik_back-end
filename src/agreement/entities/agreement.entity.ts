@@ -46,7 +46,7 @@ export class Agreement {
   public readonly initiator: number;
 
   @Column({ default: "In confirm process" })
-  public readonly status: "At work" | "Declined" | "At a lawyer" | "In confirm process";
+  public readonly status: "At work" | "Declined" | "At a lawyer" | "In confirm process" ;
 
   @Column({ type: "float" })
   public readonly price: number;

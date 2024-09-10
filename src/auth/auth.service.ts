@@ -9,7 +9,11 @@ import { CreateUserDto } from "src/user/dtos/create-user-dto";
 import { LoginDto } from "./dtos/login-dto";
 import * as bcrypt from "bcryptjs";
 import { UserDto } from "src/user/dtos/user-dto";
-import { tokenAndUserType } from "./auth.controller";
+
+export interface tokenAndUserType {
+  token: string;
+  user: UserDto
+}
 
 @Injectable()
 export class AuthService {

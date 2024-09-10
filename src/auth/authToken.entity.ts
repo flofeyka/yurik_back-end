@@ -1,6 +1,12 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, RelationId, Unique } from "typeorm";
 import { EncryptionTransformer } from "typeorm-encrypted";
 
+export interface AuthTokenPayload {
+    id: number,
+    telegramID: number,
+    lastName: string
+}
+
 @Entity()
 @Unique('userId', ['token'])
 export class AuthToken {

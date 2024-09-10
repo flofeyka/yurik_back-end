@@ -6,9 +6,9 @@ export class CreateAgreementDto {
   @IsString()
   readonly title: string;
 
-  @ApiProperty({title: 'Инициатор договора', example: "client"})
+  @ApiProperty({title: 'Инициатор договора', example: 123})
   @IsString()
-  readonly initiator: "client" | "contractor"
+  readonly initiator: number;
 
   // @ApiProperty({title: "Временные детали договора"})
   // @IsString()
@@ -18,9 +18,11 @@ export class CreateAgreementDto {
   // @IsString()
   // readonly text: string;
 
+  @ApiProperty({title: "Статус инициатора в договоре", example: "client"})
+  readonly initiatorStatus: "client" | "contractor";
+
   @ApiProperty({title: 'Пароль от аккаунта', example: "qwerty123456"})
   @IsString()
-
   readonly password: string;
 
   @ApiProperty({ title: "Стоимость услуг", example: 15000 })

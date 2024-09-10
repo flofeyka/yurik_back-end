@@ -1,4 +1,4 @@
-import { BadGatewayException, Injectable } from "@nestjs/common";
+import { BadGatewayException, Injectable, NotFoundException } from "@nestjs/common";
 import { User } from "./user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { InsertResult, Repository } from "typeorm";
@@ -27,6 +27,11 @@ export class UserService {
   }
 
   async findUser(userId: number): Promise<User> {
-    return await this.usersRepository.findOneBy({ id: userId });
+    const foundUser = await this.usersRepository.findOneBy({ id: userId });
+    if(!foundUser) {
+      throw new NotFoundException(`Пользователь с данным id ${userId} не был найден в системе`);
+    }
+
+    return foundUser;
   }
 }

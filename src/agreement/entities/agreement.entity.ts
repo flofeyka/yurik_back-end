@@ -6,8 +6,29 @@ export interface Member {
 }
 
 export interface MemberEntity extends Member {
-  isConfirmed: boolean;
   code: number | undefined;
+  inviteStatus: "Confirmed" | "Invited" | "Declined";
+}
+
+export interface MemberData extends Member {
+  fullName: {
+    firstName: string;
+    lastName: string;
+    middleName: string;
+  },
+  inviteStatus: "Confirmed" | "Invited" | "Declined";
+  email: string;
+  usersImage: string;
+}
+
+export interface Step {
+  title: string;
+  images: Array<string>;
+  responsible: number;
+  isComplete: boolean;
+  comment: string | null;
+  start: Date;
+  end: Date;
 }
 
 @Entity()
@@ -22,7 +43,7 @@ export class Agreement {
   public readonly text: string;
 
   @Column()
-  public readonly initiator: "client" | "contractor";
+  public readonly initiator: number;
 
   @Column({ default: "In confirm process" })
   public readonly status: "At work" | "Declined" | "At a lawyer" | "In confirm process";
@@ -34,18 +55,7 @@ export class Agreement {
   public readonly members!: Array<MemberEntity>;
 
   @Column("jsonb", { array: false, default: [] })
-  public readonly steps!: Array<{
-    title: string;
-    images: Array<string>;
-    responsible: number;
-    isComplete: boolean;
-    comment: string | null;
-    start: Date;
-    end: Date;
-  }>;
-
-  @Column({ default: false })
-  public readonly isConfirmByAllMembers: boolean;
+  public readonly steps!: Array<Step>;
 
   @Column()
   public readonly start: Date;

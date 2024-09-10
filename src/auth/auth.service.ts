@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import {User} from "../user/user.entity";
+import { User } from "../user/user.entity";
 import { InsertResult, Repository } from "typeorm";
 import { JwtService } from "@nestjs/jwt";
-import { AuthToken } from "./authToken.entity";
+import { AuthToken, AuthTokenPayload } from "./authToken.entity";
 import { UserService } from "src/user/user.service";
 import { CreateUserDto } from "src/user/dtos/create-user-dto";
 import { LoginDto } from "./dtos/login-dto";
@@ -43,7 +43,7 @@ export class AuthService {
   }
 
   async signIn(loginDto: LoginDto): Promise<tokenAndUserType> {
-    const { phoneNumber, password }: {phoneNumber: string; password: string} = loginDto;
+    const { phoneNumber, password }: { phoneNumber: string; password: string } = loginDto;
 
     const existingUser: User = await this.usersRepository.findOne({ where: { phoneNumber } });
 
@@ -65,12 +65,8 @@ export class AuthService {
     };
   }
 
-  async generateToken(user: User) {
-    const payload: {
-      id: number;
-      telegramID: number;
-      lastName: string;
-    } = {
+  async generateToken(user: User): Promise<string> {
+    const payload: AuthTokenPayload = {
       id: user.id,
       telegramID: user.telegramID,
       lastName: user.lastName
@@ -100,17 +96,10 @@ export class AuthService {
     return tokenFound.token;
   }
 
-  async findToken(token: string): Promise<{
-    isAuth: boolean;
-    userData: {
-      id: number;
-      telegramID: number;
-      lastName: string;
-    } | undefined
-  }> {
-    const verifiedToken = this.jwtService.verify(token);
-    if(!verifiedToken) {
-      throw new UnauthorizedException("User is not authorized")
+  async findToken(token: string): Promise<{ isAuth: boolean; userData: AuthTokenPayload | undefined }> {
+    const verifiedToken: AuthTokenPayload = this.jwtService.verify(token);
+    if (!verifiedToken) {
+      throw new UnauthorizedException("User is not authorized");
     }
 
     const tokenFound: AuthToken = await this.tokenRepository.findOne({ where: { token } });

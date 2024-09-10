@@ -1,11 +1,12 @@
 import { BadGatewayException, BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateAgreementDto } from "./dtos/create-agreement-dto";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Agreement, Member, MemberEntity } from "./entities/agreement.entity";
+import { Agreement, Member, MemberData, MemberEntity, Step } from "./entities/agreement.entity";
 import { InsertResult, Repository } from "typeorm";
 import { UserService } from "../user/user.service";
 import * as bcrypt from "bcryptjs";
 import { User } from "../user/user.entity";
+import { AgreementDto } from "./dtos/agreement-dto";
 
 @Injectable()
 export class AgreementService {
@@ -13,7 +14,7 @@ export class AgreementService {
   }
 
 
-  async createAgreement(userId: number, agreementDto: CreateAgreementDto): Promise<Agreement> {
+  async createAgreement(userId: number, agreementDto: CreateAgreementDto): Promise<AgreementDto> {
     const userData: User = await this.userService.findUser(userId);
 
     const passwordConfirmed: boolean = await bcrypt.compare(agreementDto.password || "123", userData.password);
@@ -40,7 +41,6 @@ export class AgreementService {
       throw new BadRequestException("Нельзя заключить договор с самим собой.");
     }
 
-
     //Здесь должно быть условие проверки корректности даты.
 
     const agreementCreated: InsertResult = await this.agreementRepository.createQueryBuilder().insert().into(Agreement).values(
@@ -49,13 +49,11 @@ export class AgreementService {
         members: [
           {
             id: userId,
-            status: agreementDto.initiator,
-            isConfirmed: false
+            status: agreementDto.initiatorStatus,
+            inviteStatus: "Confirmed"
           },
-          ...agreementDto.members.map(member => {
-            return {
-              ...member, isConfirmed: false
-            };
+          ...agreementDto.members.map((member: Member) => {
+            return { ...member, inviteStatus: "Invited" as "Confirmed" | "Invited" | "Declined" };
           })
         ]
       }]).execute();
@@ -66,13 +64,20 @@ export class AgreementService {
       throw new BadGatewayException("Не удалось создать договор.");
     }
 
+    const agreementFound = await this.findAgreement(agreementCreated.identifiers[0].id);
+
+    return new AgreementDto({
+      ...agreementFound,
+      members: await this.getMembersData(agreementFound),
+      steps: await this.getStepsData(agreementFound)
+    });
+
     // const steps = ["Данные каждого этапа и пользовательские данные(Аватарка, ФИО/Название компании)"]
     // return = new AgreementDto({...newAgreement, ...steps});
 
-    return await this.findAgreement(agreementCreated.identifiers[0].id);
   }
 
-  async sendCode(userId: number, agreementId: number): Promise<boolean> {
+  async sendCode(userId: number, agreementId: number): Promise<{ isSent: boolean; message: string }> {
     const agreementFound: Agreement = await this.findAgreement(agreementId);
 
     const member: MemberEntity = this.findMember(agreementFound, userId);
@@ -81,7 +86,7 @@ export class AgreementService {
       throw new BadRequestException("Вы не являетесь участником данного договора.");
     }
 
-    if (member.isConfirmed) {
+    if (member.inviteStatus === "Confirmed") {
       throw new BadRequestException("Вы уже подтвердили участие в данном договоре.");
     }
 
@@ -95,53 +100,54 @@ export class AgreementService {
       })]
     });
 
-    return true;
+    //После получения доступа к СМС сервису настроить отправку СМС-сообщений
+
+    return {
+      isSent: true,
+      message: "СМС-код был успешно отправлен"
+    };
   }
 
-  async confirmAgreement(userId: number, agreementId: number, code: number): Promise<boolean> {
+  async confirmAgreement(userId: number, agreementId: number, password: string): Promise<{
+    isConfirmed: boolean;
+    message: string
+  }> {
+    const user = await this.userService.findUser(userId);
     const agreementFound: Agreement = await this.findAgreement(agreementId);
-    if (!agreementFound) {
-      throw new NotFoundException("Договор с этим идентификатором не найден");
-    }
 
     const member: MemberEntity = this.findMember(agreementFound, userId);
-    if (!member) {
-      throw new NotFoundException("Вы не являетесь участником договора");
-    }
-
-    if (member.isConfirmed) {
+    if (member.inviteStatus === "Confirmed") {
       throw new BadRequestException("Вы уже подтвердили свое участие в договоре");
     }
 
-    if (member.code !== code) {
-      throw new BadRequestException("Неправильный код из СМС");
+    const passwordCompared: boolean = await bcrypt.compare(password, user.password);
+    if (!passwordCompared) {
+      throw new BadRequestException("Неправильный пароль");
     }
+
+    // if (member.code !== code) {
+    //   throw new BadRequestException("Неправильный код из СМС");
+    // }
 
     await this.agreementRepository.save({
       ...agreementFound,
       members: [...agreementFound.members.map((member: MemberEntity) => {
         return { ...member, isConfirmed: member.id === userId };
-      })],
-      isConfirmByAllMembers: agreementFound.members.every((member: MemberEntity) => member.isConfirmed === true)
+      })]
     });
 
-    return true;
+    return {
+      isConfirmed: true,
+      message: "Вы успешно подтвердили участие в договоре"
+    };
   }
 
-  async declineAgreement(userId: number, agreementId: number): Promise<boolean> {
+  async declineAgreement(userId: number, agreementId: number): Promise<{ isDeclined: boolean; message: string }> {
     const agreementFound: Agreement = await this.findAgreement(agreementId);
-
-    if (!agreementFound) {
-      throw new NotFoundException("Договор не был найден");
-    }
 
     const member: MemberEntity = this.findMember(agreementFound, userId);
 
-    if (!member) {
-      throw new BadRequestException("Вы не являетесь участником договора");
-    }
-
-    if (agreementFound.status === "At work" && agreementFound.initiator !== member.status) {
+    if (agreementFound.status === "At work" && agreementFound.initiator !== member.id) {
       throw new BadRequestException("Вы не можете разорвать договор если вы не являетесь его инициатором");
     }
 
@@ -153,7 +159,10 @@ export class AgreementService {
       status: memberDeleted.length < 2 || memberDeleted.every(member => member.status === "client") ? "Declined" : "In confirm process"
     });
 
-    return true;
+    return {
+      isDeclined: true,
+      message: "Вы успешно отклонили участие в договоре"
+    };
   }
 
   async findAgreement(id: number): Promise<Agreement> {
@@ -162,6 +171,103 @@ export class AgreementService {
       throw new NotFoundException("Договор с этим идентификатором не найден");
     }
     return agreementFound;
+  }
+
+  async enableAgreementAtWork(userId: number, agreementId: number): Promise<{
+    message: string;
+    agreement: AgreementDto
+  }> {
+    const agreement: Agreement = await this.findAgreement(agreementId);
+    const member: MemberEntity | undefined = this.findMember(agreement, userId);
+    if (agreement.initiator !== member.id) {
+      throw new BadRequestException("Вы не можете включить договор в работу, так как вы не являетесь его инициатором.");
+    }
+
+    if (!agreement.members.every(member => member.inviteStatus === "Confirmed")) {
+      throw new BadRequestException("Участие в договоре ещё не было подтверждено всеми участниками. Пожалуйста, свяжитесь с ними.");
+    }
+
+    const agreementAtWork: Agreement = await this.agreementRepository.save({
+      ...agreement,
+      status: "At work"
+    });
+
+    return {
+      message: "Договор был успешно включён в работу.",
+      agreement: new AgreementDto({ ...agreementAtWork, members: await this.getMembersData(agreementAtWork), steps: await this.getStepsData(agreementAtWork) })
+    };
+
+  }
+
+  async inviteNewMember(initiatorId: number, memberId: number, status: "client" | "contractor", agreementId: number) {
+    const agreement: Agreement = await this.findAgreement(agreementId);
+
+    if (agreement.status === "At work") {
+      throw new BadRequestException("Вы не можете добавить нового участника в уже подписанный договор.");
+    }
+
+    this.findMember(agreement, initiatorId);
+    this.findMember(agreement, memberId);
+
+    const user: User = await this.userService.findUser(memberId);
+
+    const agreementSaved: Agreement = await this.agreementRepository.save({
+      ...agreement,
+      members: [...agreement.members, {
+        id: user.id,
+        status,
+        inviteStatus: "Invited"
+      }]
+    });
+
+    return {
+      isInvited: true,
+      message: "Пользователь был успешно приглашен к договору",
+      agreement: new AgreementDto({
+        ...agreementSaved,
+        members: await this.getMembersData(agreementSaved),
+        steps: await this.getStepsData(agreementSaved)
+      })
+    };
+  }
+
+  async getMembersData(agreement: Agreement): Promise<Array<MemberData>> {
+    return await Promise.all(agreement.members.map(async (member: MemberEntity) => {
+      const memberData: User = await this.userService.findUser(member.id);
+
+      return {
+        id: member.id,
+        fullName: {
+          firstName: memberData.firstName,
+          lastName: memberData.lastName,
+          middleName: memberData.middleName
+        },
+        status: member.status,
+        inviteStatus: member.inviteStatus,
+        email: memberData.email,
+        usersImage: memberData.imageUrl
+      };
+    }));
+  }
+
+  async getStepsData(agreement: Agreement) {
+    return Promise.all(agreement.steps.map(async (step: Step) => {
+      const stepUserData: User = await this.userService.findUser(step.responsible);
+
+      return {
+        userData: {
+          id: stepUserData.id,
+          fullName: {
+            firstName: stepUserData.firstName,
+            lastName: stepUserData.lastName,
+            middleName: stepUserData.middleName
+          },
+          email: stepUserData.email,
+          image: stepUserData.imageUrl
+        },
+        ...step
+      };
+    }));
   }
 
   private findMember(agreement: Agreement, userId: number): MemberEntity {

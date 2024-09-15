@@ -7,11 +7,11 @@ export class LegalInformationDto {
     readonly authority: string | null | undefined;
 
     @IsString({ message: "Поле 'serial' должно быть либо строкой, либо null"})
-    @ApiProperty({ description: "Серия паспорта", example: 7212, type: Number })
+    @ApiProperty({ description: "Серия паспорта", example: "7212", type: Number })
     readonly serial: string | null;
 
     @IsString({ message: "Поле 'number' должно быть либо строкой, либо null"})
-    @ApiProperty({ description: "Номер паспорта", example: 314513, type: Number })
+    @ApiProperty({ description: "Номер паспорта", example: "314513", type: Number })
     readonly number: string | null;
 
     @IsString({ message: "Поле 'address' должно быть либо строкой, либо null"})

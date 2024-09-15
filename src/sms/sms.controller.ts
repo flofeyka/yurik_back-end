@@ -1,17 +1,17 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Controller, Get, Post, Query } from "@nestjs/common";
 import { SmsService } from "./sms.service";
+import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
+
+@ApiTags('SMS API')
 @Controller('sms')
 export class SmsController {
     constructor(private readonly smsService: SmsService) {} 
     
-    @Get('/send')
+    @ApiOperation({ summary: "Отправить СМС-код на номер телефона" })
+    @ApiResponse({ status: 200, example: true, description: "Смс было успешно отправлено"})
+    @Post('/send')
     async sendSms(@Query('phone') phoneNumber: string): Promise<boolean> {
         return this.smsService.sendSms(phoneNumber);
-    }
-
-    @Get('/check')
-    async checkSms(@Query('phone') phoneNumber: string, @Query('code') code: number): Promise<boolean> {
-        return this.smsService.checkSms(phoneNumber, code);
     }
 }

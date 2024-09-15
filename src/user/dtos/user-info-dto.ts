@@ -14,7 +14,7 @@ export class UserInfoDto {
     readonly middleName: string;
 
 
-    @ApiProperty({ description: "Номер телефона. Обязательное поле", example: 79123456789 })
+    @ApiProperty({ description: "Номер телефона. Обязательное поле", example: "79123456789" })
     readonly phoneNumber: string;
 
     @IsEmail()

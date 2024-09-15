@@ -60,9 +60,9 @@ export class SmsService {
             throw new UnauthorizedException("Смс код истек");
         }
 
-        // if(smsFound.used) {
-        //     throw new UnauthorizedException("Смс код уже был использован. Пожалуйста, отправьте новый.");
-        // }
+        if(smsFound.used) {
+            throw new UnauthorizedException("Смс код уже был использован. Пожалуйста, отправьте новый.");
+        }
 
         await this.smsRepository.update(smsFound.id, {
             used: true

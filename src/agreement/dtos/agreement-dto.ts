@@ -1,4 +1,6 @@
-import { MemberData, MemberEntity, Step } from "../entities/agreement.entity";
+import { last } from "rxjs";
+import { Step } from "../entities/agreement.entity";
+import { AgreementMember } from "../entities/agreement.member.entity";
 
 interface AgreementDtoType {
   readonly id: number;
@@ -7,7 +9,7 @@ interface AgreementDtoType {
   readonly initiator: number;
   readonly status: "At work" | "Declined" | "At a lawyer" | "In confirm process";
   readonly price: number;
-  readonly members: Array<MemberData>;
+  // readonly members: Array<>;
   readonly steps: Array<Step>;
   readonly start: Date;
   readonly end: Date;
@@ -15,15 +17,21 @@ interface AgreementDtoType {
 
 //Доделать информацию подающуяся на выходе.
 export class AgreementDto {
-  constructor(model: AgreementDtoType) {
+  constructor(model: any) {
     Object.assign(this, {
       ...model,
-      members: [...model.members.map((member: MemberData) => {
+      members: [...model.members.map((member: AgreementMember) => {
         return {
-          id: member.id,
+          agreementId: member.agreement.id,
+          userId: member.user.id,
+          status: member.status,
           inviteStatus: member.inviteStatus,
-          status: member.status
-        };
+          firstName: member.user.firstName,
+          lastName: member.user.lastName,
+          middleName: member.user.middleName,
+          image: member.user.imageUrl,
+          
+        }
       })]
     });
   }

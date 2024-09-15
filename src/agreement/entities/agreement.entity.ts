@@ -1,30 +1,13 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-
-export interface Member {
-  id: number;
-  status: "client" | "contractor";
-}
-
-export interface MemberEntity extends Member {
-  code: number | undefined;
-  inviteStatus: "Confirmed" | "Invited" | "Declined";
-}
-
-export interface MemberData extends Member {
-  fullName: {
-    firstName: string;
-    lastName: string;
-    middleName: string;
-  },
-  inviteStatus: "Confirmed" | "Invited" | "Declined";
-  email: string;
-  usersImage: string;
-}
+import { Chat } from "src/chat/entities/chat.entity";
+import { User } from "src/user/user.entity";
+import { Column, Entity, JoinColumn, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { AgreementMember } from "./agreement.member.entity";
+import { AgreementStep } from "./agreement.step.entity";
 
 export interface Step {
   title: string;
   images: Array<string>;
-  responsible: number;
+  userId: number;
   isComplete: boolean;
   comment: string | null;
   start: Date;
@@ -34,32 +17,35 @@ export interface Step {
 @Entity()
 export class Agreement {
   @PrimaryGeneratedColumn()
-  public readonly id: number;
+  public id: number;
 
   @Column()
-  public readonly title: string;
+  public title: string;
 
   @Column()
-  public readonly text: string;
+  public text: string;
+
+  @OneToMany(() => AgreementMember, (member: AgreementMember) => member.agreement, {cascade: true})
+  public members: AgreementMember[];
 
   @Column()
-  public readonly initiator: number;
+  public initiator: number;
+
+  @OneToOne(() => Chat, (chat: Chat) => chat.agreement)
+  public chat: Chat;
 
   @Column({ default: "In confirm process" })
-  public readonly status: "At work" | "Declined" | "At a lawyer" | "In confirm process" ;
+  public status: "At work" | "Declined" | "At a lawyer" | "In confirm process";
 
   @Column({ type: "float" })
-  public readonly price: number;
+  public price: number;
 
-  @Column("jsonb", { array: false, nullable: false, default: [] })
-  public readonly members!: Array<MemberEntity>;
-
-  @Column("jsonb", { array: false, default: [] })
-  public readonly steps!: Array<Step>;
+  @OneToMany(() => AgreementStep, (step: AgreementStep) => step.agreement, {cascade: true})
+  public steps: AgreementStep[];
 
   @Column()
-  public readonly start: Date;
+  public start: Date;
 
   @Column()
-  public readonly end: Date;
+  public end: Date;
 }

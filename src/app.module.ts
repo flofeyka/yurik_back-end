@@ -8,6 +8,13 @@ import { GigachatModule } from './gigachat/gigachat.module';
 import { AuthToken } from './auth/authToken.entity';
 import { AgreementModule } from './agreement/agreement.module';
 import { Agreement } from "./agreement/entities/agreement.entity";
+import { ChatModule } from './chat/chat.module';
+import { Chat } from './chat/entities/chat.entity';
+import { Message } from './chat/entities/chat.message.entity';
+import { AgreementMember } from './agreement/entities/agreement.member.entity';
+import { AgreementStep } from './agreement/entities/agreement.step.entity';
+import { SmsModule } from './sms/sms.module';
+import { Sms } from './sms/sms.entity';
 
 @Module({
   imports: [
@@ -23,14 +30,16 @@ import { Agreement } from "./agreement/entities/agreement.entity";
       password: process.env.POSTGRES_PASSWORD,
       port: Number(process.env.POSTGRES_PORT),
       username: process.env.POSTGRES_USER,
-      entities: [User, AuthToken, Agreement],
+      entities: [User, AuthToken, Agreement, Chat, Message, AgreementMember, AgreementStep, Sms],
       synchronize: true,
       autoLoadEntities: true
     }),
     AuthModule,
     UserModule,
     GigachatModule,
-    AgreementModule
+    AgreementModule,
+    ChatModule,
+    SmsModule
     ],
 })
 export class AppModule { }

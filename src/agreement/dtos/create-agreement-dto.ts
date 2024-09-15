@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsDate, IsNumber, IsObject, IsString } from "class-validator";
+import { IsArray, IsDate, IsDateString, IsNumber, IsString } from "class-validator";
 
 export class CreateAgreementDto {
   @ApiProperty({ title: "Заголовок договора", example: "Договор возмездного оказания услуг" })
@@ -17,10 +17,6 @@ export class CreateAgreementDto {
   @ApiProperty({title: "Статус инициатора в договоре", example: "client"})
   readonly initiatorStatus: "client" | "contractor";
 
-  @ApiProperty({title: 'Пароль от аккаунта', example: "qwerty123456"})
-  @IsString()
-  readonly password: string;
-
   @ApiProperty({ title: "Стоимость услуг", example: 15000 })
   @IsNumber()
   readonly price: number;
@@ -33,7 +29,7 @@ export class CreateAgreementDto {
     ]})
   @IsArray()
   readonly members: Array<{
-    id: number;
+    userId: number;
     status: "client" | "contractor"
   }>
 
@@ -61,16 +57,19 @@ export class CreateAgreementDto {
   readonly steps: Array<{
     title: string;
     images: Array<string>,
-    responsible: number;
+    userId: number;
     isComplete: boolean,
     comment: string | null,
     start: Date,
     end: Date
   }>;
 
-  @ApiProperty({ title: "Дата начала действия договора", example: "12-12-2023" })
-  readonly start: any;
+  
+  @IsDateString()
+  @ApiProperty({ title: "Дата начала действия договора", example: "2023-12-12" })
+  readonly start: string;
 
-  @ApiProperty({ title: "Дата конца действия договора", example: "14-12-2024" })
-  readonly end: any;
+  @IsDateString()
+  @ApiProperty({ title: "Дата конца действия договора", example: "2024-12-12" })
+  readonly end: string;
 }

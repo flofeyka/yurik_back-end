@@ -1,6 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn, JoinTable, ManyToOne, JoinColumn } from "typeorm";
 import { EncryptionTransformer } from "typeorm-encrypted";
+import { Agreement } from "../agreement/entities/agreement.entity";
+import { IsString } from "class-validator";
 
 @Entity()
 export class User {
@@ -37,14 +39,13 @@ export class User {
   @ApiProperty({ title: "Электронная почта", example: "email@admin.ru" })
   public readonly email: string;
 
-  @Column()
-  @ApiProperty({ title: "Пароль в захешированном виде", example: "fgdsjkjghfdkvfnds" })
-  public readonly password: string;
-
   @Column({nullable: true})
   public readonly imageUrl: string | null;
 
   //Нужно будет реализовать список предлагаемых, действующих и отклоненных договоров.
+  @ManyToMany(() => Agreement)
+  @JoinTable({name: "user_agreements"})
+  public readonly agreements: Agreement[];
 
 
   @Column({
@@ -56,7 +57,8 @@ export class User {
     })
   })
   @ApiProperty({ title: "Кем выдан паспорт(В ТОЧНОСТИ КАК В ПАСПОРТЕ).", example: "УМВД ПО ТЮМЕНСКОЙ ОБЛАСТИ" })
-  public readonly authority: string;
+  public readonly authority: string | null;
+
   @Column({
     nullable: true, transformer: new EncryptionTransformer({
       key: "e41c966f21f9e1577802463f8924e6a3fe3e9751f201304213b2f845d8841d61",
@@ -67,6 +69,7 @@ export class User {
   })
   @ApiProperty({ title: "Серия паспорта", example: "1234" })
   public readonly serial: string;
+
   @Column({
     nullable: true, unique: true, transformer: new EncryptionTransformer({
       key: "e41c966f21f9e1577802463f8924e6a3fe3e9751f201304213b2f845d8841d61",
@@ -77,6 +80,7 @@ export class User {
   })
   @ApiProperty({ title: "Номер паспорта", example: "567890" })
   public readonly number: string;
+
   @Column({
     nullable: true, transformer: new EncryptionTransformer({
       key: "e41c966f21f9e1577802463f8924e6a3fe3e9751f201304213b2f845d8841d61",
@@ -90,6 +94,7 @@ export class User {
     example: "Тюменская область, г. Тюмень, улица Мориса Тореза, д. 1, кв. 1"
   })
   public readonly address: string;
+  
   @Column({
     nullable: true, unique: true, transformer: new EncryptionTransformer({
       key: "e41c966f21f9e1577802463f8924e6a3fe3e9751f201304213b2f845d8841d61",

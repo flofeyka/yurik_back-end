@@ -12,7 +12,6 @@ export class AuthGuard implements CanActivate {
 
         try {
             const token = req.cookies.access_token;
-            console.log(token);
 
             if(!token) {
                 throw new UnauthorizedException({message: "Пользователь не авторизован"});

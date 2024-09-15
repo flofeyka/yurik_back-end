@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
 import { AgreementService } from "./agreement.service";
 import { CreateAgreementDto } from "./dtos/create-agreement-dto";
 import { AuthGuard } from "../auth/auth.guard";
@@ -7,6 +7,7 @@ import { AgreementConfirmDto } from "./dtos/agreement-confirm-dto";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { InviteUserDto } from "./dtos/invite-user-dto";
 import { AgreementDto } from "./dtos/agreement-dto";
+import { SmsGuard } from "src/sms/sms.guard";
 
 @ApiTags("Agreement API")
 @Controller("agreement")
@@ -14,16 +15,23 @@ export class AgreementController {
   constructor(private readonly agreementService: AgreementService) {
   }
 
+  @ApiOperation({ summary: "Получение списка пользовательских договоров" })
+  @Get("/")
+  @UseGuards(AuthGuard)
+  async getAgreements(@Req() request: RequestType): Promise<AgreementDto[]> {
+    return this.agreementService.getAgreements(request.user.id);
+  }
+
   @ApiOperation({ summary: "Создание договора" })
   @Post("/create")
-  @UseGuards(AuthGuard)
-  async createAgreement(@Body() agreementDto: CreateAgreementDto, @Req() request: RequestType): Promise<AgreementDto> {
+  @UseGuards(AuthGuard, SmsGuard)
+  async createAgreement(@Body() agreementDto: CreateAgreementDto, @Req() request: RequestType) {
     return this.agreementService.createAgreement(request.user.id, agreementDto);
   }
 
   @ApiOperation({ summary: "Подтверждение участия в договоре" })
   @Post("/confirm/:id")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, SmsGuard)
   async confirmAgreement(@Req() request: RequestType, @Param("id") id: number, @Body() agreementDto: AgreementConfirmDto): Promise<{
     isConfirmed: boolean;
     message: string
@@ -60,15 +68,5 @@ export class AgreementController {
     agreement: AgreementDto
   }> {
     return this.agreementService.enableAgreementAtWork(request.user.id, id);
-  }
-
-  @ApiOperation({ summary: "Отправка СМС-кода для подтверждения участия в договоре" })
-  @Post("/sendCode/:agreementId")
-  @UseGuards(AuthGuard)
-  async sendCode(@Req() request: RequestType, @Param("agreementId") agreementId: number): Promise<{
-    isSent: boolean;
-    message: string
-  }> {
-    return this.agreementService.sendCode(request.user.id, agreementId);
   }
 }

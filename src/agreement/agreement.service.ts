@@ -1,112 +1,104 @@
-import { BadGatewayException, BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { CreateAgreementDto } from "./dtos/create-agreement-dto";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Agreement, Member, MemberData, MemberEntity, Step } from "./entities/agreement.entity";
 import { InsertResult, Repository } from "typeorm";
-import { UserService } from "../user/user.service";
-import * as bcrypt from "bcryptjs";
+import { v4 as uuid } from "uuid";
 import { User } from "../user/user.entity";
+import { UserService } from "../user/user.service";
 import { AgreementDto } from "./dtos/agreement-dto";
+import { CreateAgreementDto } from "./dtos/create-agreement-dto";
+import { Agreement, Step } from "./entities/agreement.entity";
+import { AgreementMember } from "./entities/agreement.member.entity";
+import { AgreementStep } from "./entities/agreement.step.entity";
 
 @Injectable()
 export class AgreementService {
-  constructor(@InjectRepository(Agreement) private readonly agreementRepository: Repository<Agreement>, private readonly userService: UserService) {
+  constructor(
+    @InjectRepository(Agreement) private readonly agreementRepository: Repository<Agreement>,
+    @InjectRepository(User) private readonly usersRepository: Repository<User>,
+    @InjectRepository(AgreementMember) private readonly memberRepository: Repository<AgreementMember>,
+    @InjectRepository(AgreementStep) private readonly stepRepository: Repository<AgreementStep>,
+    private readonly userService: UserService,
+  ) {
   }
 
 
-  async createAgreement(userId: number, agreementDto: CreateAgreementDto): Promise<AgreementDto> {
-    const userData: User = await this.userService.findUser(userId);
+  async getAgreements(userId: number): Promise<AgreementDto[]> {
+    const agreements: Agreement[] = await this.agreementRepository.find({
+      where: {
+        members: {
+          user: {
+            id: userId
+          }
+        }
+      }, relations: {
+        members: {
+          user: true
+        },
+        steps: {
+          user: {
+            user: true
+          }
+        }
+      }
+    });
 
-    const passwordConfirmed: boolean = await bcrypt.compare(agreementDto.password || "123", userData.password);
+    return await Promise.all(agreements.map(async (agreement: Agreement) => new AgreementDto(agreement)));
+  }
 
-    if (!passwordConfirmed) {
-      throw new BadRequestException("Неправильный пароль");
+  async createAgreement(userId: number, agreementDto: CreateAgreementDto) {
+    if(new Date(agreementDto.end) < new Date(agreementDto.start)) {
+      throw new BadRequestException("Дата окончания договора не может быть меньше даты начала.");
+    }
+
+    if(new Date(agreementDto.start) < new Date(Date.now() - 1000 * 60 * 60 * 24)) {
+      throw new BadRequestException("Дата начала договора не может быть меньше текущей даты.");
     }
 
     for (let i of agreementDto.members) {
-      const member: User = await this.userService.findUser(i.id);
+      const member: User = await this.userService.findUser(i.userId);
       if (!member) {
-        throw new NotFoundException(`Пользователь с айди ${i.id} не найден в системе.`);
+        throw new NotFoundException(`Пользователь с айди ${i.userId} не найден в системе.`);
       }
     }
-
+    
     for (let i of agreementDto.steps) {
-      const memberFound: Member = agreementDto.members.find((member: Member) => member.id === i.responsible || member.id === userId);
-      if (!memberFound) {
+      const memberFound = agreementDto.members.find((member) => member.userId === i.userId);
+      if (!memberFound && i.userId !== userId) {
         throw new BadRequestException(`Человек c ответственный за этап "${i.title}" не найден в списке участников.`);
       }
-    }
 
-    if (agreementDto.members.find((member: Member) => member.id === userId)) {
+      if(new Date(i.end) < new Date(i.start)) {
+        throw new BadRequestException(`Ошибка в этапе "${i.title}". Дата окончания этапа не может быть раньше даты начала.`)
+      }
+
+      if(new Date(i.start) < new Date(Date.now() - 1000 * 60 * 60 * 24)) {
+        throw new BadRequestException(`Ошибка в этапе "${i.title}". Дата начала этапа не может быть раньше текущей даты.`);
+      }
+    }
+    
+    if (agreementDto.members.find((member) => member.userId === userId)) {
       throw new BadRequestException("Нельзя заключить договор с самим собой.");
     }
-
+    
+    agreementDto.members.push({
+      userId: userId,
+      status: agreementDto.initiatorStatus
+    });
+    
     //Здесь должно быть условие проверки корректности даты.
 
-    const agreementCreated: InsertResult = await this.agreementRepository.createQueryBuilder().insert().into(Agreement).values(
-      [{
-        ...agreementDto,
-        initiator: userId,
-        members: [
-          {
-            id: userId,
-            status: agreementDto.initiatorStatus,
-            inviteStatus: "Confirmed"
-          },
-          ...agreementDto.members.map((member: Member) => {
-            return { ...member, inviteStatus: "Invited" as "Confirmed" | "Invited" | "Declined" };
-          })
-        ]
-      }]).execute();
-
-    //Прикрепление договора к модели юзера
-
-    if (!agreementCreated) {
-      throw new BadGatewayException("Не удалось создать договор.");
-    }
-
-    const agreementFound = await this.findAgreement(agreementCreated.identifiers[0].id);
-
-    return new AgreementDto({
-      ...agreementFound,
-      members: await this.getMembersData(agreementFound),
-      steps: await this.getStepsData(agreementFound)
+    const agreement = this.agreementRepository.create({
+      ...agreementDto,
+      initiator: userId,
     });
 
-    // const steps = ["Данные каждого этапа и пользовательские данные(Аватарка, ФИО/Название компании)"]
-    // return = new AgreementDto({...newAgreement, ...steps});
 
-  }
+    return await this.agreementRepository.save({
+      ...agreement,
+      members: await Promise.all(agreementDto.members.map(async (member) => await this.addMember(member, agreement))),
+      steps: await Promise.all(agreementDto.steps.map(async (step) => await this.addStep(step, agreement))),
+    })
 
-  async sendCode(userId: number, agreementId: number): Promise<{ isSent: boolean; message: string }> {
-    const agreementFound: Agreement = await this.findAgreement(agreementId);
-
-    const member: MemberEntity = this.findMember(agreementFound, userId);
-
-    if (!member) {
-      throw new BadRequestException("Вы не являетесь участником данного договора.");
-    }
-
-    if (member.inviteStatus === "Confirmed") {
-      throw new BadRequestException("Вы уже подтвердили участие в данном договоре.");
-    }
-
-    await this.agreementRepository.save({
-      ...agreementFound,
-      members: [...agreementFound.members.map((member: MemberEntity) => {
-        if (member.id === userId) {
-          return { ...member, code: this.getRandomCodeValue(100000, 999999) };
-        }
-        return { ...member };
-      })]
-    });
-
-    //После получения доступа к СМС сервису настроить отправку СМС-сообщений
-
-    return {
-      isSent: true,
-      message: "СМС-код был успешно отправлен"
-    };
   }
 
   async confirmAgreement(userId: number, agreementId: number, password: string): Promise<{
@@ -116,24 +108,15 @@ export class AgreementService {
     const user = await this.userService.findUser(userId);
     const agreementFound: Agreement = await this.findAgreement(agreementId);
 
-    const member: MemberEntity = this.findMember(agreementFound, userId);
+    const member = this.findMember(agreementFound, userId);
     if (member.inviteStatus === "Confirmed") {
       throw new BadRequestException("Вы уже подтвердили свое участие в договоре");
     }
 
-    const passwordCompared: boolean = await bcrypt.compare(password, user.password);
-    if (!passwordCompared) {
-      throw new BadRequestException("Неправильный пароль");
-    }
-
-    // if (member.code !== code) {
-    //   throw new BadRequestException("Неправильный код из СМС");
-    // }
-
     await this.agreementRepository.save({
       ...agreementFound,
-      members: [...agreementFound.members.map((member: MemberEntity) => {
-        return { ...member, isConfirmed: member.id === userId };
+      members: [...agreementFound.members.map((member) => {
+        return { ...member, inviteStatus: member.user.id === userId ? "Confirmed" : member.inviteStatus };
       })]
     });
 
@@ -146,13 +129,13 @@ export class AgreementService {
   async declineAgreement(userId: number, agreementId: number): Promise<{ isDeclined: boolean; message: string }> {
     const agreementFound: Agreement = await this.findAgreement(agreementId);
 
-    const member: MemberEntity = this.findMember(agreementFound, userId);
+    const member = this.findMember(agreementFound, userId);
 
-    if (agreementFound.status === "At work" && agreementFound.initiator !== member.id) {
+    if (agreementFound.status === "At work" && agreementFound.initiator !== member.user.id) {
       throw new BadRequestException("Вы не можете разорвать договор если вы не являетесь его инициатором");
     }
 
-    const memberDeleted: Array<MemberEntity> = agreementFound.members.filter(member => member.id !== userId);
+    const memberDeleted = agreementFound.members.filter(member => member.user.id !== userId);
 
     await this.agreementRepository.save({
       ...agreementFound,
@@ -167,7 +150,17 @@ export class AgreementService {
   }
 
   async findAgreement(id: number): Promise<Agreement> {
-    const agreementFound = await this.agreementRepository.findOneBy({ id });
+    const agreementFound = await this.agreementRepository.findOne({ where: {id}, relations: {
+      members: {
+        user: true,
+      },
+      steps: {
+        user: {
+          user: true
+        }
+      }
+    }});
+
     if (!agreementFound) {
       throw new NotFoundException("Договор с этим идентификатором не найден");
     }
@@ -179,12 +172,12 @@ export class AgreementService {
     agreement: AgreementDto
   }> {
     const agreement: Agreement = await this.findAgreement(agreementId);
-    const member: MemberEntity | undefined = this.findMember(agreement, userId);
-    if (agreement.initiator !== member.id) {
+    const member = this.findMember(agreement, userId);
+    if (agreement.initiator !== member.user.id) {
       throw new BadRequestException("Вы не можете включить договор в работу, так как вы не являетесь его инициатором.");
     }
 
-    if (!agreement.members.every(member => member.inviteStatus === "Confirmed")) {
+    if (!agreement.members.every((member: AgreementMember) => member.inviteStatus === "Confirmed")) {
       throw new BadRequestException("Участие в договоре ещё не было подтверждено всеми участниками. Пожалуйста, свяжитесь с ними.");
     }
 
@@ -193,9 +186,10 @@ export class AgreementService {
       status: "At work"
     });
 
+
     return {
       message: "Договор был успешно включён в работу.",
-      agreement: new AgreementDto({ ...agreementAtWork, members: await this.getMembersData(agreementAtWork), steps: await this.getStepsData(agreementAtWork) })
+      agreement: new AgreementDto({ ...agreementAtWork })
     };
 
   }
@@ -208,83 +202,73 @@ export class AgreementService {
     }
 
     this.findMember(agreement, initiatorId);
-    const found = agreement.members.find((member: MemberEntity) => member.id === memberId);
+    const found = agreement.members.find((member) => member.user.id === memberId);
 
-    if(found) {
+    if (found) {
       throw new BadRequestException("Участник уже состоит в договоре");
     }
 
     const user: User = await this.userService.findUser(memberId);
 
-    const agreementSaved: Agreement = await this.agreementRepository.save({
-      ...agreement,
-      members: [...agreement.members, {
-        id: user.id,
-        status,
-        inviteStatus: "Invited"
-      }]
-    });
+    agreement.members.push(await this.addMember({
+      userId: memberId,
+      status
+    }, agreement));
+
+    console.log(agreement);
 
     return {
       isInvited: true,
       message: "Пользователь был успешно приглашен к договору",
-      agreement: new AgreementDto({
-        ...agreementSaved,
-        members: await this.getMembersData(agreementSaved),
-        steps: await this.getStepsData(agreementSaved)
-      })
+      agreement
     };
   }
 
-  async getMembersData(agreement: Agreement): Promise<Array<MemberData>> {
-    return await Promise.all(agreement.members.map(async (member: MemberEntity) => {
-      const memberData: User = await this.userService.findUser(member.id);
+  async addStep(step: Step, agreement: Agreement): Promise<AgreementStep> {
+    const member: AgreementMember = await this.memberRepository.findOne({
+      where: {agreement: agreement}, relations: {
+        user: true
+      }
+    });
 
-      return {
-        id: member.id,
-        fullName: {
-          firstName: memberData.firstName,
-          lastName: memberData.lastName,
-          middleName: memberData.middleName
-        },
-        status: member.status,
-        inviteStatus: member.inviteStatus,
-        email: memberData.email,
-        usersImage: memberData.imageUrl
-      };
-    }));
+
+    const stepCreated: InsertResult = await this.memberRepository.createQueryBuilder().insert().into(AgreementStep).values([{
+      ...step,
+      id: uuid(),
+      user: member,
+    }]).execute();
+
+    return await this.stepRepository.findOne({ where: { id: stepCreated.identifiers[0].id }, relations: {
+      user: {
+        user: true
+      }
+    } });
+
+
   }
 
-  async getStepsData(agreement: Agreement) {
-    return Promise.all(agreement.steps.map(async (step: Step) => {
-      const stepUserData: User = await this.userService.findUser(step.responsible);
+  async addMember(member: { userId: number; status: "client" | "contractor" }, agreement: Agreement): Promise<AgreementMember> {
+    const user: User = await this.userService.findUser(member.userId);
 
-      return {
-        userData: {
-          id: stepUserData.id,
-          fullName: {
-            firstName: stepUserData.firstName,
-            lastName: stepUserData.lastName,
-            middleName: stepUserData.middleName
-          },
-          email: stepUserData.email,
-          image: stepUserData.imageUrl
-        },
-        ...step
-      };
-    }));
+    const agreementCreated: InsertResult = await this.memberRepository.createQueryBuilder().insert().into(AgreementMember).values([{
+      inviteStatus: "Invited",
+      id: uuid(),
+      agreement,
+      user,
+      ...member,
+    }]).execute();
+    return await this.memberRepository.findOne({ where: { id: agreementCreated.identifiers[0].id }, relations: {
+      user: true
+    }});
   }
 
-  private findMember(agreement: Agreement, userId: number): MemberEntity {
-    const member = agreement.members.find((member: MemberEntity) => member.id === userId);
+
+  private findMember(agreement: Agreement, userId: number): AgreementMember {
+    const member: AgreementMember = agreement.members.find((member) => member.user.id === userId);
     if (!member) {
       throw new NotFoundException(`Пользователь с id ${userId} не найден в списке участников договора`);
     }
 
     return member;
-  }
-
-  public getRandomCodeValue(min: number, max: number) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 }

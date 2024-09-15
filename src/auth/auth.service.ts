@@ -7,37 +7,44 @@ import { AuthToken, AuthTokenPayload } from "./authToken.entity";
 import { UserService } from "src/user/user.service";
 import { CreateUserDto } from "src/user/dtos/create-user-dto";
 import { LoginDto } from "./dtos/login-dto";
-import * as bcrypt from "bcryptjs";
 import { UserDto } from "src/user/dtos/user-dto";
+import { SmsService } from "src/sms/sms.service";
 
 export interface tokenAndUserType {
   token: string;
-  user: UserDto
+  user: UserDto;
 }
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectRepository(User) private readonly usersRepository: Repository<User>, private readonly userService: UserService, private readonly jwtService: JwtService, @InjectRepository(AuthToken) private readonly tokenRepository: Repository<AuthToken>) {
+  constructor(
+    @InjectRepository(User) private readonly usersRepository: Repository<User>, 
+    @InjectRepository(AuthToken) private readonly tokenRepository: Repository<AuthToken>,
+    private readonly userService: UserService, 
+    private readonly jwtService: JwtService, 
+    private readonly smsService: SmsService
+  ) {
   }
 
   async signUp(userDto: CreateUserDto): Promise<tokenAndUserType> {
     const existingUser: User | undefined = await this.usersRepository.findOne({
-      where: {
-        phoneNumber: userDto.phoneNumber,
-        telegramID: userDto.telegramID
-      }
+      where: [
+        {phoneNumber: userDto.phoneNumber},
+        {telegramID: userDto.telegramID}      
+      ], 
     });
-    if (existingUser && existingUser.phoneNumber) {
-      throw new BadRequestException("Номер телефона уже зарегистрирован.");
+
+    console.log(existingUser);
+    
+    if (existingUser) {
+        throw new BadRequestException("Телеграм аккаунт или номер телефона уже зарегистрированы.");
     }
 
-    if (existingUser && existingUser.telegramID) {
-      throw new BadRequestException("Телеграм аккаунт уже зарегистрирован.");
+    if(userDto.phoneNumber.length !== 11) {
+      throw new BadRequestException("Неверный номер телефона");
     }
 
-    const passwordSalt: string = await bcrypt.genSalt(10);
-    const passwordHash: string = await bcrypt.hash(userDto.password, passwordSalt);
-    const newUser: User = await this.userService.createUser({ ...userDto, password: passwordHash });
+    const newUser: User = await this.userService.createUser({ ...userDto });
     const token: string = await this.generateToken(newUser);
 
     return {
@@ -47,20 +54,18 @@ export class AuthService {
   }
 
   async signIn(loginDto: LoginDto): Promise<tokenAndUserType> {
-    const { phoneNumber, password }: { phoneNumber: string; password: string } = loginDto;
+    const { phoneNumber }: { phoneNumber: string } = loginDto;
 
-    const existingUser: User = await this.usersRepository.findOne({ where: { phoneNumber } });
+    if(phoneNumber.length !== 11) {
+      throw new BadRequestException("Неправильный формат номера телефона. Телефон должен выглядеть так: 79999999999");
+    }
+
+    const existingUser: User = await this.usersRepository.findOneBy({ phoneNumber });
 
     if (!existingUser) {
-      throw new UnauthorizedException("Неправильный номер телефона или пароль");
+      throw new UnauthorizedException("Неправильный номер телефона");
     }
-
-    const passwordCompared: boolean = await bcrypt.compare(password, existingUser.password);
-
-    if (!passwordCompared) {
-      throw new UnauthorizedException("Неправильный номер телефона или пароль");
-    }
-
+    
     const token: string = await this.generateToken(existingUser);
 
     return {

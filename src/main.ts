@@ -7,6 +7,10 @@ import * as cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix("/api")
+  app.enableCors({
+    origin: true,
+    credentials: true
+  })
 
   const config = new DocumentBuilder()
     .setTitle("Yurik API Documentation")
@@ -18,7 +22,7 @@ async function bootstrap() {
   SwaggerModule.setup("/api/docs", app, document);
 
   app.use(cookieParser());
-  app.useGlobalPipes(new ValidationPipe({skipMissingProperties: true, skipUndefinedProperties: true}));
+  app.useGlobalPipes(new ValidationPipe({skipNullProperties: true}));
   await app.listen(3000);
 }
 bootstrap();

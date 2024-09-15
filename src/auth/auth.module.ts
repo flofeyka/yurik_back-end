@@ -6,18 +6,20 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthToken } from './authToken.entity';
 import { UserModule } from 'src/user/user.module';
+import { SmsModule } from 'src/sms/sms.module';
 
 @Global()
 @Module({
     imports: [
         UserModule,
+        SmsModule,
         JwtModule.register({
             global: true,
             secret: `${process.env.JWT_SECRET}`,
             signOptions: {
                 expiresIn: '14d'
             }
-        }), TypeOrmModule.forFeature([User]), TypeOrmModule.forFeature([AuthToken])],
+        }), TypeOrmModule.forFeature([User, AuthToken])],
     controllers: [AuthController],
     providers: [AuthService],
     exports: [JwtModule, AuthService],

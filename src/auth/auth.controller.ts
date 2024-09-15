@@ -1,10 +1,11 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Res } from "@nestjs/common";
+import { Body, Controller, HttpCode, HttpStatus, Post, Query, Res, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CreateUserDto } from "src/user/dtos/create-user-dto";
 import { LoginDto } from "./dtos/login-dto";
 import { UserDto } from "../user/dtos/user-dto";
 import { Response } from "express";
+import { SmsGuard } from "src/sms/sms.guard";
 
 
 @ApiTags("Auth API")
@@ -17,13 +18,10 @@ export class AuthController {
   @ApiOperation({ summary: "Регистрация пользователя в системе" })
   @ApiResponse({
     example: {
-      token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZmlyc3ROYW1lIjoi0JzQsNC60YHQuNC8IiwibGFzdE5hbWUiOiLQnNCw0LrRgdCx0LXRgtC-0LIiLCJtaWRkbGVOYW1lIjoi0KLQsNCz0LjRgNC-0LLQuNGHIn0.CXGuFj9yUwDaQdGsl3aO3dYwKpqQEEd2fsSqv_FsjXI",
-      user: {
         id: 1,
         lastName: "Максбетов",
         phoneNumber: "+79123456789",
         telegramID: 135462
-      }
     }, status: HttpStatus.CREATED
   })
   @ApiResponse({
@@ -42,6 +40,7 @@ export class AuthController {
   })
   @HttpCode(HttpStatus.CREATED)
   @Post("/signup")
+  @UseGuards(SmsGuard)
   async signUp(@Body() userDto: CreateUserDto, @Res({ passthrough: true }) response: Response): Promise<UserDto> {
     const result = await this.authService.signUp(userDto);
     response.cookie("access_token", result.token);
@@ -52,17 +51,15 @@ export class AuthController {
   @ApiOperation({ summary: "Авторизация существующего пользователя в системе" })
   @ApiResponse({
     example: {
-      token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZmlyc3ROYW1lIjoi0JzQsNC60YHQuNC8IiwibGFzdE5hbWUiOiLQnNCw0LrRgdCx0LXRgtC-0LIiLCJtaWRkbGVOYW1lIjoi0KLQsNCz0LjRgNC-0LLQuNGHIn0.CXGuFj9yUwDaQdGsl3aO3dYwKpqQEEd2fsSqv_FsjXI",
-      user: {
         id: 1,
         lastName: "Максбетов",
         phoneNumber: 79123456789,
         telegramID: 135462
-      }
     }, status: HttpStatus.OK
   })
   @HttpCode(HttpStatus.OK)
   @Post("/signin")
+  @UseGuards(SmsGuard)
   async signIn(@Body() loginDto: LoginDto, @Res({passthrough: true}) response: Response): Promise<UserDto> {
     const result = await this.authService.signIn(loginDto);
     response.cookie("access_token", result.token);

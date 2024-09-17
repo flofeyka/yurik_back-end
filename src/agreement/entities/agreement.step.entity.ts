@@ -13,7 +13,7 @@ export class AgreementStep {
     @Column()
     title: string;
 
-    @Column('varchar', {array: true})
+    @Column('varchar', {array: true, nullable: true})
     images: Array<string>;
 
     @ManyToOne(() => AgreementMember, (agreementMember: AgreementMember) => agreementMember.agreement, {nullable: true})

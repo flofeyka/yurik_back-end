@@ -6,6 +6,10 @@ export class CreateAgreementDto {
   @IsString()
   readonly title: string;
 
+  @ApiProperty({ title: "Содержание договора", example: "Настоящим договором..."})
+  @IsString()
+  readonly text: string;
+
   // @ApiProperty({title: "Временные детали договора"})
   // @IsString()
   // status: "At work" | "Declined" | "At a lawyer"
@@ -15,6 +19,7 @@ export class CreateAgreementDto {
   // readonly text: string;
 
   @ApiProperty({title: "Статус инициатора в договоре", example: "client"})
+  @IsString()
   readonly initiatorStatus: "client" | "contractor";
 
   @ApiProperty({ title: "Стоимость услуг", example: 15000 })
@@ -23,7 +28,7 @@ export class CreateAgreementDto {
 
   @ApiProperty({title: "Участники договора", example: [
       {
-        id: 1,
+        userId: 1,
         status: "client"
       }
     ]})

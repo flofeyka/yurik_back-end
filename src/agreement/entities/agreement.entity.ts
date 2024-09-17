@@ -1,5 +1,5 @@
 import { Chat } from "src/chat/entities/chat.entity";
-import { Column, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Collection, Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { AgreementMember } from "./agreement.member.entity";
 import { AgreementStep } from "./agreement.step.entity";
 import { Lawyer } from "./agreement.lawyer.entity";
@@ -45,6 +45,9 @@ export class Agreement {
 
   @ManyToOne(() => Lawyer, (lawyer: Lawyer) => lawyer.agreements, {nullable: true})
   public lawyer: Lawyer;
+
+  @Column('varchar', {array: true, nullable: true})
+  public images: Array<string>;
 
   @Column()
   public start: Date;

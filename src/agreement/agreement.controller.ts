@@ -101,7 +101,7 @@ export class AgreementController {
   @UseGuards(AuthGuard, SmsGuard, AgreementGuard)
   async confirmAgreement(@Req() request: RequestType, @Param("id") id: number, @Body() agreementDto: AgreementConfirmDto): Promise<{
     isConfirmed: boolean;
-    message: string
+    message: string;
   }> {
     return this.agreementService.confirmAgreement(request.user.id, request.agreement, agreementDto.password);
   }

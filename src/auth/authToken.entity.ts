@@ -1,3 +1,4 @@
+import { User } from "src/user/user.entity";
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, RelationId, Unique } from "typeorm";
 import { EncryptionTransformer } from "typeorm-encrypted";
 
@@ -13,8 +14,9 @@ export class AuthToken {
     @PrimaryGeneratedColumn()
     public readonly id: number;
 
-    @Column()
-    public readonly userId: number;
+    @OneToOne(() => User)
+    @JoinColumn()
+    public readonly user: User;
 
     @Column({
         unique: true, transformer: new EncryptionTransformer({

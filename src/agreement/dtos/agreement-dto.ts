@@ -30,7 +30,6 @@ export class AgreementDto {
           lastName: member.user.lastName,
           middleName: member.user.middleName,
           image: member.user.imageUrl,
-          
         }
       })]
     });

@@ -15,6 +15,7 @@ import { AgreementMember } from './agreement/entities/agreement.member.entity';
 import { AgreementStep } from './agreement/entities/agreement.step.entity';
 import { SmsModule } from './sms/sms.module';
 import { Sms } from './sms/sms.entity';
+import { Lawyer } from './agreement/entities/agreement.lawyer.entity';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { Sms } from './sms/sms.entity';
       password: process.env.POSTGRES_PASSWORD,
       port: Number(process.env.POSTGRES_PORT),
       username: process.env.POSTGRES_USER,
-      entities: [User, AuthToken, Agreement, Chat, Message, AgreementMember, AgreementStep, Sms],
+      entities: [User, AuthToken, Agreement, Chat, Message, AgreementMember, AgreementStep, Lawyer, Sms],
       synchronize: true,
       autoLoadEntities: true
     }),

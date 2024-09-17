@@ -60,9 +60,9 @@ export class SmsService {
             throw new UnauthorizedException("Смс код истек");
         }
 
-        if(smsFound.used) {
-            throw new UnauthorizedException("Смс код уже был использован. Пожалуйста, отправьте новый.");
-        }
+        // if(smsFound.used) {
+        //     throw new UnauthorizedException("Смс код уже был использован. Пожалуйста, отправьте новый.");
+        // }
 
         await this.smsRepository.update(smsFound.id, {
             used: true
@@ -71,7 +71,7 @@ export class SmsService {
         return true;
     }
 
-    public getRandomCodeValue(min: number = 100000, max: number = 999999): Number {
+    private getRandomCodeValue(min: number = 100000, max: number = 999999): Number {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 }

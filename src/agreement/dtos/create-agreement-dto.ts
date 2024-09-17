@@ -62,8 +62,7 @@ export class CreateAgreementDto {
     comment: string | null,
     start: Date,
     end: Date
-  }>;
-
+  }>;  
   
   @IsDateString()
   @ApiProperty({ title: "Дата начала действия договора", example: "2023-12-12" })

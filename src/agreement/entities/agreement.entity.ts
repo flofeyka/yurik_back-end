@@ -1,8 +1,8 @@
 import { Chat } from "src/chat/entities/chat.entity";
-import { User } from "src/user/user.entity";
-import { Column, Entity, JoinColumn, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { AgreementMember } from "./agreement.member.entity";
 import { AgreementStep } from "./agreement.step.entity";
+import { Lawyer } from "./agreement.lawyer.entity";
 
 export interface Step {
   title: string;
@@ -35,13 +35,16 @@ export class Agreement {
   public chat: Chat;
 
   @Column({ default: "In confirm process" })
-  public status: "At work" | "Declined" | "At a lawyer" | "In confirm process";
+  public status: "At work" | "Declined" | "At a lawyer" | "Looking for a lawyer" | "In confirm process";
 
   @Column({ type: "float" })
   public price: number;
 
   @OneToMany(() => AgreementStep, (step: AgreementStep) => step.agreement, {cascade: true})
   public steps: AgreementStep[];
+
+  @ManyToOne(() => Lawyer, (lawyer: Lawyer) => lawyer.agreements, {nullable: true})
+  public lawyer: Lawyer;
 
   @Column()
   public start: Date;

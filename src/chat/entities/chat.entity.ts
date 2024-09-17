@@ -1,6 +1,7 @@
 import { Agreement } from "src/agreement/entities/agreement.entity";
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Message } from "./chat.message.entity";
+import { User } from "src/user/user.entity";
 
 @Entity({name: 'chat'})
 export class Chat {
@@ -8,10 +9,11 @@ export class Chat {
     id: number;
 
     @OneToOne(() => Agreement, (agreement: Agreement) => agreement.chat)
+    @JoinColumn()
     agreement: Agreement;
 
     @OneToMany(() => Message, (message: Message) => message.chat, {
         cascade: true, nullable: true
     })
-    messages: Message[]
+    messages: Message[];
 }

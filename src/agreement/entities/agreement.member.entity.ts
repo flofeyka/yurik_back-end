@@ -16,7 +16,7 @@ export class AgreementMember {
     agreement: Agreement;
 
     @Column()
-    status: "client" | "contractor";
+    status: "client" | "contractor" | "lawyer";
 
     @Column()
     inviteStatus: "Confirmed" | "Invited" | "Declined";

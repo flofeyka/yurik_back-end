@@ -8,9 +8,11 @@ import { User } from "../user/user.entity";
 import { AgreementMember } from './entities/agreement.member.entity';
 import { AgreementStep } from './entities/agreement.step.entity';
 import { SmsModule } from 'src/sms/sms.module';
+import { Lawyer } from './entities/agreement.lawyer.entity';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Agreement, User, AgreementMember, AgreementStep]), UserModule, SmsModule],
+  imports: [TypeOrmModule.forFeature([Agreement, User, AgreementMember, AgreementStep, Lawyer]), UserModule, SmsModule, HttpModule],
   controllers: [AgreementController],
   providers: [AgreementService]
 })

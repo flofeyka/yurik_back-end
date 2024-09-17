@@ -9,14 +9,17 @@ import { CreateAgreementDto } from "./dtos/create-agreement-dto";
 import { Agreement, Step } from "./entities/agreement.entity";
 import { AgreementMember } from "./entities/agreement.member.entity";
 import { AgreementStep } from "./entities/agreement.step.entity";
+import { Lawyer } from "./entities/agreement.lawyer.entity";
+import { HttpService } from "@nestjs/axios";
 
 @Injectable()
 export class AgreementService {
   constructor(
     @InjectRepository(Agreement) private readonly agreementRepository: Repository<Agreement>,
-    @InjectRepository(User) private readonly usersRepository: Repository<User>,
     @InjectRepository(AgreementMember) private readonly memberRepository: Repository<AgreementMember>,
     @InjectRepository(AgreementStep) private readonly stepRepository: Repository<AgreementStep>,
+    @InjectRepository(Lawyer) private readonly lawyerRepository: Repository<Lawyer>,
+    private readonly httpService: HttpService,
     private readonly userService: UserService,
   ) {
   }
@@ -42,10 +45,115 @@ export class AgreementService {
       }
     });
 
-    return await Promise.all(agreements.map(async (agreement: Agreement) => new AgreementDto(agreement)));
+    return agreements.map((agreement: Agreement) => new AgreementDto(agreement));
+  }
+
+  async sendToLawyer(userId: number, agreement: Agreement) {
+    if(agreement.initiator !== userId) {
+      throw new BadRequestException("Вы не можете пригласить юриста в договор, так как не являетесь его инициатором.")
+    }
+
+    if(agreement.status === "Declined")  {
+      throw new BadRequestException("Вы не можете пригласить юриста в отклоненный договор");
+    }
+
+    if(agreement.status === "At a lawyer") {
+      throw new BadRequestException("Договор уже находится на рассмотрении у юриста.");
+    }
+
+    if(agreement.status === "Looking for a lawyer") {
+      throw new BadRequestException("Договор уже в списке очереди у юриста.")
+    }
+
+    await this.agreementRepository.save({
+      ...agreement,
+      status: "Looking for a lawyer"
+    });
+
+    return true;
+  }
+
+  async getLawyerAgreements() {
+    const agreements: Agreement[] = await this.agreementRepository.find({
+      where: {
+        status: "Looking for a lawyer"
+      },
+      relations: {
+        members: {
+          user: true,
+        },
+        steps: {
+          user: true
+        }
+      }
+    })
+
+    return agreements.map((agreement: Agreement) => new AgreementDto(agreement));
+  }
+
+  async takeLawyerAgreement(lawyer: Lawyer, agreementId: number) {
+    const agreement: Agreement = await this.agreementRepository.findOne({
+      where: {
+        id: agreementId
+      },
+      relations: {
+        members: {
+          user: true
+        },
+      }
+    })
+
+    if(agreement.members.find((member: AgreementMember) => member.user.id === lawyer.user.id)) {
+      throw new BadRequestException("Вы не можете взять данный договор в работу т.к. вы являетесь его стороной");
+    }
+
+    if(agreement.lawyer && agreement.status === "At a lawyer") {
+      throw new BadRequestException("Вы не можете принять договор, так как он уже находится на рассмотрении у юриста.");
+    }
+
+    if(agreement.status !== "Looking for a lawyer") {
+      throw new BadRequestException("Вы не можете взять договор в работу, так как он не искал юриста.");
+    }
+
+    await this.lawyerRepository.update({
+      id: lawyer.user.id, 
+    }, {
+      agreements: [...lawyer.agreements, agreement]
+    });
+
+    await this.agreementRepository.update({
+      id: agreementId
+    }, {
+      status: "At a lawyer",
+      lawyer: lawyer
+    });
+
+    return {
+      message: "Вы успешно взяли договор в работу.",
+      success: true
+    }
+  }
+
+  async createLawyer(userId: number) {
+    const user = await this.userService.findUser(userId);
+
+    const lawyer = await this.lawyerRepository.findOne({
+      where: {
+        user: {
+          id: userId
+        }
+      }
+    })
+
+    if(lawyer) {
+      throw new BadRequestException("Вы уже являетесь юристом.");
+    }
+
+    return await this.lawyerRepository.save({user});
   }
 
   async createAgreement(userId: number, agreementDto: CreateAgreementDto) {
+    const user = await this.userService.findUser(userId);
     if(new Date(agreementDto.end) < new Date(agreementDto.start)) {
       throw new BadRequestException("Дата окончания договора не может быть меньше даты начала.");
     }
@@ -84,38 +192,43 @@ export class AgreementService {
       userId: userId,
       status: agreementDto.initiatorStatus
     });
+  
     
-    //Здесь должно быть условие проверки корректности даты.
-
     const agreement = this.agreementRepository.create({
       ...agreementDto,
       initiator: userId,
     });
 
 
-    return await this.agreementRepository.save({
+    const agreementCreated = await this.agreementRepository.save({
       ...agreement,
       members: await Promise.all(agreementDto.members.map(async (member) => await this.addMember(member, agreement))),
       steps: await Promise.all(agreementDto.steps.map(async (step) => await this.addStep(step, agreement))),
-    })
+    });
+
+    Promise.all(agreementCreated.members.map((member: AgreementMember) => {
+      return this.httpService.post("https://rafailvv.online/send/message", {
+        userId: member.user.telegramID,
+        message: `Вам пришло новое уведомление:\n Вас пригласили в договор "${agreementCreated.title}"`
+      })
+    }))
+
+    return agreementCreated;
 
   }
 
-  async confirmAgreement(userId: number, agreementId: number, password: string): Promise<{
+  async confirmAgreement(userId: number, agreement: Agreement, password: string): Promise<{
     isConfirmed: boolean;
     message: string
   }> {
-    const user = await this.userService.findUser(userId);
-    const agreementFound: Agreement = await this.findAgreement(agreementId);
-
-    const member = this.findMember(agreementFound, userId);
+    const member = this.findMember(agreement, userId);
     if (member.inviteStatus === "Confirmed") {
       throw new BadRequestException("Вы уже подтвердили свое участие в договоре");
     }
 
     await this.agreementRepository.save({
-      ...agreementFound,
-      members: [...agreementFound.members.map((member) => {
+      ...agreement,
+      members: [...agreement.members.map((member) => {
         return { ...member, inviteStatus: member.user.id === userId ? "Confirmed" : member.inviteStatus };
       })]
     });
@@ -126,19 +239,15 @@ export class AgreementService {
     };
   }
 
-  async declineAgreement(userId: number, agreementId: number): Promise<{ isDeclined: boolean; message: string }> {
-    const agreementFound: Agreement = await this.findAgreement(agreementId);
-
-    const member = this.findMember(agreementFound, userId);
-
-    if (agreementFound.status === "At work" && agreementFound.initiator !== member.user.id) {
+  async declineAgreement(userId: number, agreement: Agreement): Promise<{ isDeclined: boolean; message: string }> {
+    if (agreement.status === "At work" && agreement.initiator !== userId) {
       throw new BadRequestException("Вы не можете разорвать договор если вы не являетесь его инициатором");
     }
 
-    const memberDeleted = agreementFound.members.filter(member => member.user.id !== userId);
+    const memberDeleted = agreement.members.filter(member => member.user.id !== userId);
 
     await this.agreementRepository.save({
-      ...agreementFound,
+      ...agreement,
       members: memberDeleted,
       status: memberDeleted.length < 2 || memberDeleted.every(member => member.status === "client") ? "Declined" : "In confirm process"
     });
@@ -167,11 +276,10 @@ export class AgreementService {
     return agreementFound;
   }
 
-  async enableAgreementAtWork(userId: number, agreementId: number): Promise<{
+  async enableAgreementAtWork(userId: number, agreement: Agreement): Promise<{
     message: string;
     agreement: AgreementDto
   }> {
-    const agreement: Agreement = await this.findAgreement(agreementId);
     const member = this.findMember(agreement, userId);
     if (agreement.initiator !== member.user.id) {
       throw new BadRequestException("Вы не можете включить договор в работу, так как вы не являетесь его инициатором.");
@@ -194,28 +302,27 @@ export class AgreementService {
 
   }
 
-  async inviteNewMember(initiatorId: number, memberId: number, status: "client" | "contractor", agreementId: number) {
-    const agreement: Agreement = await this.findAgreement(agreementId);
-
+  async inviteNewMember(initiatorId: number, memberId: number, status: "client" | "contractor", agreement: Agreement) {
     if (agreement.status === "At work") {
       throw new BadRequestException("Вы не можете добавить нового участника в уже подписанный договор.");
     }
 
     this.findMember(agreement, initiatorId);
     const found = agreement.members.find((member) => member.user.id === memberId);
+    
+    if(found && found.inviteStatus === "Declined") {
+      throw new BadRequestException("Участник уже отказался от участия в договоре");
+    }
 
     if (found) {
       throw new BadRequestException("Участник уже состоит в договоре");
     }
 
-    const user: User = await this.userService.findUser(memberId);
 
     agreement.members.push(await this.addMember({
       userId: memberId,
       status
     }, agreement));
-
-    console.log(agreement);
 
     return {
       isInvited: true,

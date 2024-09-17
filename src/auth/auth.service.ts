@@ -83,7 +83,7 @@ export class AuthService {
 
     const token: string = this.jwtService.sign(payload);
 
-    const existingToken: AuthToken = await this.tokenRepository.findOne({ where: { userId: payload.id } });
+    const existingToken: AuthToken = await this.tokenRepository.findOne({ where: { user } });
 
     if (existingToken) {
       const tokenCreated: AuthToken = await this.tokenRepository.save({
@@ -96,7 +96,7 @@ export class AuthService {
     }
 
     const tokenCreated: InsertResult = await this.tokenRepository.createQueryBuilder().insert().into(AuthToken).values([{
-      userId: user.id,
+      user,
       token
     }]).execute();
 

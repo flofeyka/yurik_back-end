@@ -103,9 +103,9 @@ export class AgreementService {
       }
     })
 
-    if(agreement.members.find((member: AgreementMember) => member.user.id === lawyer.user.id)) {
-      throw new BadRequestException("Вы не можете взять данный договор в работу т.к. вы являетесь его стороной");
-    }
+    // if(agreement.members.find((member: AgreementMember) => member.user.id === lawyer.user.id)) {
+    //   throw new BadRequestException("Вы не можете взять данный договор в работу т.к. вы являетесь его стороной");
+    // }
 
     if(agreement.lawyer && agreement.status === "At a lawyer") {
       throw new BadRequestException("Вы не можете принять договор, так как он уже находится на рассмотрении у юриста.");
@@ -115,9 +115,8 @@ export class AgreementService {
       throw new BadRequestException("Вы не можете взять договор в работу, так как он не искал юриста.");
     }
 
-    await this.lawyerRepository.update({
-      id: lawyer.user.id, 
-    }, {
+    await this.lawyerRepository.save({
+      ...lawyer,
       agreements: [...lawyer.agreements, agreement]
     });
 
@@ -157,11 +156,11 @@ export class AgreementService {
     if(new Date(agreementDto.end) < new Date(agreementDto.start)) {
       throw new BadRequestException("Дата окончания договора не может быть меньше даты начала.");
     }
-
+    
     if(new Date(agreementDto.start) < new Date(Date.now() - 1000 * 60 * 60 * 24)) {
       throw new BadRequestException("Дата начала договора не может быть меньше текущей даты.");
     }
-
+    
     for (let i of agreementDto.members) {
       const member: User = await this.userService.findUser(i.userId);
       if (!member) {
@@ -174,11 +173,11 @@ export class AgreementService {
       if (!memberFound && i.userId !== userId) {
         throw new BadRequestException(`Человек c ответственный за этап "${i.title}" не найден в списке участников.`);
       }
-
+      
       if(new Date(i.end) < new Date(i.start)) {
         throw new BadRequestException(`Ошибка в этапе "${i.title}". Дата окончания этапа не может быть раньше даты начала.`)
       }
-
+      
       if(new Date(i.start) < new Date(Date.now() - 1000 * 60 * 60 * 24)) {
         throw new BadRequestException(`Ошибка в этапе "${i.title}". Дата начала этапа не может быть раньше текущей даты.`);
       }
@@ -188,11 +187,11 @@ export class AgreementService {
       throw new BadRequestException("Нельзя заключить договор с самим собой.");
     }
     
+    
     agreementDto.members.push({
       userId: userId,
       status: agreementDto.initiatorStatus
     });
-  
     
     const agreement = this.agreementRepository.create({
       ...agreementDto,
@@ -267,6 +266,9 @@ export class AgreementService {
         user: {
           user: true
         }
+      },
+      lawyer: {
+        user: true
       }
     }});
 
@@ -333,15 +335,18 @@ export class AgreementService {
 
   async addStep(step: Step, agreement: Agreement): Promise<AgreementStep> {
     const member: AgreementMember = await this.memberRepository.findOne({
-      where: {agreement: agreement}, relations: {
-        user: true
+      where: {agreement: {
+        id: agreement.id
+      }}, relations: {
+        user: true,
+        agreement: true
       }
     });
 
 
     const stepCreated: InsertResult = await this.memberRepository.createQueryBuilder().insert().into(AgreementStep).values([{
-      ...step,
       id: uuid(),
+      ...step,
       user: member,
     }]).execute();
 
@@ -358,12 +363,13 @@ export class AgreementService {
     const user: User = await this.userService.findUser(member.userId);
 
     const agreementCreated: InsertResult = await this.memberRepository.createQueryBuilder().insert().into(AgreementMember).values([{
+      ...member,
       inviteStatus: "Invited",
       id: uuid(),
       agreement,
       user,
-      ...member,
     }]).execute();
+
     return await this.memberRepository.findOne({ where: { id: agreementCreated.identifiers[0].id }, relations: {
       user: true
     }});

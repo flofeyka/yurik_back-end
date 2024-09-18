@@ -39,13 +39,16 @@ export class AgreementService {
         },
         steps: {
           user: {
-            user: true
+            user: true,
           }
         }
       }
     });
 
+    console.log(agreements[0].steps[0].user);
+
     return agreements.map((agreement: Agreement) => new AgreementDto(agreement));
+
   }
 
   async sendToLawyer(userId: number, agreement: Agreement) {
@@ -304,7 +307,8 @@ export class AgreementService {
 
   }
 
-  async inviteNewMember(initiatorId: number, memberId: number, status: "client" | "contractor", agreement: Agreement) {
+  async inviteNewMember(initiatorId: number, memberId: number, status: "client" | "contractor", agreement: Agreement): 
+  Promise<{isInvited: boolean; message: string; agreement: AgreementDto}> {
     if (agreement.status === "At work") {
       throw new BadRequestException("Вы не можете добавить нового участника в уже подписанный договор.");
     }
@@ -329,7 +333,7 @@ export class AgreementService {
     return {
       isInvited: true,
       message: "Пользователь был успешно приглашен к договору",
-      agreement
+      agreement: new AgreementDto(agreement)
     };
   }
 

@@ -28,7 +28,7 @@ export class User {
   public readonly phoneNumber: string;
 
   @ApiProperty({ title: "ID Telegram", example: 312531 })
-  @Column({ nullable: false })
+  @Column({ nullable: true, type: "bigint" })
   public readonly telegramID: number;
 
   @Column({ nullable: true, type: "date" })

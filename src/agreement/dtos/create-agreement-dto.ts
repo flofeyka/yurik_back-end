@@ -30,14 +30,6 @@ export class CreateAgreementDto {
     status: "client" | "contractor"
   }>
 
-  // @ApiProperty({ title: "Айди заказчика", example: 123 })
-  // @IsNumber()
-  // readonly client: number;
-  //
-  // @ApiProperty({ title: "Айди исполнителя", example: 321 })
-  // @IsNumber()
-  // readonly contractor: number;
-
   @ApiProperty({
     title: "Этапы выполнения", example: [
       {

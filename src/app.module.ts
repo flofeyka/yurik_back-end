@@ -16,6 +16,8 @@ import { AgreementStep } from './agreement/entities/agreement.step.entity';
 import { SmsModule } from './sms/sms.module';
 import { Sms } from './sms/sms.entity';
 import { Lawyer } from './agreement/entities/agreement.lawyer.entity';
+import { AppService } from './app.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -40,7 +42,10 @@ import { Lawyer } from './agreement/entities/agreement.lawyer.entity';
     GigachatModule,
     AgreementModule,
     ChatModule,
-    SmsModule
+    SmsModule,
+    HttpModule
     ],
+    exports: [AppService],
+    providers: [AppService]
 })
 export class AppModule { }

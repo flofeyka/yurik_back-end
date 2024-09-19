@@ -45,7 +45,6 @@ export class AgreementStepDto {
   }
 
 }
-//Доделать информацию подающуяся на выходе.
 export class AgreementDto {
   public id: number;
   public title: string;

@@ -11,6 +11,7 @@ import { AgreementMember } from "./entities/agreement.member.entity";
 import { AgreementStep } from "./entities/agreement.step.entity";
 import { Lawyer } from "./entities/agreement.lawyer.entity";
 import { HttpService } from "@nestjs/axios";
+import { AppService } from "src/app.service";
 
 @Injectable()
 export class AgreementService {
@@ -21,6 +22,7 @@ export class AgreementService {
     @InjectRepository(Lawyer) private readonly lawyerRepository: Repository<Lawyer>,
     private readonly httpService: HttpService,
     private readonly userService: UserService,
+    private readonly appService: AppService
   ) {
   }
 
@@ -106,9 +108,9 @@ export class AgreementService {
       }
     })
 
-    // if(agreement.members.find((member: AgreementMember) => member.user.id === lawyer.user.id)) {
-    //   throw new BadRequestException("Вы не можете взять данный договор в работу т.к. вы являетесь его стороной");
-    // }
+    if(agreement.members.find((member: AgreementMember) => member.user.id === lawyer.user.id)) {
+      throw new BadRequestException("Вы не можете взять данный договор в работу т.к. вы являетесь его стороной");
+    }
 
     if(agreement.lawyer && agreement.status === "At a lawyer") {
       throw new BadRequestException("Вы не можете принять договор, так как он уже находится на рассмотрении у юриста.");
@@ -207,20 +209,7 @@ export class AgreementService {
       steps: await Promise.all(agreementDto.steps.map(async (step) => await this.addStep(step, agreement))),
     });
 
-    Promise.all(agreementCreated.members.map(async (member: AgreementMember) => {
-      try {
-        if(member.user.telegramID) {
-          const response = await this.httpService.axiosRef.post("https://rafailvv.online/send/message", {
-            user_id: member.user.telegramID,
-            message_text: `Вам пришло новое уведомление:\n${agreementCreated.members.find(member => member.user.id === agreementCreated.initiator).user.firstName} пригласил Вас в "${agreementCreated.title}"`
-          })
-    
-          return response.data;
-        }
-      } catch(e) {
-        console.log(e);
-      }
-    }))
+    Promise.all(agreementCreated.members.map(async (member: AgreementMember) => await this.appService.sendNotification(`${agreementCreated.members.find(member => member.user.id === agreementCreated.initiator).user.firstName} пригласил Вас в "${agreementCreated.title}`, member.user.telegramID)));
 
     return agreementCreated;
 

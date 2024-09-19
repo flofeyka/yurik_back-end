@@ -40,7 +40,7 @@ export class AuthController {
   })
   @HttpCode(HttpStatus.CREATED)
   @Post("/signup")
-  // @UseGuards(SmsGuard)
+  @UseGuards(SmsGuard)
   async signUp(@Body() userDto: CreateUserDto, @Res({ passthrough: true }) response: Response): Promise<UserDto> {
     const result = await this.authService.signUp(userDto);
     response.cookie("access_token", result.token);

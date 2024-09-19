@@ -1,8 +1,8 @@
 import { Chat } from "src/chat/entities/chat.entity";
-import { Collection, Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Lawyer } from "./agreement.lawyer.entity";
 import { AgreementMember } from "./agreement.member.entity";
 import { AgreementStep } from "./agreement.step.entity";
-import { Lawyer } from "./agreement.lawyer.entity";
 
 export interface Step {
   title: string;

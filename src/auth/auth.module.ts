@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 import { User } from 'src/user/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthToken } from './authToken.entity';
+import { AuthToken } from './entities/authToken.entity';
 import { UserModule } from 'src/user/user.module';
 import { SmsModule } from 'src/sms/sms.module';
 

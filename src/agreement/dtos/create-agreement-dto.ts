@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsDate, IsDateString, IsNumber, IsString } from "class-validator";
+import { IsArray, IsDateString, IsNumber, IsString } from "class-validator";
 
 export class CreateAgreementDto {
   @ApiProperty({ title: "Заголовок договора", example: "Договор возмездного оказания услуг" })
@@ -9,14 +9,6 @@ export class CreateAgreementDto {
   @ApiProperty({ title: "Содержание договора", example: "Настоящим договором..."})
   @IsString()
   readonly text: string;
-
-  // @ApiProperty({title: "Временные детали договора"})
-  // @IsString()
-  // status: "At work" | "Declined" | "At a lawyer"
-  //
-  // @ApiProperty({ title: "Содержание договора", example: "" })
-  // @IsString()
-  // readonly text: string;
 
   @ApiProperty({title: "Статус инициатора в договоре", example: "client"})
   @IsString()

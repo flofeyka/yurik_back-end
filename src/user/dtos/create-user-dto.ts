@@ -18,7 +18,7 @@ export class CreateUserDto {
 
     @IsNotEmpty()
     @Min(100000)
-    @Max(999999)
-    @ApiProperty({description: "ID Telegram.", example: 392210})
+    @Max(9999999999)
+    @ApiProperty({description: "ID Telegram.", example: 5539208376})
     readonly telegramID: number;
 }

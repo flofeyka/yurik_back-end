@@ -155,7 +155,6 @@ export class AgreementService {
   }
 
   async createAgreement(userId: number, agreementDto: CreateAgreementDto) {
-    const user = await this.userService.findUser(userId);
     if(new Date(agreementDto.end) < new Date(agreementDto.start)) {
       throw new BadRequestException("Дата окончания договора не может быть меньше даты начала.");
     }
@@ -208,11 +207,19 @@ export class AgreementService {
       steps: await Promise.all(agreementDto.steps.map(async (step) => await this.addStep(step, agreement))),
     });
 
-    Promise.all(agreementCreated.members.map((member: AgreementMember) => {
-      return this.httpService.post("https://rafailvv.online/send/message", {
-        userId: member.user.telegramID,
-        message: `Вам пришло новое уведомление:\n Вас пригласили в договор "${agreementCreated.title}"`
-      })
+    Promise.all(agreementCreated.members.map(async (member: AgreementMember) => {
+      try {
+        if(member.user.telegramID) {
+          const response = await this.httpService.axiosRef.post("https://rafailvv.online/send/message", {
+            user_id: member.user.telegramID,
+            message_text: `Вам пришло новое уведомление:\n${agreementCreated.members.find(member => member.user.id === agreementCreated.initiator).user.firstName} пригласил Вас в "${agreementCreated.title}"`
+          })
+    
+          return response.data;
+        }
+      } catch(e) {
+        console.log(e);
+      }
     }))
 
     return agreementCreated;
@@ -246,12 +253,11 @@ export class AgreementService {
       throw new BadRequestException("Вы не можете разорвать договор если вы не являетесь его инициатором");
     }
 
-    const memberDeleted = agreement.members.filter(member => member.user.id !== userId);
-
     await this.agreementRepository.save({
       ...agreement,
-      members: memberDeleted,
-      status: memberDeleted.length < 2 || memberDeleted.every(member => member.status === "client") ? "Declined" : "In confirm process"
+      members: [...agreement.members.map((member: AgreementMember) => {
+        return { ...member, inviteStatus: member.user.id === userId ? "Declined" : member.inviteStatus };
+      })]
     });
 
     return {

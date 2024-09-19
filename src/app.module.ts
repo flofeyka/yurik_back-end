@@ -5,7 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { User } from './user/user.entity';
 import { GigachatModule } from './gigachat/gigachat.module';
-import { AuthToken } from './auth/authToken.entity';
+import { AuthToken } from './auth/entities/authToken.entity';
 import { AgreementModule } from './agreement/agreement.module';
 import { Agreement } from "./agreement/entities/agreement.entity";
 import { ChatModule } from './chat/chat.module';

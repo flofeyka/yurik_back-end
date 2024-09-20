@@ -1,7 +1,7 @@
 import { Agreement } from "src/agreement/entities/agreement.entity";
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Message } from "./chat.message.entity";
-import { User } from "src/user/user.entity";
+import { User } from "src/user/entities/user.entity";
 
 @Entity({name: 'chat'})
 export class Chat {

@@ -3,12 +3,14 @@ import { BadGatewayException, BadRequestException, Injectable, UnauthorizedExcep
 import { InjectRepository } from '@nestjs/typeorm';
 import { Sms } from './sms.entity';
 import { Repository } from 'typeorm';
+import { AppService } from 'src/app.service';
 
 
 @Injectable()
 export class SmsService {
     constructor(private readonly httpService: HttpService,
         @InjectRepository(Sms) private readonly smsRepository: Repository<Sms>,
+        private readonly appService: AppService
     ) {}
 
     async sendSms(phoneNumber: string): Promise<boolean> {
@@ -21,7 +23,7 @@ export class SmsService {
             throw new BadRequestException("Неверный номер телефона");
         }
 
-        const codeValue = this.getRandomCodeValue();
+        const codeValue = this.appService.getRandomCodeValue();
 
         const smsText = `Смс-код для Yurik: ${codeValue}. Действует 5 минут. Не сообщайте код никому! `;
 
@@ -69,9 +71,5 @@ export class SmsService {
         });
 
         return true;
-    }
-
-    private getRandomCodeValue(min: number = 100000, max: number = 999999): Number {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 }

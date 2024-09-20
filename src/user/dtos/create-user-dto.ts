@@ -17,8 +17,7 @@ export class CreateUserDto {
     readonly code: number;
 
     @IsNotEmpty()
-    @Min(100000)
-    @Max(9999999999)
-    @ApiProperty({description: "ID Telegram.", example: 5539208376})
-    readonly telegramID: number;
+    @IsString()
+    @ApiProperty({description: "ID Telegram в зашифрованном виде"})
+    readonly telegramID: string | number;
 }

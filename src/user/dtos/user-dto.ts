@@ -1,4 +1,4 @@
-import { User } from "../user.entity";
+import { User } from "../entities/user.entity";
 
 export class UserDto {
     constructor(user: User) {
@@ -8,7 +8,7 @@ export class UserDto {
             lastName: user.lastName, 
             middleName: user.middleName, 
             birthDate: user.BirthDate, 
-            telegramID: user.telegramID, 
+            telegramID: user.telegram_account.telegramID, 
             email: user.email, 
             passport: !!(user.authority && user.serial && user.number && user.address), TIN: !!user.TIN})
     }

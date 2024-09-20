@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { InjectRepository } from "@nestjs/typeorm";
 import { InsertResult, Repository } from "typeorm";
 import { v4 as uuid } from "uuid";
-import { User } from "../user/user.entity";
+import { User } from "../user/entities/user.entity";
 import { UserService } from "../user/user.service";
 import { AgreementDto } from "./dtos/agreement-dto";
 import { CreateAgreementDto } from "./dtos/create-agreement-dto";
@@ -20,7 +20,6 @@ export class AgreementService {
     @InjectRepository(AgreementMember) private readonly memberRepository: Repository<AgreementMember>,
     @InjectRepository(AgreementStep) private readonly stepRepository: Repository<AgreementStep>,
     @InjectRepository(Lawyer) private readonly lawyerRepository: Repository<Lawyer>,
-    private readonly httpService: HttpService,
     private readonly userService: UserService,
     private readonly appService: AppService
   ) {
@@ -209,7 +208,7 @@ export class AgreementService {
       steps: await Promise.all(agreementDto.steps.map(async (step) => await this.addStep(step, agreement))),
     });
 
-    Promise.all(agreementCreated.members.map(async (member: AgreementMember) => await this.appService.sendNotification(`${agreementCreated.members.find(member => member.user.id === agreementCreated.initiator).user.firstName} пригласил Вас в "${agreementCreated.title}`, member.user.telegramID)));
+    Promise.all(agreementCreated.members.map(async (member: AgreementMember) => await this.appService.sendNotification(`${agreementCreated.members.find(member => member.user.id === agreementCreated.initiator).user.firstName} пригласил Вас в "${agreementCreated.title}`, member.user.telegram_account.telegramID)));
 
     return agreementCreated;
 

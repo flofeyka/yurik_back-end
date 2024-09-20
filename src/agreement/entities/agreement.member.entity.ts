@@ -1,4 +1,4 @@
-import { User } from "src/user/user.entity";
+import { User } from "src/user/entities/user.entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Agreement } from "./agreement.entity";
 import { AgreementStep } from "./agreement.step.entity";

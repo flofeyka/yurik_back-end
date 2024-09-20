@@ -1,9 +1,10 @@
-import { Body, Controller, HttpStatus, Put, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, HttpCode, HttpStatus, Param, Post, Put, Query, Req, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/auth/auth.guard";
 import { EditUserDto } from "./dtos/edit-user-dto";
 import { RequestType } from "../../types/types";
+import { TelegramAccount } from "./entities/telegram-account.entity";
 
 
 @ApiTags("Users API")
@@ -20,4 +21,20 @@ export class UserController {
         return this.userService.editUser(request.user.id, userDto)
     }
 
+
+    @ApiOperation({summary: "Подтверждение аккаунта Telegram в системе"})
+    @ApiResponse({status: HttpStatus.ACCEPTED})
+    @Post("/telegram/verify/:telegram_id")
+    async verifyTelegramAccount(@Param('telegram_id') telegramID: number, @Query('code') code: number) {
+        return await this.userService.verifyTelegramAccount(telegramID, code);
+    }
+    
+
+    @ApiOperation({ summary: "Регистрация аккаунта Telegram в системе" })
+    @ApiResponse({ status: HttpStatus.CREATED, example: {...TelegramAccount} })
+    @HttpCode(HttpStatus.CREATED)
+    @Post("/telegram/add/:telegram_id")
+    async addTelegramAccount(@Param('telegram_id') telegramID: number) {
+        return await this.userService.addTelegramAccount(telegramID);
+    }
 }

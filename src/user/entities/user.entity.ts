@@ -1,8 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn, JoinTable, ManyToOne, JoinColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { EncryptionTransformer } from "typeorm-encrypted";
-import { Agreement } from "../agreement/entities/agreement.entity";
-import { IsString } from "class-validator";
+import { Agreement } from "../../agreement/entities/agreement.entity";
+import { TelegramAccount } from "./telegram-account.entity";
 
 @Entity()
 export class User {
@@ -28,8 +28,8 @@ export class User {
   public readonly phoneNumber: string;
 
   @ApiProperty({ title: "ID Telegram", example: 312531 })
-  @Column({ nullable: true, type: "bigint" })
-  public readonly telegramID: number;
+  @OneToOne(() => TelegramAccount, (telegram_account: TelegramAccount) => telegram_account.user)
+  public readonly telegram_account: TelegramAccount;
 
   @Column({ nullable: true, type: "date" })
   @ApiProperty({ title: "Дата рождения", example: "2023-03-22" })

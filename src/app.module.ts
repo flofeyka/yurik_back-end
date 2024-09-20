@@ -3,7 +3,7 @@ import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
-import { User } from './user/user.entity';
+import { User } from './user/entities/user.entity';
 import { GigachatModule } from './gigachat/gigachat.module';
 import { AuthToken } from './auth/entities/authToken.entity';
 import { AgreementModule } from './agreement/agreement.module';
@@ -18,6 +18,7 @@ import { Sms } from './sms/sms.entity';
 import { Lawyer } from './agreement/entities/agreement.lawyer.entity';
 import { AppService } from './app.service';
 import { HttpModule } from '@nestjs/axios';
+import { TelegramAccount } from './user/entities/telegram-account.entity';
 
 @Module({
   imports: [
@@ -33,7 +34,7 @@ import { HttpModule } from '@nestjs/axios';
       password: process.env.POSTGRES_PASSWORD,
       port: Number(process.env.POSTGRES_PORT),
       username: process.env.POSTGRES_USER,
-      entities: [User, AuthToken, Agreement, Chat, Message, AgreementMember, AgreementStep, Lawyer, Sms],
+      entities: [User, AuthToken, Agreement, Chat, Message, AgreementMember, AgreementStep, Lawyer, Sms, TelegramAccount],
       synchronize: true,
       autoLoadEntities: true
     }),

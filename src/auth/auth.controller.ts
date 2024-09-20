@@ -6,6 +6,7 @@ import { LoginDto } from "./dtos/login-dto";
 import { UserDto } from "../user/dtos/user-dto";
 import { Response } from "express";
 import { SmsGuard } from "src/sms/sms.guard";
+import { UUID } from "crypto";
 
 
 @ApiTags("Auth API")
@@ -40,7 +41,6 @@ export class AuthController {
   })
   @HttpCode(HttpStatus.CREATED)
   @Post("/signup")
-  @UseGuards(SmsGuard)
   async signUp(@Body() userDto: CreateUserDto, @Res({ passthrough: true }) response: Response): Promise<UserDto> {
     const result = await this.authService.signUp(userDto);
     response.cookie("access_token", result.token);
@@ -59,7 +59,6 @@ export class AuthController {
   })
   @HttpCode(HttpStatus.OK)
   @Post("/signin")
-  @UseGuards(SmsGuard)
   async signIn(@Body() loginDto: LoginDto, @Res({passthrough: true}) response: Response): Promise<UserDto> {
     const result = await this.authService.signIn(loginDto);
     response.cookie("access_token", result.token);

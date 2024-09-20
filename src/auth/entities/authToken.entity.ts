@@ -1,4 +1,4 @@
-import { User } from "src/user/user.entity";
+import { User } from "src/user/entities/user.entity";
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, RelationId, Unique } from "typeorm";
 import { EncryptionTransformer } from "typeorm-encrypted";
 

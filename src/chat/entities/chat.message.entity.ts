@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Chat } from "./chat.entity";
-import { User } from "src/user/user.entity";
+import { User } from "src/user/entities/user.entity";
 
 @Entity('messages')
 export class Message {

@@ -30,7 +30,7 @@ export class AuthService {
   }
 
   async signUp(userDto: CreateUserDto): Promise<tokenAndUserType> {
-    const decryptedTelegramID: number = Number(this.appService.decryptText(String(userDto.telegramID)));
+    const decryptedTelegramID: number = Number(this.appService.decryptText(userDto.telegramID));
     const telegramAccountFound: TelegramAccount = await this.telegramAccountsRepository.findOne({ where: { telegramID: decryptedTelegramID } });
     if (!telegramAccountFound) {
       throw new BadRequestException("Пожалуйста, зарегистрируйте Telegram-аккаунт, прежде чем продолжить.");
@@ -51,7 +51,11 @@ export class AuthService {
       throw new BadRequestException("Неверный номер телефона");
     }
 
-    const newUser: User = await this.userService.createUser({ ...userDto, telegramID: decryptedTelegramID });
+    const newUser: User = await this.userService.createUser(userDto, telegramAccountFound);
+    await this.telegramAccountsRepository.save({
+      ...telegramAccountFound,
+      user: newUser
+    })
     const token: string = await this.generateToken(newUser);
 
     return {
@@ -74,7 +78,7 @@ export class AuthService {
     });
 
     if (!existingUser) {
-      throw new UnauthorizedException("Неправильный номер телефона");
+      throw new UnauthorizedException("Неверные данные для входа.");
     }
 
     const token: string = await this.generateToken(existingUser);

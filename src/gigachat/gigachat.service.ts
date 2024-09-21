@@ -1,67 +1,131 @@
-import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
-import { Agent } from 'https';
+import { HttpService } from "@nestjs/axios";
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { v4 as uuidv4 } from "uuid";
+import { Agent } from "https";
+import { GigaChatMessage } from "./entities/message.entity";
+import { InsertResult, Repository } from "typeorm";
+import { InjectRepository } from "@nestjs/typeorm";
+import { GigaChatDialog } from "./entities/dialog.entity";
+import { UUID } from "crypto";
+import { UserService } from "../user/user.service";
+import { User } from "../user/entities/user.entity";
 
 @Injectable()
 export class GigachatService {
-    constructor(private readonly httpService: HttpService) { }
+  constructor(
+    @InjectRepository(GigaChatMessage) private readonly messagesRepository: Repository<GigaChatMessage>,
+    @InjectRepository(GigaChatDialog) private readonly dialogsRepository: Repository<GigaChatDialog>,
+    private readonly userService: UserService,
+    private readonly httpService: HttpService) {
+  }
 
-    //Добавить возможность сохранения диалогов Gigachat и получать доступ к ним.
-
-    async getToken() {
-        const requestUID = uuidv4();
-
-        try {
-            const response = await this.httpService.axiosRef.post("https://ngw.devices.sberbank.ru:9443/api/v2/oauth", {
-                scope: process.env.GIGACHAT_CLIENT_SCOPE
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${process.env.GIGACHAT_CLIENT_SECRET}`,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'RqUID': requestUID
-                },
-                httpsAgent: new Agent({
-                    rejectUnauthorized: false,
-                }),
-            })
-
-            return response.data;
-        } catch (e) {
-            console.log(e);
+  async getDialogs(userId: number) {
+    const dialogsFound: GigaChatDialog[] = await this.dialogsRepository.find({
+      where: {
+        user: {
+          id: userId
         }
+      }, relations: {
+        user: true
+      }
+    });
 
+    return dialogsFound;
+  }
+
+  async getToken() {
+    const requestUID = uuidv4();
+
+    try {
+      const response = await this.httpService.axiosRef.post("https://ngw.devices.sberbank.ru:9443/api/v2/oauth", {
+        scope: process.env.GIGACHAT_CLIENT_SCOPE
+      }, {
+        headers: {
+          "Authorization": `Bearer ${process.env.GIGACHAT_CLIENT_SECRET}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+          "RqUID": requestUID
+        },
+        httpsAgent: new Agent({
+          rejectUnauthorized: false
+        })
+      });
+
+      return response.data;
+    } catch (e) {
+      console.log(e);
     }
 
-    async sendToGigaChat(text: string, accessToken: string) {
-        const msg = {
-            model: 'GigaChat:latest',
-            messages: [
-                {
-                    role: 'user',
-                    content: text,
-                },
-            ],
-        };
+  }
 
-        try {
-            const response = await this.httpService.axiosRef.post(
-                'https://gigachat.devices.sberbank.ru/api/v1/chat/completions',
-                JSON.stringify(msg),
-                {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                    httpsAgent: new Agent({
-                        rejectUnauthorized: false,
-                    }),
-                    responseType: 'json',
-                },
-            );
-            return response.data.choices[0].message;
+  async sendToGigaChat({ message, dialog_id }: { message: string; dialog_id: UUID }) {
+    const dialogFound: GigaChatDialog = await this.dialogsRepository.findOne({
+      where: {
+        id: dialog_id
+      },
+      relations: {
+        messages: true
+      }
+    });
 
-        } catch (e) {
-            console.log(e);
-        }
+    if(!dialogFound) {
+      throw new BadRequestException("Диалог с этим id не был найден");
     }
+
+    const requestAccessToken = await this.getToken();
+
+    try {
+      const response = await this.httpService.axiosRef.post(
+        "https://gigachat.devices.sberbank.ru/api/v1/chat/completions",
+        {
+          model: "GigaChat:latest",
+          context: dialogFound && dialogFound.messages,
+          messages: [
+            {
+              role: "user",
+              content: message
+            }
+          ]
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${requestAccessToken.access_token}`
+          },
+          httpsAgent: new Agent({
+            rejectUnauthorized: false
+          }),
+          responseType: "json"
+        }
+      );
+
+      const newMessage = response.data.choices[0].message;
+
+      const userMessage = await this.messagesRepository.save({
+        content: message,
+        dialog: dialogFound,
+        role: "user"
+      });
+      const assistantMessage = await this.messagesRepository.save({
+        content: newMessage,
+        dialog: dialogFound ,
+        role: "assistant"
+      });
+      await this.dialogsRepository.save({
+        ...dialogFound,
+        messages: [...dialogFound.messages, userMessage, assistantMessage]
+      });
+      return newMessage;
+
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  async createNewDialog(userId: number): Promise<GigaChatDialog> {
+    const user: User = await this.userService.findUser(userId);
+    const newDialog: InsertResult = await this.dialogsRepository.createQueryBuilder().insert().values([{
+      user
+    }]).execute();
+
+    return await this.dialogsRepository.findOne({where: {id: newDialog.identifiers[0].id}});
+  }
 }

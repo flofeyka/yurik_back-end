@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, Entity, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { EncryptionTransformer } from "typeorm-encrypted";
 import { Agreement } from "../../agreement/entities/agreement.entity";
 import { TelegramAccount } from "./telegram-account.entity";
@@ -29,6 +29,7 @@ export class User {
 
   @ApiProperty({ title: "ID Telegram", example: 312531 })
   @OneToOne(() => TelegramAccount, (telegram_account: TelegramAccount) => telegram_account.user)
+  @JoinColumn()
   public readonly telegram_account: TelegramAccount;
 
   @Column({ nullable: true, type: "date" })

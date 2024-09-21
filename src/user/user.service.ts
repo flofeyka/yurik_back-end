@@ -19,13 +19,11 @@ export class UserService {
 ) {
   };
 
-  async createUser(userDto: CreateUserDto): Promise<User> {
-    const telegramAccountFound = await this.telegramAccountsRepository.findOneBy( {telegramID: Number(userDto.telegramID)} );
-    if (!telegramAccountFound) {
-      throw new BadRequestException("Пользователь с таким телеграм-аккаунтом не зарегистрирован в боте");
-    }
-    const createdUser: InsertResult = await this.usersRepository.createQueryBuilder().insert().into(User).values([{ ...userDto, telegram_account: telegramAccountFound }]).execute();
-    return await this.usersRepository.findOne({ where: { id: createdUser.identifiers[0].id } });
+  async createUser(userDto, telegramAccount: TelegramAccount): Promise<User> {
+    const createdUser: InsertResult = await this.usersRepository.createQueryBuilder().insert().into(User).values([{ ...userDto, telegram_account: telegramAccount }]).execute();
+    return await this.usersRepository.findOne({ where: { id: createdUser.identifiers[0].id }, relations: {
+      telegram_account: true
+      } });
   }
 
   async editUser(userId: number, userDto: EditUserDto): Promise<UserDto> {
@@ -65,23 +63,8 @@ export class UserService {
       throw new BadRequestException("Telegram-аккаунт уже зарегистрирован в системе.");
     }
 
-    const verificationCode = await this.smsService
     await this.telegramAccountsRepository.save({ telegramID });
 
-    await this.appService.sendNotification(`Ваш авторизационный код: `, telegramID)
     return true;
-  }
-
-  async verifyTelegramAccount(telegramID: number, code: number) {
-    const accountFound = await this.telegramAccountsRepository.findOneBy({ telegramID});
-    if(!accountFound) {
-      throw new BadRequestException("Telegram-аккаунт не был найден в системе.");
-    }
-
-    const verifiedAccount = await this.telegramAccountsRepository.save({ ...accountFound, verified: true })
-    return {
-      verified: true,
-      unique_id: verifiedAccount.id
-    }
   }
 }

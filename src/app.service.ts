@@ -1,6 +1,6 @@
 import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
-import crypto from "crypto";
+import * as crypto from "crypto";
 
 @Injectable()
 export class AppService {
@@ -24,11 +24,16 @@ export class AppService {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    decryptText(text: string): number | string {
+    decryptText(text: string): string {
         const {ENCRYPT_TELEGRAM_ID_KEY, ENCRYPT_TELEGRAM_ID_IV} = process.env;
-        const decipher = crypto.createCipheriv("aes-256-cbc", ENCRYPT_TELEGRAM_ID_KEY, ENCRYPT_TELEGRAM_ID_IV);
-        let decrypted: string = decipher.update(text, "base64", "utf8");
-        decrypted += decipher.final("base64");
+        console.log(ENCRYPT_TELEGRAM_ID_IV, ENCRYPT_TELEGRAM_ID_KEY);
+        const key: Buffer = Buffer.from(ENCRYPT_TELEGRAM_ID_KEY, "hex")
+        const iv: Buffer = Buffer.from(ENCRYPT_TELEGRAM_ID_IV, "hex")
+        const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
+        let decrypted = decipher.update(text, "base64", "utf8");
+        decrypted += decipher.final("utf8");
+
+        console.log(decrypted);
         return decrypted;
     }
 }

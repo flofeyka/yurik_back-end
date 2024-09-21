@@ -19,6 +19,8 @@ import { Lawyer } from './agreement/entities/agreement.lawyer.entity';
 import { AppService } from './app.service';
 import { HttpModule } from '@nestjs/axios';
 import { TelegramAccount } from './user/entities/telegram-account.entity';
+import { GigaChatDialog } from "./gigachat/entities/dialog.entity";
+import { GigaChatMessage } from "./gigachat/entities/message.entity";
 
 @Module({
   imports: [
@@ -34,7 +36,7 @@ import { TelegramAccount } from './user/entities/telegram-account.entity';
       password: process.env.POSTGRES_PASSWORD,
       port: Number(process.env.POSTGRES_PORT),
       username: process.env.POSTGRES_USER,
-      entities: [User, AuthToken, Agreement, Chat, Message, AgreementMember, AgreementStep, Lawyer, Sms, TelegramAccount],
+      entities: [User, AuthToken, Agreement, Chat, Message, AgreementMember, AgreementStep, Lawyer, Sms, TelegramAccount, GigaChatDialog, GigaChatMessage],
       synchronize: true,
       autoLoadEntities: true
     }),

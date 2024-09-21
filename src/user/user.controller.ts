@@ -21,15 +21,6 @@ export class UserController {
         return this.userService.editUser(request.user.id, userDto)
     }
 
-
-    @ApiOperation({summary: "Подтверждение аккаунта Telegram в системе"})
-    @ApiResponse({status: HttpStatus.ACCEPTED})
-    @Post("/telegram/verify/:telegram_id")
-    async verifyTelegramAccount(@Param('telegram_id') telegramID: number, @Query('code') code: number) {
-        return await this.userService.verifyTelegramAccount(telegramID, code);
-    }
-    
-
     @ApiOperation({ summary: "Регистрация аккаунта Telegram в системе" })
     @ApiResponse({ status: HttpStatus.CREATED, example: {...TelegramAccount} })
     @HttpCode(HttpStatus.CREATED)

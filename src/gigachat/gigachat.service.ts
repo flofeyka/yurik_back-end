@@ -26,7 +26,7 @@ export class GigachatService {
           id: userId
         }
       }, relations: {
-        user: true
+        messages: true
       }
     });
 
@@ -67,6 +67,8 @@ export class GigachatService {
       }
     });
 
+    console.log(dialogFound);
+
     if(!dialogFound) {
       throw new BadRequestException("Диалог с этим id не был найден");
     }
@@ -78,7 +80,12 @@ export class GigachatService {
         "https://gigachat.devices.sberbank.ru/api/v1/chat/completions",
         {
           model: "GigaChat:latest",
-          context: dialogFound && dialogFound.messages,
+          context: dialogFound.messages.map(message => {
+            return {
+              role: message.role,
+              content: message.content
+            }
+          }),
           messages: [
             {
               role: "user",
@@ -99,13 +106,13 @@ export class GigachatService {
 
       const newMessage = response.data.choices[0].message;
 
-      const userMessage = await this.messagesRepository.save({
+      const userMessage: GigaChatMessage = await this.messagesRepository.save({
         content: message,
         dialog: dialogFound,
         role: "user"
       });
-      const assistantMessage = await this.messagesRepository.save({
-        content: newMessage,
+      const assistantMessage: GigaChatMessage = await this.messagesRepository.save({
+        content: newMessage.content,
         dialog: dialogFound ,
         role: "assistant"
       });

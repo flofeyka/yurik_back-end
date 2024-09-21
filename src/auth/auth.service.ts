@@ -29,6 +29,11 @@ export class AuthService {
   ) {
   }
 
+  async getUsersData(userId: number): Promise<UserDto> {
+    const user: User = await this.userService.findUser(userId);
+    return new UserDto(user);
+  }
+
   async signUp(userDto: CreateUserDto): Promise<tokenAndUserType> {
     const decryptedTelegramID: number = Number(this.appService.decryptText(userDto.telegramID));
     const telegramAccountFound: TelegramAccount = await this.telegramAccountsRepository.findOne({ where: { telegramID: decryptedTelegramID } });

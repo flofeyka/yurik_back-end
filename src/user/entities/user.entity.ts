@@ -3,6 +3,7 @@ import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGen
 import { EncryptionTransformer } from "typeorm-encrypted";
 import { Agreement } from "../../agreement/entities/agreement.entity";
 import { TelegramAccount } from "./telegram-account.entity";
+import { Image } from "../../images/image.entity";
 
 @Entity()
 export class User {
@@ -10,6 +11,9 @@ export class User {
   @PrimaryGeneratedColumn()
   public readonly id: number;
 
+  @ApiProperty({ title: "Аватар пользователя "})
+  @OneToOne(() => Image)
+  image: Image;
 
   @ApiProperty({ title: "Имя. Обязательное поле", example: "Максим" })
   @Column({ nullable: true })

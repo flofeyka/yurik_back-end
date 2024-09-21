@@ -6,12 +6,14 @@ import { EditUserDto } from "./dtos/edit-user-dto";
 import { CreateUserDto } from "./dtos/create-user-dto";
 import { UserDto } from "./dtos/user-dto";
 import { TelegramAccount } from "./entities/telegram-account.entity";
+import { ImagesService } from "../images/images.service";
+import { Image } from "../images/image.entity";
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly usersRepository: Repository<User>,
-    @InjectRepository(TelegramAccount) private readonly telegramAccountsRepository: Repository<TelegramAccount>
+    @InjectRepository(TelegramAccount) private readonly telegramAccountsRepository: Repository<TelegramAccount>,
   ) {
   };
 

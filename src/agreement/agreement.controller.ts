@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Req,
+  Res,
+  UploadedFile,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors
+} from "@nestjs/common";
 import { AgreementService } from "./agreement.service";
 import { CreateAgreementDto } from "./dtos/create-agreement-dto";
 import { AuthGuard } from "../auth/auth.guard";
@@ -8,14 +21,13 @@ import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { InviteUserDto } from "./dtos/invite-user-dto";
 import { AgreementDto } from "./dtos/agreement-dto";
 import { SmsGuard } from "src/sms/sms.guard";
-import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
-import { diskStorage } from "multer";
-import {v4 as uuidv4} from "uuid";
-import { Observable, of } from "rxjs";
-import path from "path";
+import { FilesInterceptor } from "@nestjs/platform-express";
 import { AgreementGuard } from "./guards/agreement.guard";
 import { Agreement } from "./entities/agreement.entity";
 import { LawyerGuard } from "./guards/agreement.lawyer.guard";
+import { createReadStream } from 'fs';
+import { join } from 'path';
+import { Response } from "express";
 
 @ApiTags("Agreement API")
 @Controller("agreement")
@@ -30,29 +42,29 @@ export class AgreementController {
     return this.agreementService.getAgreements(request.user.id);
   }
 
-  @ApiOperation({ summary: "Отправка договора юристу"})
+  @ApiOperation({ summary: "Отправка договора юристу" })
   @Post("/:id/lawyer/send")
   @UseGuards(AuthGuard, AgreementGuard)
   async sendAgreementLawyer(@Req() request: RequestType) {
     return this.agreementService.sendToLawyer(request.user.id, request.agreement);
   }
 
-  @ApiOperation({ summary: "Взять договор в работу(Юрист) "})
+  @ApiOperation({ summary: "Взять договор в работу(Юрист) " })
   @Post("/:id/lawyer/take")
   @UseGuards(AuthGuard, LawyerGuard)
   async takeLawyerAgreement(@Req() request: RequestType, @Param("id") id: number) {
     return this.agreementService.takeLawyerAgreement(request.lawyer, id);
   }
 
-  @ApiOperation( {summary: "Стать юристом(Тестовая версия для фронт-енд разработчика)"} )
+  @ApiOperation({ summary: "Стать юристом(Тестовая версия для фронт-енд разработчика)" })
   @Post("/lawyer/become")
   @UseGuards(AuthGuard)
   async createLawyer(@Req() request: RequestType) {
     return this.agreementService.createLawyer(request.user.id);
-  } 
+  }
 
-  @ApiOperation({ summary: "Получение списка договоров, ищущих юриста"})
-  @ApiResponse({example: [AgreementDto]})
+  @ApiOperation({ summary: "Получение списка договоров, ищущих юриста" })
+  @ApiResponse({ example: [AgreementDto] })
   @Get("/lawyer/get")
   @UseGuards(AuthGuard, LawyerGuard)
   async getLawyerAgreements() {
@@ -61,38 +73,22 @@ export class AgreementController {
 
   @ApiOperation({ summary: "Создание договора" })
   @Post("/create")
-  @UseInterceptors(FileInterceptor('file'))
   @UseGuards(AuthGuard, SmsGuard)
   async createAgreement(@Body() agreementDto: CreateAgreementDto, @Req() request: RequestType) {
     return this.agreementService.createAgreement(request.user.id, agreementDto);
   }
 
   @Post("/addPhotos")
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: "./uploads/images",
-      filename: (req, file, cb) => {
-        console.log(file.originalname);
-        const filename: string = path.parse(file.originalname).name.replace(/\s/g, "") + uuidv4();
-        console.log(filename);
-        const extension: string = path.parse(file.originalname).ext;
-
-        cb(null, `${filename}${extension}`);
-      }
-
-    })
-  }))
+  @UseInterceptors(FilesInterceptor("file", 10))
   @UseGuards(AuthGuard)
-  addAgreementPhotos(@UploadedFile() files: Express.Multer.File): Observable<Object> {
-    console.log(files)
-    return of({imagePath: files.path});
+  addAgreementPhotos(@UploadedFile() files: Express.Multer.File[]) {
+    console.log(files);
   }
 
   @Post("/step/addPhotos")
-  @UseInterceptors(FilesInterceptor('file', 10))
   @UseGuards(AuthGuard)
-  async addAgreementStepPhotos(@UploadedFiles() files: Express.Multer.File[]) {
-    console.log(files);
+  async addAgreementStepPhotos() {
+    console.log();
   }
 
 

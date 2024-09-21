@@ -9,6 +9,10 @@ export class UserInfoDto {
     @ApiProperty({ description: "Фамилия. Обязательное поле", example: "Максбетов" })
     readonly lastName: string;
 
+    // @IsString()
+    // @ApiProperty({description: "Имя фотографии.", example: "91b95774-3e4e-4b52-93e3-41a0016104f4.jpg"})
+    // readonly image: string;
+
     @IsString()
     @ApiProperty({ description: "Отчество. Обязательное поле", example: "Тагирович" })
     readonly middleName: string;

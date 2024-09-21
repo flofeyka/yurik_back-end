@@ -12,6 +12,7 @@ import { AgreementStep } from "./entities/agreement.step.entity";
 import { Lawyer } from "./entities/agreement.lawyer.entity";
 import { HttpService } from "@nestjs/axios";
 import { AppService } from "src/app.service";
+import { ImagesService } from "../images/images.service";
 
 @Injectable()
 export class AgreementService {
@@ -21,7 +22,8 @@ export class AgreementService {
     @InjectRepository(AgreementStep) private readonly stepRepository: Repository<AgreementStep>,
     @InjectRepository(Lawyer) private readonly lawyerRepository: Repository<Lawyer>,
     private readonly userService: UserService,
-    private readonly appService: AppService
+    private readonly appService: AppService,
+    private readonly imagesService: ImagesService
   ) {
   }
 

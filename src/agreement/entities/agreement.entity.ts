@@ -6,7 +6,6 @@ import { AgreementStep } from "./agreement.step.entity";
 
 export interface Step {
   title: string;
-  images: Array<string>;
   userId: number;
   isComplete: boolean;
   comment: string | null;

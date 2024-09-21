@@ -1,10 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadGatewayException, BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { InsertResult, Repository } from "typeorm";
 import { v4 as uuid } from "uuid";
 import { User } from "../user/entities/user.entity";
 import { UserService } from "../user/user.service";
-import { AgreementDto } from "./dtos/agreement-dto";
+import { AgreementDto, AgreementStepDto } from "./dtos/agreement-dto";
 import { CreateAgreementDto } from "./dtos/create-agreement-dto";
 import { Agreement, Step } from "./entities/agreement.entity";
 import { AgreementMember } from "./entities/agreement.member.entity";
@@ -13,6 +13,7 @@ import { Lawyer } from "./entities/agreement.lawyer.entity";
 import { HttpService } from "@nestjs/axios";
 import { AppService } from "src/app.service";
 import { ImagesService } from "../images/images.service";
+import { Image } from "../images/image.entity";
 
 @Injectable()
 export class AgreementService {
@@ -95,6 +96,28 @@ export class AgreementService {
     })
 
     return agreements.map((agreement: Agreement) => new AgreementDto(agreement));
+  }
+
+  async addStepImages(id: number, images: string[]): Promise<AgreementStepDto> {
+    const step: AgreementStep = await this.stepRepository.findOne({where: {id: id}});
+    if(!step) {
+      throw new NotFoundException(`Этап с id ${id} не был найден`);
+    }
+
+    const imagesFound: Image[] = await Promise.all(images.map(async (image: string) => {
+      const imageFound: Image = await this.imagesService.getImageByName(image);
+      if(!imageFound) {
+        throw new NotFoundException(`Фотография с названием ${image} не существует`)
+      }
+
+      return imageFound;
+    }))
+    const stepSaved = await this.stepRepository.save({
+      ...step,
+      images: imagesFound
+    });
+
+    return new AgreementStepDto(stepSaved)
   }
 
   async takeLawyerAgreement(lawyer: Lawyer, agreementId: number) {
@@ -210,7 +233,7 @@ export class AgreementService {
       steps: await Promise.all(agreementDto.steps.map(async (step) => await this.addStep(step, agreement))),
     });
 
-    Promise.all(agreementCreated.members.map(async (member: AgreementMember) => await this.appService.sendNotification(`${agreementCreated.members.find(member => member.user.id === agreementCreated.initiator).user.firstName} пригласил Вас в "${agreementCreated.title}`, member.user.telegram_account.telegramID)));
+    await Promise.all(agreementCreated.members.map(async (member: AgreementMember) => await this.appService.sendNotification(`${agreementCreated.members.find(member => member.user.id === agreementCreated.initiator).user.firstName} пригласил Вас в "${agreementCreated.title}`, member.user.telegram_account.telegramID)));
 
     return agreementCreated;
 

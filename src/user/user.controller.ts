@@ -5,6 +5,7 @@ import { AuthGuard } from "src/auth/auth.guard";
 import { EditUserDto } from "./dtos/edit-user-dto";
 import { RequestType } from "../../types/types";
 import { TelegramAccount } from "./entities/telegram-account.entity";
+import { ImagesService } from "../images/images.service";
 
 
 @ApiTags("Users API")

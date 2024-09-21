@@ -1,6 +1,7 @@
 import { Agreement, Step } from "../entities/agreement.entity";
 import { AgreementMember } from "../entities/agreement.member.entity";
 import { AgreementStep } from "../entities/agreement.step.entity";
+import { Image } from "../../images/image.entity";
 
 export class AgreementMemberDto {
   public id: number;
@@ -29,6 +30,7 @@ export class AgreementStepDto {
   public title: string;
   public isComplete: boolean;
   public price: number;
+  public images: string[];
   public user: AgreementMemberDto;
   public start: Date;
   public end: Date;
@@ -38,6 +40,7 @@ export class AgreementStepDto {
       id: model.id,
       title: model.title,
       user: new AgreementMemberDto({...model.user}),
+      images: model.images.map((image: Image) => `${process.env.API_URL}/images/picture/${image.name}`),
       isComplete: model.isComplete,
       start: model.start,
       end: model.end

@@ -7,7 +7,6 @@ import { CreateUserDto } from "./dtos/create-user-dto";
 import { UserDto } from "./dtos/user-dto";
 import { TelegramAccount } from "./entities/telegram-account.entity";
 import { ImagesService } from "../images/images.service";
-import { Image } from "../images/image.entity";
 
 @Injectable()
 export class UserService {

@@ -1,6 +1,7 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Agreement } from "./agreement.entity";
 import { AgreementMember } from "./agreement.member.entity";
+import { Image } from "../../images/image.entity";
 
 @Entity()
 export class AgreementStep {
@@ -13,8 +14,9 @@ export class AgreementStep {
     @Column()
     title: string;
 
-    @Column('varchar', {array: true, nullable: true})
-    images: Array<string>;
+    @ManyToOne(() => Image)
+    @JoinColumn()
+    images: Image[];
 
     @ManyToOne(() => AgreementMember, (agreementMember: AgreementMember) => agreementMember.agreement, {nullable: true})
     user: AgreementMember;

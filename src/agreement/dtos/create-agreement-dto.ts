@@ -34,9 +34,8 @@ export class CreateAgreementDto {
     title: "Этапы выполнения", example: [
       {
         title: "Закупка материалов",
-        images: ["sgshdgh.jpg", "adsgfsdg.jpg"],
         isComplete: true,
-        responsible: 12,
+        userId: 12,
         comment: "Заказчик обязуется...",
         start: "12-12-2023",
         end: "14-12-2025"
@@ -45,7 +44,6 @@ export class CreateAgreementDto {
   @IsArray()
   readonly steps: Array<{
     title: string;
-    images: Array<string>,
     userId: number;
     isComplete: boolean,
     comment: string | null,

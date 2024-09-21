@@ -28,6 +28,7 @@ import { LawyerGuard } from "./guards/agreement.lawyer.guard";
 import { createReadStream } from 'fs';
 import { join } from 'path';
 import { Response } from "express";
+import { ImagesDto } from "./dtos/images-dto";
 
 @ApiTags("Agreement API")
 @Controller("agreement")
@@ -85,11 +86,13 @@ export class AgreementController {
     console.log(files);
   }
 
-  @Post("/step/addPhotos")
+  @Post("/step/addPhotos/:stepId")
   @UseGuards(AuthGuard)
-  async addAgreementStepPhotos() {
-    console.log();
+  async addStepPhotos(@Param("stepId") id: number, @Body() imageDto: ImagesDto) {
+    return await this.agreementService.addStepImages(id, imageDto.images);
   }
+
+
 
 
   @ApiOperation({ summary: "Подтверждение участия в договоре" })

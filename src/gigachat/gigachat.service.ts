@@ -50,6 +50,7 @@ export class GigachatService {
         })
       });
 
+
       return response.data;
     } catch (e) {
       console.log(e);
@@ -67,7 +68,6 @@ export class GigachatService {
       }
     });
 
-    console.log(dialogFound);
 
     if(!dialogFound) {
       throw new BadRequestException("Диалог с этим id не был найден");
@@ -75,24 +75,28 @@ export class GigachatService {
 
     const requestAccessToken = await this.getToken();
 
+    const payload = {
+      model: "GigaChat",
+      messages: [
+        ...dialogFound.messages.map((message: GigaChatMessage) => {
+          return {
+            role: message.role,
+            content: message.content
+          }
+        }),
+        {
+          role: "user",
+          content: message
+        }
+      ]
+    }
+
+    console.log(JSON.stringify(payload));
+
     try {
       const response = await this.httpService.axiosRef.post(
         "https://gigachat.devices.sberbank.ru/api/v1/chat/completions",
-        {
-          model: "GigaChat:latest",
-          context: dialogFound.messages.map(message => {
-            return {
-              role: message.role,
-              content: message.content
-            }
-          }),
-          messages: [
-            {
-              role: "user",
-              content: message
-            }
-          ]
-        },
+        JSON.stringify(payload),
         {
           headers: {
             Authorization: `Bearer ${requestAccessToken.access_token}`

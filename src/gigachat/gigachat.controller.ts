@@ -6,6 +6,9 @@ import { AuthGuard } from "../auth/auth.guard";
 import { RequestType } from "../../types/types";
 import { CreateDialogDto } from "./dtos/create-dialog-dto";
 import { UUID } from "crypto";
+import { DialogsDto } from "./dtos/dialogs-dto";
+import { GigaChatMessage } from "./entities/message.entity";
+import { GigaChatDialog } from "./entities/dialog.entity";
 
 
 @ApiTags("Gigachat API")
@@ -31,7 +34,7 @@ export class GigachatController {
   })
   @Get("/")
   @UseGuards(AuthGuard)
-  async getDialogs(@Req() request: RequestType) {
+  async getDialogs(@Req() request: RequestType): Promise<DialogsDto[]> {
     return this.gigachatService.getDialogs(request.user.id);
   }
 
@@ -72,7 +75,7 @@ export class GigachatController {
   })
   @Get("/:dialogId/messages")
   @UseGuards(AuthGuard)
-  async getMessages(@Param("dialogId") dialogId: UUID) {
+  async getMessages(@Param("dialogId") dialogId: UUID): Promise<GigaChatDialog> {
     return await this.gigachatService.getMessages(dialogId)
   }
 
@@ -88,7 +91,11 @@ export class GigachatController {
   })
   @Post("/send")
   @UseGuards(AuthGuard)
-  async sendMessage(@Body() messageDto: SendMessageDto, @Req() request: RequestType) {
+  async sendMessage(@Body() messageDto: SendMessageDto): Promise<{
+    content: string,
+    dialog: UUID,
+    role: "assistant"
+  }> {
     return this.gigachatService.sendToGigaChat(messageDto);
   }
 
@@ -101,7 +108,7 @@ export class GigachatController {
   @Post("/dialog/create")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
-  async createDialog(@Req() request: RequestType, @Body() createDialogDto: CreateDialogDto) {
+  async createDialog(@Req() request: RequestType, @Body() createDialogDto: CreateDialogDto): Promise<DialogsDto> {
     return this.gigachatService.createNewDialog(request.user.id, createDialogDto);
   }
 }

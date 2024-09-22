@@ -1,23 +1,22 @@
 import { User } from "src/user/entities/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Agreement } from "./agreement.entity";
-import { AgreementStep } from "./agreement.step.entity";
 
-@Entity({name: 'members'})
+@Entity({ name: "members" })
 export class AgreementMember {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
 
-    @ManyToOne(() => User)
-    @JoinColumn()
-    user: User;
+  @ManyToOne(() => User)
+  @JoinColumn()
+  user: User;
 
-    @ManyToOne(() => Agreement, (agreement) => agreement.members)
-    agreement: Agreement;
+  @ManyToOne(() => Agreement, (agreement: Agreement) => agreement.members)
+  agreement: Agreement;
 
-    @Column()
-    status: "client" | "contractor" | "lawyer";
+  @Column()
+  status: "Заказчик" | "Подрядчик" | "Юрист";
 
-    @Column()
-    inviteStatus: "Confirmed" | "Invited" | "Declined";
+  @Column()
+  inviteStatus: "Подтвердил" | "Приглашен" | "Отклонил";
 }

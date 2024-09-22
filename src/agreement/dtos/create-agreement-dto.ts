@@ -6,56 +6,6 @@ export class CreateAgreementDto {
   @IsString()
   readonly title: string;
 
-  @ApiProperty({ title: "Содержание договора", example: "Настоящим договором..."})
-  @IsString()
-  readonly text: string;
-
-  @ApiProperty({title: "Статус инициатора в договоре", example: "client"})
-  @IsString()
-  readonly initiatorStatus: "client" | "contractor";
-
-  @ApiProperty({ title: "Стоимость услуг", example: 15000 })
-  @IsNumber()
-  readonly price: number;
-
-  @ApiProperty({title: "Участники договора", example: [
-      {
-        userId: 1,
-        status: "client"
-      }
-    ]})
-  @IsArray()
-  readonly members: Array<{
-    userId: number;
-    status: "client" | "contractor"
-  }>
-
-  @ApiProperty({
-    title: "Этапы выполнения", example: [
-      {
-        title: "Закупка материалов",
-        isComplete: true,
-        userId: 12,
-        comment: "Заказчик обязуется...",
-        start: "12-12-2023",
-        end: "14-12-2025"
-      }]
-  })
-  @IsArray()
-  readonly steps: Array<{
-    title: string;
-    userId: number;
-    isComplete: boolean,
-    comment: string | null,
-    start: Date,
-    end: Date
-  }>;  
-  
-  @IsDateString()
-  @ApiProperty({ title: "Дата начала действия договора", example: "2023-12-12" })
-  readonly start: string;
-
-  @IsDateString()
-  @ApiProperty({ title: "Дата конца действия договора", example: "2024-12-12" })
-  readonly end: string;
+  @ApiProperty({ title: "Кто инициирует договор ", example: "Подрядчик"})
+  readonly initiatorStatus: "Подрядчик" | "Заказчик"
 }

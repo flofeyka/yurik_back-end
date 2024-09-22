@@ -48,6 +48,8 @@ export class UserService {
         telegram_account: true
       }
     });
+
+    console.log(foundUser);
     if (!foundUser) {
       throw new NotFoundException(`Пользователь с данным id ${userId} не был найден в системе`);
     }

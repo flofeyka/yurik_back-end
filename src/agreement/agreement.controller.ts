@@ -4,11 +4,9 @@ import {
   Delete,
   Get,
   Param,
-  Post,
+  Post, Put,
   Req,
-  Res,
   UploadedFile,
-  UploadedFiles,
   UseGuards,
   UseInterceptors
 } from "@nestjs/common";
@@ -16,7 +14,6 @@ import { AgreementService } from "./agreement.service";
 import { CreateAgreementDto } from "./dtos/create-agreement-dto";
 import { AuthGuard } from "../auth/auth.guard";
 import { RequestType } from "../../types/types";
-import { AgreementConfirmDto } from "./dtos/agreement-confirm-dto";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { InviteUserDto } from "./dtos/invite-user-dto";
 import { AgreementDto } from "./dtos/agreement-dto";
@@ -25,10 +22,8 @@ import { FilesInterceptor } from "@nestjs/platform-express";
 import { AgreementGuard } from "./guards/agreement.guard";
 import { Agreement } from "./entities/agreement.entity";
 import { LawyerGuard } from "./guards/agreement.lawyer.guard";
-import { createReadStream } from 'fs';
-import { join } from 'path';
-import { Response } from "express";
 import { ImagesDto } from "./dtos/images-dto";
+import { AgreementsListDto } from "./dtos/agreements-list-dto";
 
 @ApiTags("Agreement API")
 @Controller("agreement")
@@ -39,7 +34,7 @@ export class AgreementController {
   @ApiOperation({ summary: "Получение списка пользовательских договоров" })
   @Get("/")
   @UseGuards(AuthGuard)
-  async getAgreements(@Req() request: RequestType): Promise<AgreementDto[]> {
+  async getAgreements(@Req() request: RequestType): Promise<AgreementsListDto[]> {
     return this.agreementService.getAgreements(request.user.id);
   }
 
@@ -92,33 +87,37 @@ export class AgreementController {
     return await this.agreementService.addStepImages(id, imageDto.images);
   }
 
-
-
-
   @ApiOperation({ summary: "Подтверждение участия в договоре" })
   @Post("/confirm/:id")
   @UseGuards(AuthGuard, SmsGuard, AgreementGuard)
-  async confirmAgreement(@Req() request: RequestType, @Param("id") id: number, @Body() agreementDto: AgreementConfirmDto): Promise<{
+  async confirmAgreement(@Req() request: RequestType): Promise<{
     isConfirmed: boolean;
     message: string;
   }> {
-    return this.agreementService.confirmAgreement(request.user.id, request.agreement, agreementDto.password);
+    return this.agreementService.confirmAgreement(request.user.id, request.agreement);
   }
 
   @ApiOperation({ summary: "Отказ в участии в договоре" })
   @Delete("/decline/:id")
   @UseGuards(AuthGuard, Agreement)
-  async declineAgreement(@Req() request: RequestType, @Param("id") id: number): Promise<{
-    isDeclined: boolean,
-    message: string
+  async declineAgreement(@Req() request: RequestType): Promise<{
+    isDeclined: boolean;
+    message: string;
   }> {
     return this.agreementService.declineAgreement(request.user.id, request.agreement);
+  }
+
+  @ApiOperation({summary: "Редактирование договора"})
+  @Put("/update/:id")
+  @UseGuards(AuthGuard)
+  async editAgreement(@Param("id") id: number, @Body() request: RequestType) {
+    return this.agreementService.editAgreement(id)
   }
 
   @ApiOperation({ summary: "Приглашение нового участника в договор до его подписания" })
   @Post("/invite/:id/:memberId")
   @UseGuards(AuthGuard, Agreement)
-  async inviteMember(@Req() request: RequestType, @Param("agreementId") agreementId: number, @Param("memberId") memberId: number, @Body() inviteDto: InviteUserDto): Promise<{
+  async inviteMember(@Req() request: RequestType, @Param("memberId") memberId: number, @Body() inviteDto: InviteUserDto): Promise<{
     isInvited: boolean;
     message: string;
     agreement: AgreementDto
@@ -129,7 +128,7 @@ export class AgreementController {
   @ApiOperation({ summary: "Включение договора в работу." })
   @Post("/enable/:id")
   @UseGuards(AuthGuard, Agreement)
-  async enableAgreement(@Req() request: RequestType, @Param("agreementId") id: number): Promise<{
+  async enableAgreement(@Req() request: RequestType): Promise<{
     message: string;
     agreement: AgreementDto
   }> {

@@ -33,8 +33,8 @@ export class Agreement {
   @OneToOne(() => Chat, (chat: Chat) => chat.agreement)
   public chat: Chat;
 
-  @Column({ default: "In confirm process" })
-  public status: "At work" | "Declined" | "At a lawyer" | "Looking for a lawyer" | "In confirm process";
+  @Column({ default: "Черновик" })
+  public status: "В работе" | "Отклонён" | "У юриста" | "В поиске юриста" | "В процессе подтверждения" | "Черновик";
 
   @Column({ type: "float" })
   public price: number;

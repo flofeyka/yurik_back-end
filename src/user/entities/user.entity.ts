@@ -33,7 +33,6 @@ export class User {
 
   @ApiProperty({ title: "ID Telegram", example: 312531 })
   @OneToOne(() => TelegramAccount, (telegram_account: TelegramAccount) => telegram_account.user)
-  @JoinColumn()
   public readonly telegram_account: TelegramAccount;
 
   @Column({ nullable: true, type: "date" })

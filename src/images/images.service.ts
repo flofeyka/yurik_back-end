@@ -4,6 +4,7 @@ import { DeleteResult, Repository } from "typeorm";
 import { Image } from "./image.entity";
 import { UserService } from "../user/user.service";
 import { User } from "../user/entities/user.entity";
+import { ImageDto } from "./dtos/ImageDto";
 
 @Injectable()
 export class ImagesService {
@@ -13,12 +14,14 @@ export class ImagesService {
   }
 
 
-  async getImageByName(name: string): Promise<Image> {
-    return await this.imagesRepository.findOne({
+  async getImageByName(name: string): Promise<ImageDto> {
+    const image: Image = await this.imagesRepository.findOne({
       where: { name }, relations: {
         user: true
       }
     });
+
+    return new ImageDto(image);
   }
 
   async deleteImage(name: string): Promise<boolean> {
@@ -30,8 +33,10 @@ export class ImagesService {
     return true;
   }
 
-  async addImage(name: string, userId: number): Promise<Image> {
+  async addImage(name: string, userId: number): Promise<ImageDto> {
     const user: User = await this.userService.findUser(userId);
-    return await this.imagesRepository.save({ name, user });
+    const imageAdded: Image = await this.imagesRepository.save({ name, user });
+
+    return new ImageDto(imageAdded);
   }
 }

@@ -7,7 +7,6 @@ import { RequestType } from "../../types/types";
 import { CreateDialogDto } from "./dtos/create-dialog-dto";
 import { UUID } from "crypto";
 import { DialogsDto } from "./dtos/dialogs-dto";
-import { GigaChatMessage } from "./entities/message.entity";
 import { GigaChatDialog } from "./entities/dialog.entity";
 
 
@@ -32,15 +31,14 @@ export class GigachatController {
       }
     ]
   })
-  @Get("/")
+  @Get("/dialogs")
   @UseGuards(AuthGuard)
   async getDialogs(@Req() request: RequestType): Promise<DialogsDto[]> {
     return this.gigachatService.getDialogs(request.user.id);
   }
 
 
-
-  @ApiOperation({summary: "Получить список сообщений у диалога"})
+  @ApiOperation({ summary: "Получить список сообщений у диалога" })
   @ApiResponse({
     example: {
       "id": "945926aa-00b4-483d-97fc-f3c2af051f38",
@@ -76,7 +74,7 @@ export class GigachatController {
   @Get("/:dialogId/messages")
   @UseGuards(AuthGuard)
   async getMessages(@Param("dialogId") dialogId: UUID): Promise<GigaChatDialog> {
-    return await this.gigachatService.getMessages(dialogId)
+    return await this.gigachatService.getMessages(dialogId);
   }
 
 
@@ -102,7 +100,10 @@ export class GigachatController {
   @ApiOperation({ summary: "Создание диалога с Gigachat" })
   @ApiResponse({
     status: HttpStatus.CREATED, example: {
-      "id": "3b94ab61-6174-4aa8-8e2f-ed008358ff92"
+      "id": "3b94ab61-6174-4aa8-8e2f-ed008358ff92",
+      "name": "Testing name",
+      "imgUrl": "http://api.yurik.ru/images/picture/uuid.jpg",
+      "lastMessage": null
     }
   })
   @Post("/dialog/create")

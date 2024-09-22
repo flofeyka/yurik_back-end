@@ -9,6 +9,10 @@ import { GigaChatDialog } from "./entities/dialog.entity";
 import { UUID } from "crypto";
 import { UserService } from "../user/user.service";
 import { User } from "../user/entities/user.entity";
+import { DialogsDto } from "./dtos/dialogs-dto";
+import { CreateDialogDto } from "./dtos/create-dialog-dto";
+import { Image } from "../images/image.entity";
+import { ImagesService } from "../images/images.service";
 
 @Injectable()
 export class GigachatService {
@@ -16,7 +20,9 @@ export class GigachatService {
     @InjectRepository(GigaChatMessage) private readonly messagesRepository: Repository<GigaChatMessage>,
     @InjectRepository(GigaChatDialog) private readonly dialogsRepository: Repository<GigaChatDialog>,
     private readonly userService: UserService,
-    private readonly httpService: HttpService) {
+    private readonly httpService: HttpService,
+    private readonly imagesService: ImagesService
+  ) {
   }
 
   async getDialogs(userId: number) {
@@ -26,11 +32,18 @@ export class GigachatService {
           id: userId
         }
       }, relations: {
-        messages: true
+        messages: true,
+        image: true
       }
     });
 
-    return dialogsFound;
+    return dialogsFound.map((dialog: GigaChatDialog) => new DialogsDto(dialog));
+  }
+
+  async getMessages(id: UUID) {
+    return await this.dialogsRepository.findOne({where: {id}, relations: {
+      messages: true
+    }})
   }
 
   async getToken() {
@@ -69,7 +82,7 @@ export class GigachatService {
     });
 
 
-    if(!dialogFound) {
+    if (!dialogFound) {
       throw new BadRequestException("Диалог с этим id не был найден");
     }
 
@@ -82,16 +95,14 @@ export class GigachatService {
           return {
             role: message.role,
             content: message.content
-          }
+          };
         }),
         {
           role: "user",
           content: message
         }
       ]
-    }
-
-    console.log(JSON.stringify(payload));
+    };
 
     try {
       const response = await this.httpService.axiosRef.post(
@@ -117,7 +128,7 @@ export class GigachatService {
       });
       const assistantMessage: GigaChatMessage = await this.messagesRepository.save({
         content: newMessage.content,
-        dialog: dialogFound ,
+        dialog: dialogFound,
         role: "assistant"
       });
       await this.dialogsRepository.save({
@@ -131,12 +142,22 @@ export class GigachatService {
     }
   }
 
-  async createNewDialog(userId: number): Promise<GigaChatDialog> {
+  async createNewDialog(userId: number, createDialogDto: CreateDialogDto): Promise<DialogsDto> {
     const user: User = await this.userService.findUser(userId);
+    const image: Image = createDialogDto.image ? await this.imagesService.getImageByName(createDialogDto.image) : null;
     const newDialog: InsertResult = await this.dialogsRepository.createQueryBuilder().insert().values([{
-      user
+      ...createDialogDto,
+      user,
+      image
     }]).execute();
 
-    return await this.dialogsRepository.findOne({where: {id: newDialog.identifiers[0].id}});
+    const dialog: GigaChatDialog = await this.dialogsRepository.findOne({
+      where: { id: newDialog.identifiers[0].id }, relations: {
+        messages: true,
+        image: true
+      }
+    });
+
+    return new DialogsDto(dialog);
   }
 }

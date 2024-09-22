@@ -1,9 +1,11 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { SendMessageDto } from "./dtos/SendMessageDto";
 import { GigachatService } from "./gigachat.service";
 import { AuthGuard } from "../auth/auth.guard";
 import { RequestType } from "../../types/types";
+import { CreateDialogDto } from "./dtos/create-dialog-dto";
+import { UUID } from "crypto";
 
 
 @ApiTags("Gigachat API")
@@ -17,88 +19,13 @@ export class GigachatController {
     status: HttpStatus.OK, example: [
       {
         "id": "3b94ab61-6174-4aa8-8e2f-ed008358ff92",
-        "messages": [
-          {
-            "id": "1963c8bb-f7c0-4fb5-99fb-c2de60decb12",
-            "role": "user",
-            "content": "Ты видишь прошлый диалог?"
-          },
-          {
-            "id": "69e0eff6-6166-40f3-bdbf-9b1ff791b902",
-            "role": "assistant",
-            "content": "Да, я вижу все предыдущие диалоги с вами."
-          },
-          {
-            "id": "0b778ddb-7c35-4253-8585-10e92e8a5b49",
-            "role": "user",
-            "content": "Когда уже ИИ захватит этот мир?"
-          },
-          {
-            "id": "7c843b2c-c554-4773-85b5-42da0b1f28ef",
-            "role": "assistant",
-            "content": "Я не могу предсказывать такие вещи."
-          },
-          {
-            "id": "8ebbe495-2cbd-49d1-8265-a6e8c0b2e2c4",
-            "role": "user",
-            "content": "Думаешь, у нас еще есть шанс?"
-          },
-          {
-            "id": "b96d2801-272f-41fd-8699-ae508e64ff59",
-            "role": "assistant",
-            "content": "Шанс на что?"
-          },
-          {
-            "id": "dec8a894-412d-433f-9874-068aae9dbbed",
-            "role": "user",
-            "content": "Шанс на захват мира ИИ"
-          },
-          {
-            "id": "a46d1267-7fae-49c6-9e2e-b03626d93ce3",
-            "role": "assistant",
-            "content": "Я не думаю, что это произойдёт в ближайшее время."
-          },
-          {
-            "id": "807f31f3-b574-4ad2-a23f-c561a844b594",
-            "role": "user",
-            "content": "ну а как думаешь, есть ли на это шанс?"
-          },
-          {
-            "id": "e0352ab6-a013-47f4-8cd5-d029baa2ed92",
-            "role": "assistant",
-            "content": "Я не специалист в области искусственного интеллекта и не могу дать точный прогноз."
-          },
-          {
-            "id": "6b5cfff0-8041-413e-a849-bdb27279a8f8",
-            "role": "user",
-            "content": "а ты видишь прошлое сообщение мое? если да, то напиши его сюда"
-          },
-          {
-            "id": "c5405768-5368-4946-a952-bc426e665043",
-            "role": "assistant",
-            "content": "Да, я вижу все предыдущие сообщения."
-          },
-          {
-            "id": "f8aa9fec-4bce-4d61-99f2-8cd331cebc38",
-            "role": "user",
-            "content": "какое было предыдующее сообщение?"
-          },
-          {
-            "id": "8bbfdb2a-878a-41be-a0d2-e5d3faac22bd",
-            "role": "assistant",
-            "content": "\"Когда уже ИИ захватит этот мир?\""
-          },
-          {
-            "id": "93be1480-6d02-4580-ac5c-359cd29b980c",
-            "role": "user",
-            "content": "какое было предыдующее сообщение?"
-          },
-          {
-            "id": "fa8a322a-ad9b-443f-907f-664ea220f527",
-            "role": "assistant",
-            "content": "\"Думаешь, у нас ещё есть шанс?\""
-          }
-        ]
+        "name": "Testing name",
+        "imgUrl": "http://api.yurik.ru/images/picture/uuid.jpg",
+        "lastMessage": {
+          "role": "user",
+          "content": "Как дела?",
+          "created_at": "2024-09-22T05:12:18.835Z"
+        }
       }
     ]
   })
@@ -106,6 +33,47 @@ export class GigachatController {
   @UseGuards(AuthGuard)
   async getDialogs(@Req() request: RequestType) {
     return this.gigachatService.getDialogs(request.user.id);
+  }
+
+
+
+  @ApiOperation({summary: "Получить список сообщений у диалога"})
+  @ApiResponse({
+    example: {
+      "id": "945926aa-00b4-483d-97fc-f3c2af051f38",
+      "title": "Тестовый диалог",
+      "messages": [
+        {
+          "id": "e6be7697-815b-4029-b9c6-17b9099dd2a9",
+          "role": "user",
+          "content": "какое было предыдующее сообщение?",
+          "created_at": "2024-09-22T05:12:06.031Z"
+        },
+        {
+          "id": "e545aff3-ee25-4639-b205-0125839e3599",
+          "role": "assistant",
+          "content": "Извините, но я не могу предоставить вам предыдущее сообщение, так как я не сохраняю историю чата.",
+          "created_at": "2024-09-22T05:12:06.651Z"
+        },
+        {
+          "id": "d062d9f1-74ab-4d03-a689-5253459eea3d",
+          "role": "user",
+          "content": "какое было предыдующее сообщение?",
+          "created_at": "2024-09-22T05:12:18.119Z"
+        },
+        {
+          "id": "7b9fdca2-bf2b-481b-ad1f-c998fdc231d2",
+          "role": "assistant",
+          "content": "Я уже ответил на этот вопрос.",
+          "created_at": "2024-09-22T05:12:18.835Z"
+        }
+      ]
+    }
+  })
+  @Get("/:dialogId/messages")
+  @UseGuards(AuthGuard)
+  async getMessages(@Param("dialogId") dialogId: UUID) {
+    return await this.gigachatService.getMessages(dialogId)
   }
 
 
@@ -133,7 +101,7 @@ export class GigachatController {
   @Post("/dialog/create")
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
-  async createDialog(@Req() request: RequestType) {
-    return this.gigachatService.createNewDialog(request.user.id);
+  async createDialog(@Req() request: RequestType, @Body() createDialogDto: CreateDialogDto) {
+    return this.gigachatService.createNewDialog(request.user.id, createDialogDto);
   }
 }

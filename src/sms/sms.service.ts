@@ -14,8 +14,8 @@ export class SmsService {
     ) {}
 
     async sendSms(phoneNumber: string): Promise<boolean> {
-        const smsFound = await this.smsRepository.findOneBy({ phoneNumber});
-        const THREE_MINUTES = 1000 * 60 * 3;
+        const smsFound: Sms = await this.smsRepository.findOneBy({ phoneNumber});
+        const THREE_MINUTES: number = 1000 * 60 * 3;
         if(smsFound && smsFound.updatedAt.getTime() + THREE_MINUTES < Date.now()) {
             throw new BadRequestException("Смс код уже был отправлен. Следующий можно будет отправить через 3 минуты")
         }
@@ -23,9 +23,9 @@ export class SmsService {
             throw new BadRequestException("Неверный номер телефона");
         }
 
-        const codeValue = this.appService.getRandomCodeValue();
+        const codeValue: Number = this.appService.getRandomCodeValue();
 
-        const smsText = `Смс-код для Yurik: ${codeValue}. Действует 5 минут. Не сообщайте код никому! `;
+        const smsText: string = `Смс-код для Yurik: ${codeValue}. Действует 5 минут. Не сообщайте код никому! `;
 
         const response = await this.httpService.axiosRef.get(`https://gateway.api.sc/get/?user=79393954195&pwd=58%5E[DnSwwm&name_deliver=Title&sadr=SMS%20Info&dadr=${phoneNumber}&text=${smsText}`);
 
@@ -48,7 +48,7 @@ export class SmsService {
             throw new BadRequestException("Неверный номер телефона");
         }
 
-        const smsFound = await this.smsRepository.findOneBy({ phoneNumber });
+        const smsFound: Sms = await this.smsRepository.findOneBy({ phoneNumber });
         if(!smsFound) {
             throw new BadRequestException("Не удалось найти смс");
         }  
@@ -56,15 +56,15 @@ export class SmsService {
             throw new UnauthorizedException("Неверный код");
         }
 
-        const five_minutes = 1000 * 60 * 5
+        const five_minutes: number = 1000 * 60 * 5
         
         if(smsFound.updatedAt.getTime() * five_minutes < Date.now()) {
             throw new UnauthorizedException("Смс код истек");
         }
 
-        if(smsFound.used) {
-            throw new UnauthorizedException("Смс код уже был использован. Пожалуйста, отправьте новый.");
-        }
+        // if(smsFound.used) {
+        //     throw new UnauthorizedException("Смс код уже был использован. Пожалуйста, отправьте новый.");
+        // }
 
         await this.smsRepository.update(smsFound.id, {
             used: true

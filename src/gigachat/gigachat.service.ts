@@ -25,7 +25,7 @@ export class GigachatService {
   ) {
   }
 
-  async getDialogs(userId: number) {
+  async getDialogs(userId: number): Promise<DialogsDto[]> {
     const dialogsFound: GigaChatDialog[] = await this.dialogsRepository.find({
       where: {
         user: {
@@ -71,7 +71,11 @@ export class GigachatService {
 
   }
 
-  async sendToGigaChat({ message, dialog_id }: { message: string; dialog_id: UUID }) {
+  async sendToGigaChat({ message, dialog_id }: { message: string; dialog_id: UUID }): Promise<{
+    content: string,
+    dialog: UUID,
+    role: "assistant"
+  }> {
     const dialogFound: GigaChatDialog = await this.dialogsRepository.findOne({
       where: {
         id: dialog_id

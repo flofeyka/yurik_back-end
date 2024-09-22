@@ -368,7 +368,6 @@ export class AgreementService {
 
 
     const stepCreated: InsertResult = await this.memberRepository.createQueryBuilder().insert().into(AgreementStep).values([{
-      id: uuid(),
       ...step,
       user: member,
     }]).execute();

@@ -1,15 +1,15 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsPhoneNumber, IsString, Length, Max, Min, MinLength } from "class-validator";
+import { IsNotEmpty, IsPhoneNumber, isString, IsString, Length, Max, Min, MinLength } from "class-validator";
 
 export class CreateUserDto {
     @IsNotEmpty()
     @ApiProperty({description: "Фамилия. Обязательное поле", example: "Максбетов"})
     readonly lastName: string;
 
-
-    @Length(11)
-    @ApiProperty({description: "Номер телефона. Обязательное поле", example: "+79123456789"})
-    readonly phoneNumber: string;
+    @IsNotEmpty()
+    @IsString()
+    @ApiProperty({description: "Имя. Обязательное поле", example: "Максим"})
+    readonly firstName: string;
 
 
     @IsNotEmpty()

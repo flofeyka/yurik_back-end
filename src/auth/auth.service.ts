@@ -8,7 +8,6 @@ import { UserService } from "src/user/user.service";
 import { CreateUserDto } from "src/user/dtos/create-user-dto";
 import { LoginDto } from "./dtos/login-dto";
 import { UserDto } from "src/user/dtos/user-dto";
-import { UUID } from "crypto";
 import { TelegramAccount } from "src/user/entities/telegram-account.entity";
 import { AppService } from "../app.service";
 
@@ -43,24 +42,19 @@ export class AuthService {
 
     const existingUser: User | undefined = await this.usersRepository.findOne({
       where: [
-        { phoneNumber: userDto.phoneNumber },
         { telegram_account: telegramAccountFound }
       ]
     });
 
     if (existingUser) {
-      throw new BadRequestException("Телеграм аккаунт или номер телефона уже зарегистрированы.");
-    }
-
-    if (userDto.phoneNumber.length !== 11) {
-      throw new BadRequestException("Неверный номер телефона");
+      throw new BadRequestException("Телеграм аккаунт уже зарегистрированы.");
     }
 
     const newUser: User = await this.userService.createUser(userDto, telegramAccountFound);
     await this.telegramAccountsRepository.save({
       ...telegramAccountFound,
       user: newUser
-    })
+    });
     const token: string = await this.generateToken(newUser);
 
     return {

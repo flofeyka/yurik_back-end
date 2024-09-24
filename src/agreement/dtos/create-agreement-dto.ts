@@ -7,5 +7,6 @@ export class CreateAgreementDto {
   readonly title: string;
 
   @ApiProperty({ title: "Кто инициирует договор ", example: "Подрядчик"})
+  @IsString()
   readonly initiatorStatus: "Подрядчик" | "Заказчик"
 }

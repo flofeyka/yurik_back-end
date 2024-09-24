@@ -15,6 +15,7 @@ import { ImagesService } from "../images/images.service";
 import { ImageDto } from "../images/dtos/ImageDto";
 import { AgreementsListDto } from "./dtos/agreements-list-dto";
 import { EditAgreementDto } from "./dtos/edit-agreement-dto";
+import { EditStepsDto } from "./dtos/edit-steps-dto";
 
 @Injectable()
 export class AgreementService {
@@ -56,20 +57,18 @@ export class AgreementService {
 
   }
 
-  async editAgreement(id: number, editDealDto: EditAgreementDto) {
-    const agreement: Agreement = await this.findAgreement(id);
-    if(!agreement || agreement.status !== "Черновик") {
-      throw new BadRequestException(`Черновик договора с таким id ${id} не был найден`);
-    }
-
-    return await this.agreementRepository.save({
+  async editAgreement(agreement: Agreement, editDealDto: EditAgreementDto): Promise<AgreementDto> {
+    const agreementSaved: Agreement =  await this.agreementRepository.save({
       ...agreement,
       ...editDealDto
-    })
+    });
+
+
+    return new AgreementDto(agreementSaved);
   }
 
   async sendToLawyer(userId: number, agreement: Agreement) {
-    if (agreement.initiator !== userId) {
+    if (agreement.initiator.user.id !== userId) {
       throw new BadRequestException("Вы не можете пригласить юриста в договор, так как не являетесь его инициатором.");
     }
 
@@ -189,24 +188,25 @@ export class AgreementService {
     return await this.lawyerRepository.save({ user });
   }
 
-  async createAgreement(userId: number, agreementDto: CreateAgreementDto): Promise<Agreement> {
-    const agreement: Agreement = this.agreementRepository.create({
-      ...agreementDto,
-      initiator: userId
+  async createAgreement(userId: number, agreementDto: CreateAgreementDto): Promise<AgreementDto> {
+    
+    const agreementCreated: InsertResult = await this.agreementRepository.createQueryBuilder().insert().into(Agreement).values({
+      ...agreementDto
+    }).execute();
+
+    const agreementFound = await this.findAgreement(agreementCreated.identifiers[0].id);
+
+    const initiatorAdded = await this.addMember({
+      userId,
+      status: agreementDto.initiatorStatus
+    }, agreementFound)
+
+    const memberUpdated = await this.agreementRepository.save({...agreementFound,
+      members: [initiatorAdded],
+      initiator: initiatorAdded
     });
 
-
-    const agreementCreated: Agreement = await this.agreementRepository.save({
-      ...agreement,
-      members: await Promise.all(agreementDto.members.map(async (member) => await this.addMember(member, agreement))),
-      steps: await Promise.all(agreementDto.steps.map(async (step) => await this.addStep(step, agreement)))
-    });
-
-    console.log(agreementCreated.members[0].user);
-
-    await Promise.all(agreementCreated.members.map(async (member: AgreementMember) => await this.appService.sendDealNotification(member.user.telegram_account.telegramID, agreement.initiator, member.user.firstName, "кто-то", agreement.id)));
-
-    return agreementCreated;
+    return new AgreementDto(memberUpdated);
 
   }
 
@@ -233,7 +233,7 @@ export class AgreementService {
   }
 
   async declineAgreement(userId: number, agreement: Agreement): Promise<{ isDeclined: boolean; message: string }> {
-    if (agreement.status === "В работе" && agreement.initiator !== userId) {
+    if (agreement.status === "В работе" && agreement.initiator.user.id !== userId) {
       throw new BadRequestException("Вы не можете разорвать договор если вы не являетесь его инициатором");
     }
 
@@ -241,7 +241,8 @@ export class AgreementService {
       ...agreement,
       members: [...agreement.members.map((member: AgreementMember) => {
         return { ...member, inviteStatus: member.user.id === userId ? "Отклонил" : member.inviteStatus };
-      })]
+      })],
+      status: agreement.status === "В работе" ? "Отклонён" : agreement.status
     });
 
     return {
@@ -251,25 +252,12 @@ export class AgreementService {
   }
 
   async findAgreement(id: number): Promise<Agreement> {
-    const agreementFound: Agreement = await this.agreementRepository.findOne({
-      where: { id }, relations: {
-        members: {
-          user: true
-        },
-        steps: {
-          user: {
-            user: true
-          }
-        },
-        lawyer: {
-          user: true
-        }
-      }
-    });
+    const agreementFound: Agreement = await this.agreementRepository.findOneBy({ id });
 
     if (!agreementFound) {
       throw new NotFoundException("Договор с этим идентификатором не найден");
     }
+
     return agreementFound;
   }
 
@@ -278,7 +266,7 @@ export class AgreementService {
     agreement: AgreementDto
   }> {
     const member: AgreementMember = this.findMember(agreement, userId);
-    if (agreement.initiator !== member.user.id) {
+    if (agreement.initiator.user.id !== member.user.id) {
       throw new BadRequestException("Вы не можете включить договор в работу, так как вы не являетесь его инициатором.");
     }
 
@@ -332,6 +320,16 @@ export class AgreementService {
     };
   }
 
+  async editStep(stepsDto: EditStepsDto) {
+    const steps = Promise.all(stepsDto.steps.map(async (step) => {
+      const stepFound = await this.stepRepository.findOne({
+        where: {
+          id: step?.id
+      }
+    });
+    }));
+  }
+
   async addStep(step: Step, agreement: Agreement): Promise<AgreementStep> {
     const member: AgreementMember = await this.memberRepository.findOne({
       where: {
@@ -370,7 +368,6 @@ export class AgreementService {
     const agreementCreated: InsertResult = await this.memberRepository.createQueryBuilder().insert().into(AgreementMember).values([{
       ...member,
       inviteStatus: "Приглашен",
-      id: uuid(),
       agreement,
       user
     }]).execute();

@@ -1,5 +1,5 @@
 import { Chat } from "src/chat/entities/chat.entity";
-import { Column, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Lawyer } from "./agreement.lawyer.entity";
 import { AgreementMember } from "./agreement.member.entity";
 import { AgreementStep } from "./agreement.step.entity";
@@ -21,36 +21,37 @@ export class Agreement {
   @Column()
   public title: string;
 
-  @Column()
+  @Column({nullable: true})
   public text: string;
 
-  @OneToMany(() => AgreementMember, (member: AgreementMember) => member.agreement, {cascade: true})
+  @OneToMany(() => AgreementMember, (member: AgreementMember) => member.agreement, {eager: true})
   public members: AgreementMember[];
 
-  @Column()
-  public initiator: number;
+  @OneToOne(() => AgreementMember, {eager: true})
+  @JoinColumn()
+  public initiator: AgreementMember;
 
-  @OneToOne(() => Chat, (chat: Chat) => chat.agreement)
+  @OneToOne(() => Chat, (chat: Chat) => chat.agreement, {nullable: true})
   public chat: Chat;
 
   @Column({ default: "Черновик" })
   public status: "В работе" | "Отклонён" | "У юриста" | "В поиске юриста" | "В процессе подтверждения" | "Черновик";
 
-  @Column({ type: "float" })
+  @Column({ type: "bigint", nullable: true })
   public price: number;
 
-  @OneToMany(() => AgreementStep, (step: AgreementStep) => step.agreement, {cascade: true})
+  @OneToMany(() => AgreementStep, (step: AgreementStep) => step.agreement, {eager: true})
   public steps: AgreementStep[];
 
-  @ManyToOne(() => Lawyer, (lawyer: Lawyer) => lawyer.agreements, {nullable: true})
+  @ManyToOne(() => Lawyer, (lawyer: Lawyer) => lawyer.agreements, {nullable: true, eager: true})
   public lawyer: Lawyer;
 
   @Column('varchar', {array: true, nullable: true})
   public images: Array<string>;
 
-  @Column()
+  @Column({nullable: true})
   public start: Date;
 
-  @Column()
+  @Column({nullable: true})
   public end: Date;
 }

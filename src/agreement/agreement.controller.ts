@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   Post, Put,
   Req,
@@ -24,6 +25,7 @@ import { Agreement } from "./entities/agreement.entity";
 import { LawyerGuard } from "./guards/agreement.lawyer.guard";
 import { ImagesDto } from "./dtos/images-dto";
 import { AgreementsListDto } from "./dtos/agreements-list-dto";
+import { EditAgreementDto } from "./dtos/edit-agreement-dto";
 
 @ApiTags("Agreement API")
 @Controller("agreement")
@@ -69,7 +71,7 @@ export class AgreementController {
 
   @ApiOperation({ summary: "Создание договора" })
   @Post("/create")
-  @UseGuards(AuthGuard, SmsGuard)
+  @UseGuards(AuthGuard)
   async createAgreement(@Body() agreementDto: CreateAgreementDto, @Req() request: RequestType) {
     return this.agreementService.createAgreement(request.user.id, agreementDto);
   }
@@ -108,10 +110,40 @@ export class AgreementController {
   }
 
   @ApiOperation({summary: "Редактирование договора"})
+  @ApiResponse({status: HttpStatus.ACCEPTED, example: {
+    "id": 18,
+    "title": "Договор о импортозамещении строительных материалов",
+    "text": "Заказчик обязуется...",
+    "initiator": {
+        "id": 10,
+        "firstName": "Максим",
+        "lastName": "Максбетов",
+        "middleName": null,
+        "email": null,
+        "status": "Заказчик",
+        "inviteStatus": "Приглашен"
+    },
+    "status": "Черновик",
+    "price": "45245245",
+    "members": [
+        {
+            "id": 10,
+            "firstName": "Максим",
+            "lastName": "Максбетов",
+            "middleName": null,
+            "email": null,
+            "status": "Заказчик",
+            "inviteStatus": "Приглашен"
+        }
+    ],
+    "steps": [],
+    "start": "2024-09-24",
+    "end": "2024-09-26"
+  }})
   @Put("/update/:id")
-  @UseGuards(AuthGuard)
-  async editAgreement(@Param("id") id: number, @Body() request: RequestType) {
-    return this.agreementService.editAgreement(id)
+  @UseGuards(AuthGuard, AgreementGuard)
+  async editAgreement(@Req() request: RequestType, @Body() agreementDto: EditAgreementDto, @Param("id") id: number) {
+    return this.agreementService.editAgreement(request.agreement, agreementDto);
   }
 
   @ApiOperation({ summary: "Приглашение нового участника в договор до его подписания" })

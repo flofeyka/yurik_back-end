@@ -32,7 +32,7 @@ export class User {
   public readonly phoneNumber: string;
 
   @ApiProperty({ title: "ID Telegram", example: 312531 })
-  @OneToOne(() => TelegramAccount, (telegram_account: TelegramAccount) => telegram_account.user)
+  @OneToOne(() => TelegramAccount, (telegram_account: TelegramAccount) => telegram_account.user, {eager: true})
   public readonly telegram_account: TelegramAccount;
 
   @Column({ nullable: true, type: "date" })

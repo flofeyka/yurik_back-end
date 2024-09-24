@@ -14,11 +14,11 @@ export class AgreementStep {
     @Column()
     title: string;
 
-    @ManyToOne(() => Image)
+    @ManyToOne(() => Image, {eager: true})
     @JoinColumn()
     images: Image[];
 
-    @ManyToOne(() => AgreementMember, (agreementMember: AgreementMember) => agreementMember.agreement, {nullable: true})
+    @ManyToOne(() => AgreementMember, (agreementMember: AgreementMember) => agreementMember.agreement, {nullable: true, eager: true})
     user: AgreementMember;
 
     @Column({ type: "boolean"})

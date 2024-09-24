@@ -1,4 +1,4 @@
-import { BadGatewayException, BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadGatewayException, BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { User } from "./entities/user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { InsertResult, Repository } from "typeorm";
@@ -7,12 +7,17 @@ import { CreateUserDto } from "./dtos/create-user-dto";
 import { UserDto } from "./dtos/user-dto";
 import { TelegramAccount } from "./entities/telegram-account.entity";
 import { ImagesService } from "../images/images.service";
+import { PersonalData } from "./entities/user.personal_data";
+import { Image } from "src/images/image.entity";
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly usersRepository: Repository<User>,
     @InjectRepository(TelegramAccount) private readonly telegramAccountsRepository: Repository<TelegramAccount>,
+    @InjectRepository(PersonalData) private readonly personalDataRepository: Repository<PersonalData>,
+    @Inject(forwardRef(() => ImagesService))
+    private readonly imagesService: ImagesService
   ) {
   };
 
@@ -33,8 +38,32 @@ export class UserService {
       throw new BadGatewayException("Возраст пользователя должен быть больше 18 лет");
     }
 
+    const userPersonalData: PersonalData = await this.personalDataRepository.findOne({ where: { user: { id: userId } }, relations: {
+      user: true
+    } });
+
     const userFound: User = await this.usersRepository.findOne({ where: { id: userId } });
-    const updated: User = await this.usersRepository.save({ ...userFound, ...userDto });
+    let image = userFound.image;
+    if (userDto.image) {
+      const imageFound: Image = await this.imagesService.getImageByName(userDto.image);
+      if(!imageFound) {
+        throw new NotFoundException("Изображение не найдено");
+      }
+      image = imageFound;
+    }
+
+    if (userPersonalData) {
+      const personalDataCreated = await this.personalDataRepository.save({
+        ...userPersonalData,
+        ...userDto
+            });
+      userFound.personalData = personalDataCreated;
+    } else {
+      const newPersonalData = await this.personalDataRepository.createQueryBuilder().insert().into(PersonalData).values({  user: userFound, ...userDto }).execute();
+      const personalDataFound = await this.personalDataRepository.findOne({ where: { id: newPersonalData.identifiers[0].id } });
+      userFound.personalData = personalDataFound;
+    }
+    const updated: User = await this.usersRepository.save({ ...userFound, ...userDto, image });
     if (updated) {
       return new UserDto(updated);
     }

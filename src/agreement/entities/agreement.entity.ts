@@ -1,8 +1,19 @@
-import { Chat } from "src/chat/entities/chat.entity";
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Lawyer } from "./agreement.lawyer.entity";
-import { AgreementMember } from "./agreement.member.entity";
-import { AgreementStep } from "./agreement.step.entity";
+import { Chat } from 'src/chat/entities/chat.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Lawyer } from './agreement.lawyer.entity';
+import { AgreementMember } from './agreement.member.entity';
+import { AgreementStep } from './agreement.step.entity';
+import { Image } from 'src/images/image.entity';
+import { AgreementImage } from './agreement-image.entity';
 
 export interface Step {
   title: string;
@@ -21,37 +32,52 @@ export class Agreement {
   @Column()
   public title: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   public text: string;
 
-  @OneToMany(() => AgreementMember, (member: AgreementMember) => member.agreement, {eager: true})
+  @OneToMany(
+    () => AgreementMember,
+    (member: AgreementMember) => member.agreement,
+    { eager: true },
+  )
   public members: AgreementMember[];
 
-  @OneToOne(() => AgreementMember, {eager: true})
+  @OneToMany(() => AgreementImage, (agreementImage: AgreementImage) => agreementImage.agreement)
+  public images: AgreementImage[]
+
+  @OneToOne(() => AgreementMember, { eager: true })
   @JoinColumn()
   public initiator: AgreementMember;
 
-  @OneToOne(() => Chat, (chat: Chat) => chat.agreement, {nullable: true})
+  @OneToOne(() => Chat, (chat: Chat) => chat.agreement, { nullable: true })
   public chat: Chat;
 
-  @Column({ default: "Черновик" })
-  public status: "В работе" | "Отклонён" | "У юриста" | "В поиске юриста" | "В процессе подтверждения" | "Черновик";
+  @Column({ default: 'Черновик' })
+  public status:
+    | 'В работе'
+    | 'Отклонён'
+    | 'У юриста'
+    | 'В поиске юриста'
+    | 'В процессе подтверждения'
+    | 'Черновик';
 
-  @Column({ type: "bigint", nullable: true })
+  @Column({ type: 'bigint', nullable: true })
   public price: number;
 
-  @OneToMany(() => AgreementStep, (step: AgreementStep) => step.agreement, {eager: true})
+  @OneToMany(() => AgreementStep, (step: AgreementStep) => step.agreement, {
+    eager: true,
+  })
   public steps: AgreementStep[];
 
-  @ManyToOne(() => Lawyer, (lawyer: Lawyer) => lawyer.agreements, {nullable: true, eager: true})
+  @ManyToOne(() => Lawyer, (lawyer: Lawyer) => lawyer.agreements, {
+    nullable: true,
+    eager: true,
+  })
   public lawyer: Lawyer;
 
-  @Column('varchar', {array: true, nullable: true})
-  public images: Array<string>;
-
-  @Column({nullable: true})
+  @Column({ nullable: true })
   public start: Date;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   public end: Date;
 }

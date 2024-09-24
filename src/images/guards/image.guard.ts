@@ -1,10 +1,14 @@
-import { BadRequestException, CanActivate, ExecutionContext, NotFoundException } from "@nestjs/common";
-import { Observable } from "rxjs";
-import { ImagesService } from "../images.service";
-import { Image } from "../image.entity";
-import { RequestType } from "../../../types/types";
-import { UUID } from "crypto";
-import { ImageDto } from "../dtos/ImageDto";
+import {
+  BadRequestException,
+  CanActivate,
+  ExecutionContext,
+  NotFoundException,
+} from '@nestjs/common';
+import { UUID } from 'crypto';
+import { RequestType } from '../../../types/types';
+import { ImageDto } from '../dtos/ImageDto';
+import { ImagesService } from '../images.service';
+import { Image } from '../image.entity';
 
 export class ImageGuard implements CanActivate {
   constructor(private readonly imageService: ImagesService) {}
@@ -13,19 +17,24 @@ export class ImageGuard implements CanActivate {
     try {
       const request: RequestType = context.switchToHttp().getRequest();
 
-      const name: UUID = request.body.name || request.params.name || request.query.name;
-      const imageFound: ImageDto = await this.imageService.getImageByName(name);
+      const name: UUID =
+        request.body.name || request.params.name || request.query.name;
+      const imageFound: Image = await this.imageService.getImageByName(name);
 
-      if(!imageFound) {
-        throw new NotFoundException("Фотография с таким именем не была найдена");
+      if (!imageFound) {
+        throw new NotFoundException(
+          'Фотография с таким именем не была найдена',
+        );
       }
 
-      if(imageFound.userId !== request.user.id) {
-        throw new BadRequestException("Вы не являетесь владельцем данной фотографии, чтобы совершать это действие");
+      if (imageFound.user.id !== request.user.id) {
+        throw new BadRequestException(
+          'Вы не являетесь владельцем данной фотографии, чтобы совершать это действие',
+        );
       }
 
       return true;
-    } catch(e) {
+    } catch (e) {
       return false;
     }
   }

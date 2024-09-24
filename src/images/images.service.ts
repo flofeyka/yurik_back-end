@@ -1,33 +1,37 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { DeleteResult, Repository } from "typeorm";
-import { Image } from "./image.entity";
-import { UserService } from "../user/user.service";
-import { User } from "../user/entities/user.entity";
-import { ImageDto } from "./dtos/ImageDto";
+import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DeleteResult, Repository } from 'typeorm';
+import { User } from '../user/entities/user.entity';
+import { UserService } from '../user/user.service';
+import { ImageDto } from './dtos/ImageDto';
+import { Image } from './image.entity';
 
 @Injectable()
 export class ImagesService {
   constructor(
-    @InjectRepository(Image) private readonly imagesRepository: Repository<Image>,
-    private readonly userService: UserService) {
-  }
+    @InjectRepository(Image)
+    private readonly imagesRepository: Repository<Image>,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
+  ) {}
 
-
-  async getImageByName(name: string): Promise<ImageDto> {
+  async getImageByName(name: string): Promise<Image> {
     const image: Image = await this.imagesRepository.findOne({
-      where: { name }, relations: {
-        user: true
-      }
+      where: { name },
+      relations: {
+        user: true,
+      },
     });
 
-    return new ImageDto(image);
+    return image;
   }
 
   async deleteImage(name: string): Promise<boolean> {
-    const deleteResult: DeleteResult = await this.imagesRepository.delete({ name });
+    const deleteResult: DeleteResult = await this.imagesRepository.delete({
+      name,
+    });
     if (!deleteResult) {
-      throw new BadRequestException("Не удалось удалить фотографию.");
+      throw new BadRequestException('Не удалось удалить фотографию.');
     }
 
     return true;

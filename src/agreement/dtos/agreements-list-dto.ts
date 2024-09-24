@@ -1,6 +1,6 @@
-import { Agreement } from "../entities/agreement.entity";
-import { AgreementMember } from "../entities/agreement.member.entity";
-import { AgreementStep } from "../entities/agreement.step.entity";
+import { Agreement } from '../entities/agreement.entity';
+import { AgreementMember } from '../entities/agreement.member.entity';
+import { AgreementStep } from '../entities/agreement.step.entity';
 
 export class AgreementsListDto {
   id: number;
@@ -12,7 +12,7 @@ export class AgreementsListDto {
     middleName: string;
     status: string;
     inviteStatus: string;
-  }[]
+  }[];
   steps: {
     title: string;
     isComplete: boolean;
@@ -29,14 +29,14 @@ export class AgreementsListDto {
         lastName: member.user.lastName,
         middleName: member.user.middleName,
         status: member.status,
-        inviteStatus: member.inviteStatus
-      }
+        inviteStatus: member.inviteStatus,
+      };
     });
     this.steps = model.steps.map((step: AgreementStep) => {
       return {
         title: step.title,
-        isComplete: step.isComplete
-      }
+        isComplete: step.isComplete,
+      };
     });
     this.start = model.start;
     this.end = model.end;

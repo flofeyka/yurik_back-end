@@ -9,7 +9,7 @@ export class UserDto {
             middleName: user.middleName, 
             birthDate: user.BirthDate, 
             telegramID: user.telegram_account.telegramID, 
-            email: user.email, 
-            passport: !!(user.authority && user.serial && user.number && user.address), TIN: !!user.TIN})
+            email: user.email,
+            filled: !!(user.authority && user.serial && user.number && user.address && !!user.TIN)})
     }
 }

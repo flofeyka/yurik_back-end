@@ -26,28 +26,29 @@ export class AuthController {
   @ApiOperation({ summary: 'Регистрация пользователя в системе' })
   @ApiResponse({
     example: {
-      id: 1,
-      lastName: 'Максбетов',
-      phoneNumber: '+79123456789',
-      telegramID: 135462,
-    },
-    status: HttpStatus.CREATED,
+      "id": 10,
+      "firstName": "Максим",
+      "lastName": "Максбетов",
+      "middleName": null,
+      "birthDate": null,
+      "telegramID": "5539208326",
+      "email": null,
+      "filled": false
+    }, status: HttpStatus.CREATED
   })
   @ApiResponse({
     example: {
-      message: 'Электронная почта занята другим пользователем',
-      error: 'Bad Request',
-      statusCode: 400,
-    },
-    status: HttpStatus.BAD_REQUEST,
+      message: "Пожалуйста, зарегистрируйте Telegram-аккаунт, прежде чем продолжить.",
+      error: "Bad Request",
+      statusCode: 400
+    }, status: HttpStatus.BAD_REQUEST
   })
   @ApiResponse({
     example: {
-      message: 'Номер телефона занят другим пользователем',
-      error: 'Bad Gateway',
-      statusCode: HttpStatus.BAD_GATEWAY,
-    },
-    status: HttpStatus.BAD_GATEWAY,
+      message: "Телеграм аккаунт уже зарегистрирован.",
+      error: "Bad Gateway",
+      statusCode: HttpStatus.BAD_GATEWAY
+    }, status: HttpStatus.BAD_GATEWAY
   })
   @HttpCode(HttpStatus.CREATED)
   @Post('/signup')
@@ -61,16 +62,17 @@ export class AuthController {
     return result.user;
   }
 
-  @ApiOperation({ summary: 'Получение данных юзера' })
-  @ApiResponse({
-    example: {
-      id: 1,
-      lastName: 'Максбетов',
-      phoneNumber: '+79123456789',
-      telegramID: 135462,
-    },
-    status: HttpStatus.OK,
-  })
+  @ApiOperation({summary: "Получение данных юзера"})
+  @ApiResponse({example: {
+      "id": 10,
+      "firstName": "Максим",
+      "lastName": "Максбетов",
+      "middleName": null,
+      "birthDate": null,
+      "telegramID": "5539208326",
+      "email": null,
+      "filled": false
+    }, status: HttpStatus.OK})
   @HttpCode(HttpStatus.OK)
   @Get('/data')
   @UseGuards(AuthGuard)
@@ -81,12 +83,15 @@ export class AuthController {
   @ApiOperation({ summary: 'Авторизация существующего пользователя в системе' })
   @ApiResponse({
     example: {
-      id: 1,
-      lastName: 'Максбетов',
-      phoneNumber: 79123456789,
-      telegramID: 135462,
-    },
-    status: HttpStatus.OK,
+      "id": 10,
+      "firstName": "Максим",
+      "lastName": "Максбетов",
+      "middleName": null,
+      "birthDate": null,
+      "telegramID": "5539208326",
+      "email": null,
+      "filled": false
+    }, status: HttpStatus.OK
   })
   @HttpCode(HttpStatus.OK)
   @Post('/signin')

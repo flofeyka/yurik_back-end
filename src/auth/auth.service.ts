@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadGatewayException, BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "../user/entities/user.entity";
 import { InsertResult, Repository } from "typeorm";
@@ -55,13 +55,10 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new BadRequestException("Телеграм аккаунт уже зарегистрированы.");
+      throw new BadGatewayException("Телеграм аккаунт уже зарегистрирован.");
     }
 
-    const newUser: User = await this.userService.createUser(
-      userDto,
-      telegramAccountFound,
-    );
+    const newUser: User = await this.userService.createUser(userDto, telegramAccountFound);
     await this.telegramAccountsRepository.save({
       ...telegramAccountFound,
       user: newUser

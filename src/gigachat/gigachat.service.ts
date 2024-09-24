@@ -13,6 +13,7 @@ import { DialogsDto } from "./dtos/dialogs-dto";
 import { CreateDialogDto } from "./dtos/create-dialog-dto";
 import { Image } from "../images/image.entity";
 import { ImagesService } from "../images/images.service";
+import { ImageDto } from "../images/dtos/ImageDto";
 
 @Injectable()
 export class GigachatService {
@@ -148,7 +149,7 @@ export class GigachatService {
 
   async createNewDialog(userId: number, createDialogDto: CreateDialogDto): Promise<DialogsDto> {
     const user: User = await this.userService.findUser(userId);
-    const image: Image = createDialogDto.image ? await this.imagesService.getImageByName(createDialogDto.image) : null;
+    const image: ImageDto | null = createDialogDto.image ? await this.imagesService.getImageByName(createDialogDto.image) : null;
     const newDialog: InsertResult = await this.dialogsRepository.createQueryBuilder().insert().values([{
       ...createDialogDto,
       user,

@@ -22,7 +22,7 @@ async function bootstrap() {
   SwaggerModule.setup("/api/docs", app, document);
 
   app.use(cookieParser());
-  app.useGlobalPipes(new ValidationPipe({skipNullProperties: true, forbidNonWhitelisted: true, whitelist: true}));
+  app.useGlobalPipes(new ValidationPipe({skipUndefinedProperties: true, forbidNonWhitelisted: true, whitelist: true}));
   await app.listen(3000);
 }
 bootstrap();

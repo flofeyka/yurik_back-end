@@ -7,7 +7,7 @@ export class Lawyer {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @OneToOne(() => User)
+    @OneToOne(() => User, {eager: true})
     @JoinColumn()
     user: User;
 

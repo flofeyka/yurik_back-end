@@ -21,6 +21,7 @@ import { AuthGuard } from "../auth/auth.guard";
 import { ImageGuard } from "./guards/image.guard";
 import { RequestType } from "../../types/types";
 import { Image } from "./image.entity";
+import { ImageDto } from "./dtos/ImageDto";
 
 
 @ApiTags("Images API")
@@ -57,7 +58,7 @@ export class ImagesController {
 
 
     return await Promise.all(files.map(async (file: Express.Multer.File) => {
-      const image: Image = await this.imagesService.addImage(file.filename, request.user.id);
+      const image: ImageDto = await this.imagesService.addImage(file.filename, request.user.id);
       return {
         filePath: `${request.protocol}://${request.get("Host")}/api/images/picture/${file.filename}`,
         fileName: file.filename,

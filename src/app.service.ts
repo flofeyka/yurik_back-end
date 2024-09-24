@@ -1,6 +1,7 @@
 import { HttpService } from "@nestjs/axios";
 import { Injectable } from "@nestjs/common";
 import * as crypto from "crypto";
+import { AxiosResponse } from "axios";
 
 @Injectable()
 export class AppService {
@@ -9,11 +10,27 @@ export class AppService {
     async sendNotification(message: string, telegramID: number): Promise<boolean> {
         try {
             if(telegramID) {
-                const response = await this.httpService.axiosRef.post("https://rafailvv.online/send/message", {
+                const response: AxiosResponse = await this.httpService.axiosRef.post("https://rafailvv.online/send/message", {
                     user_id: telegramID,
                     message_text: `Вам пришло новое уведомление:\n${message}`
                 })
                 return response.data;
+            }
+        } catch(e) {
+            return false;
+        }
+    }
+
+    async sendDealNotification(user_id: number, initiator_id: number, user_name: string, initiator_name: string, contract_id: number): Promise<boolean> {
+        try {
+            const response: AxiosResponse = await this.httpService.axiosRef.post("https://rafailvv.online/send/contract", {
+                user_id, initiator_id, user_name, initiator_name, contract_id
+            });
+
+            console.log(response.data);
+
+            if(response.status === 200) {
+                return true;
             }
         } catch(e) {
             return false;

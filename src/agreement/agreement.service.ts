@@ -190,54 +190,6 @@ export class AgreementService {
   }
 
   async createAgreement(userId: number, agreementDto: CreateAgreementDto): Promise<Agreement> {
-    if (new Date(agreementDto.end) < new Date(agreementDto.start)) {
-      throw new BadRequestException("Дата окончания договора не может быть меньше даты начала.");
-    }
-
-    if (new Date(agreementDto.start) < new Date(Date.now() - 1000 * 60 * 60 * 24)) {
-      throw new BadRequestException("Дата начала договора не может быть меньше текущей даты.");
-    }
-
-    if(agreementDto.initiatorStatus !== "Подрядчик" && agreementDto.initiatorStatus !== "Заказчик") {
-      throw new BadRequestException("Инициатор договора не может иметь статус кроме 'Заказчик' или 'Подрядчик'")
-    }
-
-    for (let i of agreementDto.members) {
-      const member: User = await this.userService.findUser(i.userId);
-      if (!member) {
-        throw new NotFoundException(`Пользователь с айди ${i.userId} не найден в системе.`);
-      }
-
-      if (i.status !== "Заказчик" && i.status !== "Подрядчик") {
-        throw new BadRequestException("Участник договора не может иметь статус кроме 'Заказчик' или 'Подрядчик' ")
-      }
-    }
-
-    for (let i of agreementDto.steps) {
-      const memberFound = agreementDto.members.find((member) => member.userId === i.userId);
-      if (!memberFound && i.userId !== userId) {
-        throw new BadRequestException(`Человек c ответственный за этап "${i.title}" не найден в списке участников.`);
-      }
-
-      if (new Date(i.end) < new Date(i.start)) {
-        throw new BadRequestException(`Ошибка в этапе "${i.title}". Дата окончания этапа не может быть раньше даты начала.`);
-      }
-
-      if (new Date(i.start) < new Date(Date.now() - 1000 * 60 * 60 * 24)) {
-        throw new BadRequestException(`Ошибка в этапе "${i.title}". Дата начала этапа не может быть раньше текущей даты.`);
-      }
-    }
-
-    if (agreementDto.members.find((member) => member.userId === userId)) {
-      throw new BadRequestException("Нельзя заключить договор с самим собой.");
-    }
-
-
-    agreementDto.members.push({
-      userId: userId,
-      status: agreementDto.initiatorStatus
-    });
-
     const agreement: Agreement = this.agreementRepository.create({
       ...agreementDto,
       initiator: userId

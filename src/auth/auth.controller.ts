@@ -33,14 +33,14 @@ export class AuthController {
   })
   @ApiResponse({
     example: {
-      message: "Электронная почта занята другим пользователем",
+      message: "Пожалуйста, зарегистрируйте Telegram-аккаунт, прежде чем продолжить.",
       error: "Bad Request",
       statusCode: 400
     }, status: HttpStatus.BAD_REQUEST
   })
   @ApiResponse({
     example: {
-      message: "Номер телефона занят другим пользователем",
+      message: "Телеграм аккаунт уже зарегистрирован.",
       error: "Bad Gateway",
       statusCode: HttpStatus.BAD_GATEWAY
     }, status: HttpStatus.BAD_GATEWAY

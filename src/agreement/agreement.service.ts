@@ -508,17 +508,10 @@ export class AgreementService {
       },
     });
 
-    const stepCreated: InsertResult = await this.memberRepository
-      .createQueryBuilder()
-      .insert()
-      .into(AgreementStep)
-      .values([
-        {
-          ...step,
-          user: member,
-        },
-      ])
-      .execute();
+    const stepCreated: InsertResult = await this.memberRepository.createQueryBuilder().insert().into(AgreementStep).values([{
+      ...step,
+      user: member,
+    }]).execute();
 
     return await this.stepRepository.findOne({
       where: { id: stepCreated.identifiers[0].id },

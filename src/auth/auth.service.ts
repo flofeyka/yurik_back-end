@@ -1,19 +1,15 @@
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUserDto } from 'src/user/dtos/create-user-dto';
-import { UserDto } from 'src/user/dtos/user-dto';
-import { TelegramAccount } from 'src/user/entities/telegram-account.entity';
-import { UserService } from 'src/user/user.service';
-import { InsertResult, Repository } from 'typeorm';
-import { AppService } from '../app.service';
-import { User } from '../user/entities/user.entity';
-import { LoginDto } from './dtos/login-dto';
-import { AuthToken, AuthTokenPayload } from './entities/authToken.entity';
+import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { User } from "../user/entities/user.entity";
+import { InsertResult, Repository } from "typeorm";
+import { JwtService } from "@nestjs/jwt";
+import { AuthToken, AuthTokenPayload } from "./entities/authToken.entity";
+import { UserService } from "src/user/user.service";
+import { CreateUserDto } from "src/user/dtos/create-user-dto";
+import { LoginDto } from "./dtos/login-dto";
+import { UserDto } from "src/user/dtos/user-dto";
+import { TelegramAccount } from "src/user/entities/telegram-account.entity";
+import { AppService } from "../app.service";
 
 export interface tokenAndUserType {
   token: string;
@@ -54,19 +50,12 @@ export class AuthService {
 
     const existingUser: User | undefined = await this.usersRepository.findOne({
       where: [
-        { phoneNumber: userDto.phoneNumber },
-        { telegram_account: telegramAccountFound },
-      ],
+        { telegram_account: telegramAccountFound }
+      ]
     });
 
     if (existingUser) {
-      throw new BadRequestException(
-        'Телеграм аккаунт или номер телефона уже зарегистрированы.',
-      );
-    }
-
-    if (userDto.phoneNumber.length !== 11) {
-      throw new BadRequestException('Неверный номер телефона');
+      throw new BadRequestException("Телеграм аккаунт уже зарегистрированы.");
     }
 
     const newUser: User = await this.userService.createUser(
@@ -75,13 +64,13 @@ export class AuthService {
     );
     await this.telegramAccountsRepository.save({
       ...telegramAccountFound,
-      user: newUser,
+      user: newUser
     });
     const token: string = await this.generateToken(newUser);
 
     return {
-      user: newUser,
-      token: token,
+      user: new UserDto(newUser),
+      token: token
     };
   }
 

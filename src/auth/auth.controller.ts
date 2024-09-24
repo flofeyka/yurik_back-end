@@ -21,10 +21,14 @@ export class AuthController {
   @ApiOperation({ summary: "Регистрация пользователя в системе" })
   @ApiResponse({
     example: {
-        id: 1,
-        lastName: "Максбетов",
-        phoneNumber: "+79123456789",
-        telegramID: 135462
+      "id": 10,
+      "firstName": "Максим",
+      "lastName": "Максбетов",
+      "middleName": null,
+      "birthDate": null,
+      "telegramID": "5539208326",
+      "email": null,
+      "filled": false
     }, status: HttpStatus.CREATED
   })
   @ApiResponse({
@@ -52,10 +56,14 @@ export class AuthController {
 
   @ApiOperation({summary: "Получение данных юзера"})
   @ApiResponse({example: {
-      id: 1,
-      lastName: "Максбетов",
-      phoneNumber: "+79123456789",
-      telegramID: 135462
+      "id": 10,
+      "firstName": "Максим",
+      "lastName": "Максбетов",
+      "middleName": null,
+      "birthDate": null,
+      "telegramID": "5539208326",
+      "email": null,
+      "filled": false
     }, status: HttpStatus.OK})
   @HttpCode(HttpStatus.OK)
   @Get("/data")
@@ -68,10 +76,14 @@ export class AuthController {
   @ApiOperation({ summary: "Авторизация существующего пользователя в системе" })
   @ApiResponse({
     example: {
-        id: 1,
-        lastName: "Максбетов",
-        phoneNumber: 79123456789,
-        telegramID: 135462
+      "id": 10,
+      "firstName": "Максим",
+      "lastName": "Максбетов",
+      "middleName": null,
+      "birthDate": null,
+      "telegramID": "5539208326",
+      "email": null,
+      "filled": false
     }, status: HttpStatus.OK
   })
   @HttpCode(HttpStatus.OK)

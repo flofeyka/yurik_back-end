@@ -1,14 +1,20 @@
-import { User } from "src/user/entities/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Agreement } from "./agreement.entity";
-import { UUID } from "crypto";
+import { UUID } from 'crypto';
+import { User } from 'src/user/entities/user.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Agreement } from './agreement.entity';
 
-@Entity({ name: "members" })
+@Entity({ name: 'members' })
 export class AgreementMember {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: UUID;
 
-  @ManyToOne(() => User, {eager: true})
+  @ManyToOne(() => User, { eager: true })
   @JoinColumn()
   user: User;
 
@@ -16,8 +22,8 @@ export class AgreementMember {
   agreement: Agreement;
 
   @Column()
-  status: "Заказчик" | "Подрядчик" | "Юрист";
+  status: 'Заказчик' | 'Подрядчик' | 'Юрист';
 
   @Column()
-  inviteStatus: "Подтвердил" | "Приглашен" | "Отклонил";
+  inviteStatus: 'Подтвердил' | 'Приглашен' | 'Отклонил';
 }

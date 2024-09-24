@@ -7,13 +7,14 @@ import { TelegramAccount } from "./entities/telegram-account.entity";
 import { AppModule } from "src/app.module";
 import { SmsModule } from "../sms/sms.module";
 import { ImagesModule } from "../images/images.module";
+import { PersonalData } from "./entities/user.personal_data";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, TelegramAccount]),
     forwardRef(() => AppModule),
+    forwardRef(() => ImagesModule),
     forwardRef(() => SmsModule),
-    forwardRef(() => ImagesModule)
+    TypeOrmModule.forFeature([User, TelegramAccount, PersonalData]),
   ],
   controllers: [UserController],
   providers: [UserService],

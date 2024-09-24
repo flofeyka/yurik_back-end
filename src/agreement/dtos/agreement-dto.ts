@@ -1,7 +1,8 @@
-import { Agreement, Step } from "../entities/agreement.entity";
+import { Image } from "../../images/image.entity";
+import { AgreementImage } from "../entities/agreement-image.entity";
+import { Agreement } from "../entities/agreement.entity";
 import { AgreementMember } from "../entities/agreement.member.entity";
 import { AgreementStep } from "../entities/agreement.step.entity";
-import { Image } from "../../images/image.entity";
 
 export class AgreementMemberDto {
   public id: number;
@@ -54,6 +55,7 @@ export class AgreementDto {
   public initiatorStatus: string;
   public status: string;
   public price: number;
+  public images: string[];
   public members: AgreementMemberDto[] | undefined;
   public steps: AgreementStepDto[] | undefined;
   public start: Date;
@@ -65,6 +67,7 @@ export class AgreementDto {
     this.text = model.text;
     this.initiator = new AgreementMemberDto(model.initiator);
     this.status = model.status;
+    this.images = model.images.map((image: AgreementImage) => `${process.env.API_URL}/images/picture/${image.image.name}`);
     this.price = model.price;
     this.members = model.members?.map((member: AgreementMember) => new AgreementMemberDto(member));
     this.steps = model.steps?.map((step: AgreementStep) => new AgreementStepDto(step));

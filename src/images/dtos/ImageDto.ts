@@ -1,5 +1,4 @@
-import { UUID } from "crypto";
-import { Image } from "../image.entity";
+import { Image } from '../image.entity';
 
 export class ImageDto {
   id: string;
@@ -11,6 +10,6 @@ export class ImageDto {
     this.id = model.id;
     this.name = model.name;
     this.userId = model.user.id;
-    this.imgUrl = `${process.env.API_URL}/images/picture/${model.name}`
+    this.imgUrl = `${process.env.API_URL}/images/picture/${model.name}`;
   }
 }

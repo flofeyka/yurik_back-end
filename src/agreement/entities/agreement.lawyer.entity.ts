@@ -1,16 +1,22 @@
-import { User } from "src/user/entities/user.entity";
-import { Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Agreement } from "./agreement.entity";
+import { User } from 'src/user/entities/user.entity';
+import {
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Agreement } from './agreement.entity';
 
-@Entity({name: "lawyers"}) 
+@Entity({ name: 'lawyers' })
 export class Lawyer {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @OneToOne(() => User, {eager: true})
-    @JoinColumn()
-    user: User;
+  @OneToOne(() => User, { eager: true })
+  @JoinColumn()
+  user: User;
 
-    @OneToMany(() => Agreement, (agreement: Agreement) => agreement.lawyer)
-    agreements: Agreement[];
+  @OneToMany(() => Agreement, (agreement: Agreement) => agreement.lawyer)
+  agreements: Agreement[];
 }

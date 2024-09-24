@@ -1,13 +1,24 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { User } from "../../user/entities/user.entity";
-import { GigaChatMessage } from "./message.entity";
-import { ApiProperty } from "@nestjs/swagger";
-import { UUID } from "crypto";
-import { Image } from "../../images/image.entity";
+import { ApiProperty } from '@nestjs/swagger';
+import { UUID } from 'crypto';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Image } from '../../images/image.entity';
+import { User } from '../../user/entities/user.entity';
+import { GigaChatMessage } from './message.entity';
 
-@Entity({name: "gigachat_dialogs"})
+@Entity({ name: 'gigachat_dialogs' })
 export class GigaChatDialog {
-  @ApiProperty({ title: "Уникальный идентификатор диалога. ", example: "3b94ab61-6174-4aa8-8e2f-ed008358ff92"})
+  @ApiProperty({
+    title: 'Уникальный идентификатор диалога. ',
+    example: '3b94ab61-6174-4aa8-8e2f-ed008358ff92',
+  })
   @PrimaryGeneratedColumn('uuid')
   id: UUID;
 
@@ -17,12 +28,14 @@ export class GigaChatDialog {
   @Column()
   title: string;
 
-  @OneToOne(() => Image, {nullable: true})
+  @OneToOne(() => Image, { nullable: true })
   @JoinColumn()
-  image: Image
+  image: Image;
 
-  @ApiProperty({ title: "Сообщения", example: [GigaChatMessage]})
-  @OneToMany(() => GigaChatMessage, (message: GigaChatMessage) => message.dialog)
+  @ApiProperty({ title: 'Сообщения', example: [GigaChatMessage] })
+  @OneToMany(
+    () => GigaChatMessage,
+    (message: GigaChatMessage) => message.dialog,
+  )
   messages: GigaChatMessage[];
-
 }

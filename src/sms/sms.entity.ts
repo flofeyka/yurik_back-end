@@ -1,22 +1,31 @@
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+    Column,
+    Entity,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn
+} from 'typeorm';
 
-@Entity("sms")
+@Entity('sms')
 export class Sms {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column('varchar')
-    smsUniqueIds: number[];
+  @Column('varchar')
+  smsUniqueIds: number[];
 
-    @Column({unique: true})
-    phoneNumber: string;
+  @Column({ unique: true })
+  phoneNumber: string;
 
-    @Column()
-    code: number;
+  @Column()
+  code: number;
 
-    @Column({default: false})
-    used: boolean;
+  @Column({ default: false })
+  used: boolean;
 
-    @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
-    updatedAt: Date;
+  @UpdateDateColumn({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP(6)',
+    onUpdate: 'CURRENT_TIMESTAMP(6)',
+  })
+  updatedAt: Date;
 }

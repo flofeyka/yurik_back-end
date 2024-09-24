@@ -1,16 +1,19 @@
-import { forwardRef, Module } from '@nestjs/common';
-import { SmsService } from './sms.service';
 import { HttpModule } from '@nestjs/axios';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Sms } from './sms.entity';
-import { SmsController } from './sms.controller';
 import { AppModule } from 'src/app.module';
-import { UserModule } from "../user/user.module";
+import { SmsController } from './sms.controller';
+import { Sms } from './sms.entity';
+import { SmsService } from './sms.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Sms]),HttpModule, forwardRef(() => AppModule)],
+  imports: [
+    TypeOrmModule.forFeature([Sms]),
+    HttpModule,
+    forwardRef(() => AppModule),
+  ],
   providers: [SmsService],
   exports: [SmsService],
-  controllers: [SmsController]
+  controllers: [SmsController],
 })
 export class SmsModule {}

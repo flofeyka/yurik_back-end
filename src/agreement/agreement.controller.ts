@@ -148,11 +148,15 @@ export class AgreementController {
     }
   })
   @ApiResponse({
-    status: HttpStatus.BAD_REQUEST, example: {
+    status: HttpStatus.BAD_REQUEST, example: [{
       "message": "Фотография уже была добавлена.",
       "error": "Bad Request",
       "statusCode": 400
-    }
+    }, {
+      "message": "Соглашение может иметь не более 10 фотографий.",
+      "error": "Bad Request",
+      "statusCode": 400
+    }],
   })
   @Post('/addPhotos/:id')
   @UseGuards(AuthGuard, AgreementGuard)

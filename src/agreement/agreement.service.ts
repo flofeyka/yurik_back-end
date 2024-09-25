@@ -103,7 +103,9 @@ export class AgreementService {
   }
 
   async addAgreementPhotos(agreement: Agreement, images: string[]): Promise<AgreementDto> {
-    console.log(agreement, images);
+    if(agreement.images.length + images.length > 10) {
+      throw new BadRequestException("Соглашение может иметь не более 10 фотографий.");
+    }
     const imagesFound: AgreementImage[] = await Promise.all(
       images.map(async (image: string) => {
         if (agreement.images.find(i => image === i.image.name)) {

@@ -10,7 +10,7 @@ export class UserDto {
       middleName: user.middleName,
       birthDate: user.BirthDate,
       telegramID: user.telegram_account.telegramID,
-      image: user.image && new ImageDto(user.image),
+      image: user.image ? new ImageDto(user.image) : null,
       email: user.email,
       personalData: user.personalData && {
         authority: user.personalData.authority,

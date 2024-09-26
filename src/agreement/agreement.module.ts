@@ -10,10 +10,18 @@ import { UserModule } from '../user/user.module';
 import { AgreementController } from './agreement.controller';
 import { AgreementService } from './agreement.service';
 import { Agreement } from './entities/agreement.entity';
-import { Lawyer } from './entities/agreement.lawyer.entity';
-import { AgreementMember } from './entities/agreement.member.entity';
-import { AgreementStep } from './entities/agreement.step.entity';
+import { Lawyer } from './lawyer/lawyer.entity';
+import { AgreementMember } from './members/member.entity';
+import { AgreementStep } from './step/entities/step.entity';
 import { AgreementImage } from './entities/agreement-image.entity';
+import { PersonalData } from 'src/user/entities/user.personal_data';
+import { StepController } from './step/step.controller';
+import { MemberController } from './members/member.controller';
+import { MemberService } from './members/member.service';
+import { StepService } from './step/step.service';
+import { LawyerController } from './lawyer/lawyer.controller';
+import { LawyerService } from './lawyer/lawyer.service';
+import { StepImage } from './step/entities/step-image.entity';
 
 @Module({
   imports: [
@@ -23,7 +31,9 @@ import { AgreementImage } from './entities/agreement-image.entity';
       AgreementMember,
       AgreementStep,
       Lawyer,
-      AgreementImage
+      AgreementImage,
+      PersonalData,
+      StepImage
     ]),
     UserModule,
     SmsModule,
@@ -34,7 +44,7 @@ import { AgreementImage } from './entities/agreement-image.entity';
     }),
     forwardRef(() => AppModule),
   ],
-  controllers: [AgreementController],
-  providers: [AgreementService],
+  controllers: [AgreementController, StepController, MemberController, LawyerController],
+  providers: [AgreementService, MemberService, StepService, LawyerService],
 })
 export class AgreementModule {}

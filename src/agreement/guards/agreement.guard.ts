@@ -7,7 +7,7 @@ import {
 import { RequestType } from 'types/types';
 import { AgreementService } from '../agreement.service';
 import { Agreement } from '../entities/agreement.entity';
-import { AgreementMember } from '../entities/agreement.member.entity';
+import { AgreementMember } from '../members/member.entity';
 
 @Injectable()
 export class AgreementGuard implements CanActivate {
@@ -29,6 +29,8 @@ export class AgreementGuard implements CanActivate {
       agreementFound.members.find(
         (member: AgreementMember) => member.user.id === request.user.id,
       );
+      console.log(agreementFound);
+      console.log(memberFound);
     if (!memberFound && agreementFound.lawyer?.user.id !== request.user.id) {
       throw new BadRequestException(
         'Вы не являетесь действующим участником или юристом данного договора чтобы совершить это действие',

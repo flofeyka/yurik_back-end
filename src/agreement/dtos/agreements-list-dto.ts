@@ -1,21 +1,19 @@
 import { Agreement } from '../entities/agreement.entity';
-import { AgreementMember } from '../entities/agreement.member.entity';
-import { AgreementStep } from '../entities/agreement.step.entity';
+import { AgreementMember } from '../members/member.entity';
+import { AgreementStep } from '../step/entities/step.entity';
 
 export class AgreementsListDto {
   id: number;
   title: string;
   status: string;
-  members: {
-    firstName: string;
-    lastName: string;
-    middleName: string;
-    status: string;
-    inviteStatus: string;
-  }[];
+  members: boolean;
   steps: {
     title: string;
-    isComplete: boolean;
+    status: "Готов" | "Отклонён" | "В процессе" | "Ожидает";
+    payment: null | {
+      price: number;
+      paymentLink: string | undefined
+    }
   }[];
   start: Date;
   end: Date;
@@ -23,19 +21,15 @@ export class AgreementsListDto {
   constructor(model: Agreement) {
     this.id = model.id;
     this.title = model.title;
-    this.members = model.members.map((member: AgreementMember) => {
-      return {
-        firstName: member.user.firstName,
-        lastName: member.user.lastName,
-        middleName: member.user.middleName,
-        status: member.status,
-        inviteStatus: member.inviteStatus,
-      };
-    });
-    this.steps = model.steps.map((step: AgreementStep) => {
+    this.members = model.members.length === 2;
+    this.steps = model.steps?.map((step: AgreementStep) => {
       return {
         title: step.title,
-        isComplete: step.isComplete,
+        status: step.status,
+        payment: step.payment ? {
+          price: step.payment.price,
+          paymentLink: step.payment.paymentLink || undefined
+        } : null
       };
     });
     this.start = model.start;

@@ -3,11 +3,13 @@ import {
     Entity,
     JoinColumn,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Image } from '../../images/image.entity';
-import { Agreement } from './agreement.entity';
-import { AgreementMember } from './agreement.member.entity';
+import { Image } from '../../../images/image.entity';
+import { Agreement } from '../../entities/agreement.entity';
+import { AgreementMember } from '../../members/member.entity';
+import { StepImage } from './step-image.entity';
 
 @Entity()
 export class AgreementStep {
@@ -20,9 +22,9 @@ export class AgreementStep {
   @Column()
   title: string;
 
-  @ManyToOne(() => Image, { eager: true })
+  @OneToMany(() => StepImage, (image: StepImage) => image.step, { eager: true, onDelete: "CASCADE" })
   @JoinColumn()
-  images: Image[];
+  images: StepImage[];
 
   @ManyToOne(
     () => AgreementMember,
@@ -31,8 +33,14 @@ export class AgreementStep {
   )
   user: AgreementMember;
 
-  @Column({ type: 'boolean' })
-  isComplete: boolean;
+  @Column({ default: false })
+  status: "Готов" | "Отклонён" | "В процессе" | "Ожидает";
+
+  @Column({nullable: true, type: "json"})
+  payment: {
+    price: number;
+    paymentLink: string;
+  }
 
   @Column({ nullable: true })
   comment: string | null;

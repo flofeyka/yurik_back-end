@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadGatewayException, BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "../user/entities/user.entity";
 import { InsertResult, Repository } from "typeorm";
@@ -27,7 +27,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly appService: AppService,
-  ) {}
+  ) { }
 
   async getUsersData(userId: number): Promise<UserDto> {
     const user: User = await this.userService.findUser(userId);
@@ -43,7 +43,7 @@ export class AuthService {
         where: { telegramID: decryptedTelegramID },
       });
     if (!telegramAccountFound) {
-      throw new BadRequestException(
+      throw new BadGatewayException(
         'Пожалуйста, зарегистрируйте Telegram-аккаунт, прежде чем продолжить.',
       );
     }
@@ -55,7 +55,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new BadRequestException("Телеграм аккаунт уже зарегистрированы.");
+      throw new BadRequestException("Телеграм аккаунт уже зарегистрирован.");
     }
 
     const newUser: User = await this.userService.createUser(
@@ -75,33 +75,37 @@ export class AuthService {
   }
 
   async signIn(loginDto: LoginDto): Promise<tokenAndUserType> {
-    const decryptedTelegramID: number = Number(
-      this.appService.decryptText(loginDto.telegramID),
-    );
-    const existingUser: User = await this.usersRepository.findOne({
-      where: {
-        telegram_account: {
-          telegramID: decryptedTelegramID,
+    try {
+      const decryptedTelegramID: number = Number(
+        this.appService.decryptText(loginDto.telegramID),
+      );
+      const existingUser: User = await this.usersRepository.findOne({
+        where: {
+          telegram_account: {
+            telegramID: decryptedTelegramID,
+          },
         },
-      },
-      relations: {
-        telegram_account: true,
-        image: {
-          user: true
-        }
-      },
-    });
+        relations: {
+          telegram_account: true,
+          image: {
+            user: true
+          }
+        },
+      });
 
-    if (!existingUser) {
+      if (!existingUser) {
+        throw new UnauthorizedException('Неверные данные для входа.');
+      }
+
+      const token: string = await this.generateToken(existingUser);
+
+      return {
+        user: new UserDto(existingUser),
+        token,
+      };
+    } catch {
       throw new UnauthorizedException('Неверные данные для входа.');
     }
-
-    const token: string = await this.generateToken(existingUser);
-
-    return {
-      user: new UserDto(existingUser),
-      token,
-    };
   }
 
   async generateToken(user: User): Promise<string> {

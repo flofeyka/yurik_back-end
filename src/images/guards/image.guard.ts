@@ -2,6 +2,7 @@ import {
   BadRequestException,
   CanActivate,
   ExecutionContext,
+  Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { UUID } from 'crypto';
@@ -10,6 +11,7 @@ import { ImageDto } from '../dtos/ImageDto';
 import { ImagesService } from '../images.service';
 import { Image } from '../image.entity';
 
+@Injectable()
 export class ImageGuard implements CanActivate {
   constructor(private readonly imageService: ImagesService) {}
 

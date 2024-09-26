@@ -5,9 +5,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Agreement } from './agreement.entity';
+import { Agreement } from '../entities/agreement.entity';
+import { PersonalData } from 'src/user/entities/user.personal_data';
 
 @Entity({ name: 'members' })
 export class AgreementMember {

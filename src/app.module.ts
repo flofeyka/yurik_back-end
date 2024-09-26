@@ -4,9 +4,9 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgreementModule } from './agreement/agreement.module';
 import { Agreement } from './agreement/entities/agreement.entity';
-import { Lawyer } from './agreement/entities/agreement.lawyer.entity';
-import { AgreementMember } from './agreement/entities/agreement.member.entity';
-import { AgreementStep } from './agreement/entities/agreement.step.entity';
+import { Lawyer } from './agreement/lawyer/lawyer.entity';
+import { AgreementMember } from './agreement/members/member.entity';
+import { AgreementStep } from './agreement/step/entities/step.entity';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { AuthToken } from './auth/entities/authToken.entity';
@@ -25,6 +25,7 @@ import { User } from './user/entities/user.entity';
 import { PersonalData } from './user/entities/user.personal_data';
 import { UserModule } from './user/user.module';
 import { AgreementImage } from './agreement/entities/agreement-image.entity';
+import { StepImage } from './agreement/step/entities/step-image.entity';
 
 @Module({
   imports: [
@@ -55,7 +56,8 @@ import { AgreementImage } from './agreement/entities/agreement-image.entity';
         GigaChatMessage,
         Image,
         PersonalData,
-        AgreementImage
+        AgreementImage,
+        StepImage
       ],
       synchronize: true,
       autoLoadEntities: true,

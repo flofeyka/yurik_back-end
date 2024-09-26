@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RequestType } from 'types/types';
-import { Lawyer } from '../entities/agreement.lawyer.entity';
+import { Lawyer } from './lawyer.entity';
 
 @Injectable()
 export class LawyerGuard implements CanActivate {

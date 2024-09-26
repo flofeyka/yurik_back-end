@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   HttpStatus,
   Param,
   Post,
@@ -33,6 +34,78 @@ export class AgreementController {
   constructor(private readonly agreementService: AgreementService) { }
 
   @ApiOperation({ summary: 'Получение списка пользовательских договоров', description: 'Параметр type может принимать следующие значения: В работе, Отклонён, У юриста, В поиске юриста, В процессе подтверждения, Черновик, Завершён' })
+  @ApiResponse({
+    status: HttpStatus.OK, example: [
+      {
+        "id": 51,
+        "title": "Договор о импортозамещении строительных материалов",
+        "members": [
+          {
+            "firstName": "Данил",
+            "lastName": "Баширов",
+            "middleName": "Владленович",
+            "status": "Заказчик",
+            "image": {
+              "id": 20,
+              "name": "01dc8cdc-c24b-4938-8a65-30b4a7787cbf.png",
+              "userId": 10,
+              "imgUrl": "http://localhost:3000/api/images/picture/01dc8cdc-c24b-4938-8a65-30b4a7787cbf.png"
+            }
+          }
+        ],
+        "steps": [
+          {
+            "title": "Закупка материалов",
+            "status": "false",
+            "payment": null
+          }
+        ],
+        "start": null,
+        "end": null
+      },
+      {
+        "id": 35,
+        "title": "Договор о импортозамещении строительных материалов",
+        "members": [
+          {
+            "firstName": "Данил",
+            "lastName": "Баширов",
+            "middleName": "Владленович",
+            "status": "Подрядчик",
+            "image": {
+              "id": 20,
+              "name": "01dc8cdc-c24b-4938-8a65-30b4a7787cbf.png",
+              "userId": 10,
+              "imgUrl": "http://localhost:3000/api/images/picture/01dc8cdc-c24b-4938-8a65-30b4a7787cbf.png"
+            }
+          }
+        ],
+        "steps": [],
+        "start": null,
+        "end": null
+      },
+      {
+        "id": 36,
+        "title": "Договор о импортозамещении строительных материалов",
+        "members": [
+          {
+            "firstName": "Данил",
+            "lastName": "Баширов",
+            "middleName": "Владленович",
+            "status": "Подрядчик",
+            "image": {
+              "id": 20,
+              "name": "01dc8cdc-c24b-4938-8a65-30b4a7787cbf.png",
+              "userId": 10,
+              "imgUrl": "http://localhost:3000/api/images/picture/01dc8cdc-c24b-4938-8a65-30b4a7787cbf.png"
+            }
+          }
+        ],
+        "steps": [],
+        "start": null,
+        "end": null
+      }]
+  })
   @Get('/')
   @UseGuards(AuthGuard)
   async getAgreements(
@@ -45,10 +118,54 @@ export class AgreementController {
       | 'Черновик'
       | 'Завершён'
   ): Promise<AgreementsListDto[]> {
+    console.log(type);
     return this.agreementService.getAgreements(request.user.id, type);
   }
 
   @ApiOperation({ summary: 'Получение договора по id' })
+  @ApiResponse({
+    status: 200, example: {
+      "id": 29,
+      "title": "Договор о импортозамещении строительных материалов",
+      "text": "Заказчик обязуется...",
+      "initiator": {
+        "id": 9,
+        "firstName": "Владислав",
+        "lastName": "Чумак",
+        "middleName": null,
+        "email": null,
+        "status": "Заказчик",
+        "inviteStatus": "Приглашен"
+      },
+      "status": "Черновик",
+      "images": [
+        "http://localhost:3000/api/images/picture/cca2e63f-beea-4bc8-8e55-41d89b0d785f.jpg"
+      ],
+      "members": [
+        {
+          "id": 10,
+          "firstName": "Данил",
+          "lastName": "Баширов",
+          "middleName": "Владленович",
+          "email": "danilbashirov0@vk.com",
+          "status": "Подрядчик",
+          "inviteStatus": "Приглашен"
+        },
+        {
+          "id": 9,
+          "firstName": "Владислав",
+          "lastName": "Чумак",
+          "middleName": null,
+          "email": null,
+          "status": "Заказчик",
+          "inviteStatus": "Приглашен"
+        }
+      ],
+      "steps": [],
+      "start": "2024-09-23T19:00:00.000Z",
+      "end": "2024-09-25T19:00:00.000Z"
+    }
+  })
   @Get('/:id')
   @UseGuards(AuthGuard, AgreementGuard)
   async getAgreement(
@@ -58,7 +175,41 @@ export class AgreementController {
   }
 
   @ApiOperation({ summary: 'Создание договора' })
+  @ApiResponse({
+    status: HttpStatus.CREATED, example: {
+      "id": 52,
+      "title": "Договор о импортозамещении строительных материалов",
+      "text": null,
+      "initiator": {
+        "id": 10,
+        "firstName": "Данил",
+        "lastName": "Баширов",
+        "middleName": "Владленович",
+        "email": "danilbashirov0@vk.com",
+        "status": "Заказчик",
+        "inviteStatus": "Подтвердил"
+      },
+      "status": "Черновик",
+      "images": [],
+      "price": null,
+      "members": [
+        {
+          "id": 10,
+          "firstName": "Данил",
+          "lastName": "Баширов",
+          "middleName": "Владленович",
+          "email": "danilbashirov0@vk.com",
+          "status": "Заказчик",
+          "inviteStatus": "Подтвердил"
+        }
+      ],
+      "steps": [],
+      "start": null,
+      "end": null
+    }
+  })
   @Post('/create')
+  @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
   async createAgreement(
     @Body() agreementDto: CreateAgreementDto,
@@ -128,6 +279,12 @@ export class AgreementController {
 
 
   @ApiOperation({ summary: 'Подтверждение участия в договоре' })
+  @ApiResponse({
+    status: HttpStatus.OK, example: {
+      "isConfirmed": true,
+      "message": "Вы успешно подтвердили участие в договоре"
+    }
+  })
   @Post('/confirm/:id')
   @UseGuards(AuthGuard, AgreementGuard)
   async confirmAgreement(@Req() request: RequestType): Promise<{
@@ -197,9 +354,54 @@ export class AgreementController {
     return this.agreementService.editAgreement(request.agreement, agreementDto, request.user.id);
   }
 
-  
+
 
   @ApiOperation({ summary: 'Включение договора в работу.' })
+  @ApiResponse({
+    status: HttpStatus.OK, example: {
+      "message": "Договор был успешно включён в работу.",
+      "agreement": {
+        "id": 52,
+        "title": "Договор о импортозамещении строительных материалов",
+        "text": null,
+        "initiator": {
+          "id": 10,
+          "firstName": "Данил",
+          "lastName": "Баширов",
+          "middleName": "Владленович",
+          "email": "danilbashirov0@vk.com",
+          "status": "Заказчик",
+          "inviteStatus": "Подтвердил"
+        },
+        "status": "В работе",
+        "images": [],
+        "price": null,
+        "members": [
+          {
+            "id": 10,
+            "firstName": "Данил",
+            "lastName": "Баширов",
+            "middleName": "Владленович",
+            "email": "danilbashirov0@vk.com",
+            "status": "Заказчик",
+            "inviteStatus": "Подтвердил"
+          },
+          {
+            "id": 9,
+            "firstName": "Владислав",
+            "lastName": "Чумак",
+            "middleName": null,
+            "email": null,
+            "status": "Подрядчик",
+            "inviteStatus": "Подтвердил"
+          }
+        ],
+        "steps": [],
+        "start": null,
+        "end": null
+      }
+    }
+  })
   @Post('/enable/:id')
   @UseGuards(AuthGuard, AgreementGuard)
   async enableAgreement(@Req() request: RequestType): Promise<{

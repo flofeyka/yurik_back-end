@@ -1,12 +1,20 @@
+import { last } from 'rxjs';
 import { Agreement } from '../entities/agreement.entity';
 import { AgreementMember } from '../members/member.entity';
 import { AgreementStep } from '../step/entities/step.entity';
+import { ImageDto } from 'src/images/dtos/ImageDto';
 
 export class AgreementsListDto {
   id: number;
   title: string;
   status: string;
-  members: boolean;
+  members: {
+    firstName: string,
+    lastName: string,
+    middleName: string,
+    status: "Заказчик" | "Подрядчик" | "Юрист",
+    image: ImageDto | null
+  }[]
   steps: {
     title: string;
     status: "Готов" | "Отклонён" | "В процессе" | "Ожидает";
@@ -21,7 +29,15 @@ export class AgreementsListDto {
   constructor(model: Agreement) {
     this.id = model.id;
     this.title = model.title;
-    this.members = model.members.length === 2;
+    this.members = model.members.map((member: AgreementMember) => {
+      return {
+        firstName: member.user.firstName,
+        lastName: member.user.lastName,
+        middleName: member.user.middleName,
+        status: member.status,
+        image: new ImageDto(member.user.image)
+      }
+    });
     this.steps = model.steps?.map((step: AgreementStep) => {
       return {
         title: step.title,

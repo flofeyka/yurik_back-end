@@ -53,9 +53,17 @@ export class AgreementService {
         status: type
       },
       relations: {
-
+        members: {
+          user: {
+            image: {
+              user: true
+            }
+          }
+        }
       }
     });
+
+    console.log(agreements[0]);
 
 
     return agreements.map(

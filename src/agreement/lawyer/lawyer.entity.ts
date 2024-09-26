@@ -6,7 +6,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Agreement } from './agreement.entity';
+import { Agreement } from '../entities/agreement.entity';
 
 @Entity({ name: 'lawyers' })
 export class Lawyer {

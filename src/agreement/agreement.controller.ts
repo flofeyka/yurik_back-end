@@ -7,12 +7,10 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
-  UploadedFile,
-  UseGuards,
-  UseInterceptors,
+  UseGuards
 } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SmsGuard } from 'src/sms/sms.guard';
 import { RequestType } from '../../types/types';
@@ -26,21 +24,28 @@ import { ImagesDto } from './dtos/images-dto';
 import { InviteUserDto } from './dtos/invite-user-dto';
 import { Agreement } from './entities/agreement.entity';
 import { AgreementGuard } from './guards/agreement.guard';
-import { LawyerGuard } from './guards/agreement.lawyer.guard';
-import { ImageDto } from 'src/images/dtos/ImageDto';
+import { LawyerGuard } from './lawyer/lawyer.guard';
+import { Step, StepDto } from './dtos/edit-steps-dto';
 
 @ApiTags('Agreement API')
 @Controller('agreement')
 export class AgreementController {
   constructor(private readonly agreementService: AgreementService) { }
 
-  @ApiOperation({ summary: 'Получение списка пользовательских договоров' })
+  @ApiOperation({ summary: 'Получение списка пользовательских договоров', description: 'Параметр type может принимать следующие значения: В работе, Отклонён, У юриста, В поиске юриста, В процессе подтверждения, Черновик, Завершён' })
   @Get('/')
   @UseGuards(AuthGuard)
   async getAgreements(
     @Req() request: RequestType,
+    @Query('type') type: | 'В работе'
+      | 'Отклонён'
+      | 'У юриста'
+      | 'В поиске юриста'
+      | 'В процессе подтверждения'
+      | 'Черновик'
+      | 'Завершён'
   ): Promise<AgreementsListDto[]> {
-    return this.agreementService.getAgreements(request.user.id);
+    return this.agreementService.getAgreements(request.user.id, type);
   }
 
   @ApiOperation({ summary: 'Получение договора по id' })
@@ -49,44 +54,7 @@ export class AgreementController {
   async getAgreement(
     @Req() request: RequestType,
   ): Promise<AgreementDto> {
-    return this.agreementService.getAgreement(request.agreement);
-  }
-
-  @ApiOperation({ summary: 'Отправка договора юристу' })
-  @Post('/:id/lawyer/send')
-  @UseGuards(AuthGuard, AgreementGuard)
-  async sendAgreementLawyer(@Req() request: RequestType) {
-    return this.agreementService.sendToLawyer(
-      request.user.id,
-      request.agreement,
-    );
-  }
-
-  @ApiOperation({ summary: 'Взять договор в работу(Юрист) ' })
-  @Post('/:id/lawyer/take')
-  @UseGuards(AuthGuard, LawyerGuard)
-  async takeLawyerAgreement(
-    @Req() request: RequestType,
-    @Param('id') id: number,
-  ) {
-    return this.agreementService.takeLawyerAgreement(request.lawyer, id);
-  }
-
-  @ApiOperation({
-    summary: 'Стать юристом(Тестовая версия для фронт-енд разработчика)',
-  })
-  @Post('/lawyer/become')
-  @UseGuards(AuthGuard)
-  async createLawyer(@Req() request: RequestType) {
-    return this.agreementService.createLawyer(request.user.id);
-  }
-
-  @ApiOperation({ summary: 'Получение списка договоров, ищущих юриста' })
-  @ApiResponse({ example: [AgreementDto] })
-  @Get('/lawyer/get')
-  @UseGuards(AuthGuard, LawyerGuard)
-  async getLawyerAgreements() {
-    return this.agreementService.getLawyerAgreements();
+    return this.agreementService.getAgreement(request.agreement, request.user.id);
   }
 
   @ApiOperation({ summary: 'Создание договора' })
@@ -97,15 +65,6 @@ export class AgreementController {
     @Req() request: RequestType,
   ) {
     return this.agreementService.createAgreement(request.user.id, agreementDto);
-  }
-
-  @Post('/step/addPhotos/:stepId')
-  @UseGuards(AuthGuard)
-  async addStepPhotos(
-    @Param('stepId') id: number,
-    @Body() imageDto: ImagesDto,
-  ) {
-    return await this.agreementService.addStepImages(id, imageDto.images);
   }
 
   @ApiResponse({
@@ -164,13 +123,13 @@ export class AgreementController {
     @Req() request: RequestType,
     @Body() imageDto: ImagesDto
   ) {
-    return await this.agreementService.addAgreementPhotos(request.agreement, imageDto.images);
+    return await this.agreementService.addAgreementPhotos(request.agreement, imageDto.images, request.user.id);
   }
 
 
   @ApiOperation({ summary: 'Подтверждение участия в договоре' })
   @Post('/confirm/:id')
-  @UseGuards(AuthGuard, SmsGuard, AgreementGuard)
+  @UseGuards(AuthGuard, AgreementGuard)
   async confirmAgreement(@Req() request: RequestType): Promise<{
     isConfirmed: boolean;
     message: string;
@@ -235,34 +194,14 @@ export class AgreementController {
     @Body() agreementDto: EditAgreementDto,
     @Param('id') id: number,
   ) {
-    return this.agreementService.editAgreement(request.agreement, agreementDto);
+    return this.agreementService.editAgreement(request.agreement, agreementDto, request.user.id);
   }
 
-  @ApiOperation({
-    summary: 'Приглашение нового участника в договор до его подписания',
-  })
-  @Post('/invite/:id/:memberId')
-  @UseGuards(AuthGuard, Agreement)
-  async inviteMember(
-    @Req() request: RequestType,
-    @Param('memberId') memberId: number,
-    @Body() inviteDto: InviteUserDto,
-  ): Promise<{
-    isInvited: boolean;
-    message: string;
-    agreement: AgreementDto;
-  }> {
-    return this.agreementService.inviteNewMember(
-      request.user.id,
-      memberId,
-      inviteDto.status,
-      request.agreement,
-    );
-  }
+  
 
   @ApiOperation({ summary: 'Включение договора в работу.' })
   @Post('/enable/:id')
-  @UseGuards(AuthGuard, Agreement)
+  @UseGuards(AuthGuard, AgreementGuard)
   async enableAgreement(@Req() request: RequestType): Promise<{
     message: string;
     agreement: AgreementDto;

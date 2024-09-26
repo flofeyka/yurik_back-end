@@ -54,7 +54,6 @@ export class PersonalData {
 
   @Column({
     nullable: true,
-    unique: true,
     transformer: new EncryptionTransformer({
       key: 'e41c966f21f9e1577802463f8924e6a3fe3e9751f201304213b2f845d8841d61',
       algorithm: 'aes-256-cbc',
@@ -82,7 +81,6 @@ export class PersonalData {
 
   @Column({
     nullable: true,
-    unique: true,
     transformer: new EncryptionTransformer({
       key: 'e41c966f21f9e1577802463f8924e6a3fe3e9751f201304213b2f845d8841d61',
       algorithm: 'aes-256-cbc',

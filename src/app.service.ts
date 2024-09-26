@@ -1,5 +1,5 @@
 import { HttpService } from "@nestjs/axios";
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import * as crypto from "crypto";
 import { AxiosResponse } from "axios";
 
@@ -24,15 +24,15 @@ export class AppService {
     async sendDealNotification(user_id: number, initiator_id: number, user_name: string, initiator_name: string, contract_id: number): Promise<boolean> {
         try {
             const response: AxiosResponse = await this.httpService.axiosRef.post("https://rafailvv.online/send/contract", {
-                user_id, initiator_id, user_name, initiator_name, contract_id
+                user_id, initiator_id, user_name, initiator_name, contract_id, pdf_link: ""
             });
 
-            console.log(response.data);
 
             if(response.status === 200) {
                 return true;
             }
         } catch(e) {
+            console.log(e);
             return false;
         }
     }
@@ -43,14 +43,12 @@ export class AppService {
 
     decryptText(text: string): string {
         const {ENCRYPT_TELEGRAM_ID_KEY, ENCRYPT_TELEGRAM_ID_IV} = process.env;
-        console.log(ENCRYPT_TELEGRAM_ID_IV, ENCRYPT_TELEGRAM_ID_KEY);
         const key: Buffer = Buffer.from(ENCRYPT_TELEGRAM_ID_KEY, "hex")
         const iv: Buffer = Buffer.from(ENCRYPT_TELEGRAM_ID_IV, "hex")
         const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
         let decrypted = decipher.update(text, "base64", "utf8");
         decrypted += decipher.final("utf8");
 
-        console.log(decrypted);
         return decrypted;
     }
 }

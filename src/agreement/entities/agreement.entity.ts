@@ -3,22 +3,19 @@ import {
   Column,
   Entity,
   JoinColumn,
-  JoinTable,
   ManyToOne,
   OneToMany,
   OneToOne,
-  PrimaryGeneratedColumn,
+  PrimaryGeneratedColumn
 } from 'typeorm';
-import { Lawyer } from './agreement.lawyer.entity';
-import { AgreementMember } from './agreement.member.entity';
-import { AgreementStep } from './agreement.step.entity';
-import { Image } from 'src/images/image.entity';
+import { Lawyer } from '../lawyer/lawyer.entity';
+import { AgreementMember } from '../members/member.entity';
+import { AgreementStep } from '../step/entities/step.entity';
 import { AgreementImage } from './agreement-image.entity';
 
 export interface Step {
   title: string;
   userId: number;
-  isComplete: boolean;
   comment: string | null;
   start: Date;
   end: Date;
@@ -42,7 +39,7 @@ export class Agreement {
   )
   public members: AgreementMember[];
 
-  @OneToMany(() => AgreementImage, (agreementImage: AgreementImage) => agreementImage.agreement)
+  @OneToMany(() => AgreementImage, (agreementImage: AgreementImage) => agreementImage.agreement, {onDelete: "CASCADE"})
   public images: AgreementImage[]
 
   @OneToOne(() => AgreementMember, { eager: true })
@@ -59,10 +56,8 @@ export class Agreement {
     | 'У юриста'
     | 'В поиске юриста'
     | 'В процессе подтверждения'
-    | 'Черновик';
-
-  @Column({ type: 'bigint', nullable: true })
-  public price: number;
+    | 'Черновик'
+    | 'Завершён'
 
   @OneToMany(() => AgreementStep, (step: AgreementStep) => step.agreement, {
     eager: true,

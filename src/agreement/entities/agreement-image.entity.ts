@@ -8,7 +8,7 @@ export class AgreementImage {
     @PrimaryGeneratedColumn('uuid')
     id: UUID;
 
-    @OneToOne(() => Image, { eager: true })
+    @OneToOne(() => Image, { eager: true, onDelete: "CASCADE" })
     @JoinColumn()
     image: Image;
 

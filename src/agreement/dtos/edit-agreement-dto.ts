@@ -13,10 +13,6 @@ export class EditAgreementDto {
   @IsString()
   readonly text: string;
 
-  @ApiProperty({ title: "Картинки", })
-  @IsArray()
-  readonly images: string[];
-
   @IsDateString()
   @ApiProperty({
     title: 'Дата начала действия договора',

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsObject, IsString } from 'class-validator';
+import { LegalInformationDto } from 'src/user/dtos/legal-information-dto';
 
 export class CreateAgreementDto {
   @ApiProperty({
@@ -8,6 +9,10 @@ export class CreateAgreementDto {
   })
   @IsString()
   readonly title: string;
+
+  @ApiProperty({ title: 'Персональные данные участника договора', example: LegalInformationDto})
+  @IsObject()
+  readonly personalData: LegalInformationDto;
 
   @ApiProperty({ title: 'Кто инициирует договор ', example: 'Подрядчик' })
   @IsString()

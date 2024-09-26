@@ -74,11 +74,13 @@ export class UserService {
   async findUser(userId: number): Promise<User> {
     const foundUser: User = await this.usersRepository.findOne({
       where: { id: userId }, relations: {
-        telegram_account: true
+        telegram_account: true,
+        image: {
+          user: true
+        }
       }
     });
 
-    console.log(foundUser);
     if (!foundUser) {
       throw new NotFoundException(`Пользователь с данным id ${userId} не был найден в системе`);
     }

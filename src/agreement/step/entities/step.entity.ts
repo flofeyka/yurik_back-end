@@ -9,11 +9,12 @@ import {
 import { Agreement } from '../../entities/agreement.entity';
 import { AgreementMember } from '../../members/member.entity';
 import { StepImage } from './step-image.entity';
+import { UUID } from 'crypto';
 
 @Entity()
 export class AgreementStep {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: UUID;
 
   @ManyToOne(() => Agreement)
   agreement: Agreement;

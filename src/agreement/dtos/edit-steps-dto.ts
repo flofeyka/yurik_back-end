@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsDateString, IsNumber, IsObject, IsString } from 'class-validator';
+import { IsArray, IsDateString, IsNumber, IsObject, IsString, IsUUID } from 'class-validator';
+import { UUID } from 'crypto';
 
 class paymentStep {
   @IsNumber()
@@ -7,8 +8,8 @@ class paymentStep {
 }
 
 export class Step {
-  @IsNumber()
-  id: number | undefined;
+  @IsUUID()
+  id: UUID;
   @IsString()
   title: string;
   @IsNumber()

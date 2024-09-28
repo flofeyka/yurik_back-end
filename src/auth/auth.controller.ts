@@ -74,7 +74,9 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<UserDto> {
     const result = await this.authService.signUp(userDto);
-    response.cookie('access_token', result.token);
+    response.cookie('access_token', result.token, {
+      sameSite: "none"
+    });
 
     return result.user;
   }
@@ -157,7 +159,9 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<UserDto> {
     const result = await this.authService.signIn(loginDto);
-    response.cookie('access_token', result.token);
+    response.cookie('access_token', result.token, {
+      sameSite: "none"
+    });
     return result.user;
   }
 }

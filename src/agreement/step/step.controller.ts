@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, HttpStatus, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
 import { ApiBadRequestResponse, ApiNotFoundResponse, ApiProperty, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/auth/auth.guard";
 import { RequestType } from "types/types";
@@ -8,6 +8,7 @@ import { AgreementGuard } from "../guards/agreement.guard";
 import { StepService } from "./step.service";
 import { StepGuard } from "./guards/step.guard";
 import { EditStepDto } from "./dtos/edit-step-dto";
+import { UUID } from "crypto";
 
 @ApiTags("Agreement Step API")
 @Controller("/agreement/step")
@@ -48,7 +49,7 @@ export class StepController {
             "statusCode": 404
         }
     })
-    
+
     @Post('/addPhotos/:id')
     @UseGuards(AuthGuard, StepGuard)
     async addStepPhotos(
@@ -57,6 +58,49 @@ export class StepController {
     ) {
         return await this.stepService.addStepImages(request.step, imageDto.images, request.user.id);
     }
+
+    @ApiProperty({ title: "Отмена этапа" })
+    @ApiResponse({
+        status: HttpStatus.OK, example: {
+            "id": "d5ba443a-a952-4cb0-8021-093eaf534a71",
+            "title": "Оплата",
+            "user": {
+                "id": 10,
+                "firstName": "Данил",
+                "lastName": "Баширов",
+                "middleName": "Владленович",
+                "email": "danilbashirov0@vk.com",
+                "status": "Заказчик",
+                "inviteStatus": "Подтвердил"
+            },
+            "images": [],
+            "payment": {
+                "price": 123451
+            },
+            "status": "Отклонён",
+            "start": "2024-09-26",
+            "end": "2024-09-28"
+        }
+    })
+    @Delete("/cancel/:id")
+    @UseGuards(AuthGuard, StepGuard)
+    async cancelStep(@Req() request: RequestType) {
+        return await this.stepService.cancelStep(request.step);
+    }
+
+    @ApiProperty({ title: "Удаление этапа"})
+    @ApiResponse({
+        status: HttpStatus.OK, example: {
+            success: true,
+            message: "Этап был успешно удален"
+        }
+    })
+    @UseGuards(AuthGuard, AgreementGuard)
+    @Delete("/:id/delete/:stepId")
+    async deleteStep(@Req() request: RequestType, @Param("stepId") stepId: UUID) {
+        return await this.stepService.deleteStep(request.agreement, stepId);
+    }
+
 
 
     @ApiProperty({ title: "Редактирование шага" })
@@ -83,7 +127,7 @@ export class StepController {
     @Put("/:id/edit/:stepId")
     @UseGuards(AuthGuard, AgreementGuard)
     async editStep(
-        @Param("stepId") stepId: number,
+        @Param("stepId") stepId: UUID,
         @Req() request: RequestType,
         @Body() stepDto: EditStepDto
     ) {

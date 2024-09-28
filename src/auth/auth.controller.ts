@@ -75,7 +75,8 @@ export class AuthController {
   ): Promise<UserDto> {
     const result = await this.authService.signUp(userDto);
     response.cookie('access_token', result.token, {
-      sameSite: "none"
+      sameSite: "none",
+      secure: true
     });
 
     return result.user;
@@ -160,7 +161,8 @@ export class AuthController {
   ): Promise<UserDto> {
     const result = await this.authService.signIn(loginDto);
     response.cookie('access_token', result.token, {
-      sameSite: "none"
+      sameSite: "none",
+      secure: true
     });
     return result.user;
   }

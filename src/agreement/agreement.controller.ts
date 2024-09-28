@@ -12,8 +12,7 @@ import {
   Req,
   UseGuards
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { SmsGuard } from 'src/sms/sms.guard';
+import { ApiOperation, ApiProperty, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RequestType } from '../../types/types';
 import { AuthGuard } from '../auth/auth.guard';
 import { AgreementService } from './agreement.service';
@@ -22,12 +21,9 @@ import { AgreementsListDto } from './dtos/agreements-list-dto';
 import { CreateAgreementDto } from './dtos/create-agreement-dto';
 import { EditAgreementDto } from './dtos/edit-agreement-dto';
 import { ImagesDto } from './dtos/images-dto';
-import { InviteUserDto } from './dtos/invite-user-dto';
 import { Agreement } from './entities/agreement.entity';
-import { AgreementGuard } from './guards/agreement.guard';
-import { LawyerGuard } from './lawyer/lawyer.guard';
-import { Step, StepDto } from './dtos/edit-steps-dto';
 import { AgreementValidityGuard } from './guards/agreement-validity.guard';
+import { AgreementGuard } from './guards/agreement.guard';
 
 @ApiTags('Agreement API')
 @Controller('agreement')
@@ -125,45 +121,64 @@ export class AgreementController {
   @ApiOperation({ summary: 'Получение договора по id' })
   @ApiResponse({
     status: 200, example: {
-      "id": 29,
+      "id": 54,
       "title": "Договор о импортозамещении строительных материалов",
-      "text": "Заказчик обязуется...",
+      "text": null,
       "initiator": {
-        "id": 9,
-        "firstName": "Владислав",
-        "lastName": "Чумак",
-        "middleName": null,
-        "email": null,
+        "id": 10,
+        "firstName": "Данил",
+        "lastName": "Баширов",
+        "middleName": "Владленович",
+        "email": "danilbashirov0@vk.com",
         "status": "Заказчик",
-        "inviteStatus": "Приглашен"
+        "inviteStatus": "Подтвердил"
       },
-      "status": "Черновик",
-      "images": [
-        "http://localhost:3000/api/images/picture/cca2e63f-beea-4bc8-8e55-41d89b0d785f.jpg"
-      ],
+      "status": "В работе",
+      "images": [],
       "members": [
-        {
-          "id": 10,
-          "firstName": "Данил",
-          "lastName": "Баширов",
-          "middleName": "Владленович",
-          "email": "danilbashirov0@vk.com",
-          "status": "Подрядчик",
-          "inviteStatus": "Приглашен"
-        },
         {
           "id": 9,
           "firstName": "Владислав",
           "lastName": "Чумак",
           "middleName": null,
           "email": null,
+          "status": "Подрядчик",
+          "inviteStatus": "Подтвердил"
+        },
+        {
+          "id": 10,
+          "firstName": "Данил",
+          "lastName": "Баширов",
+          "middleName": "Владленович",
+          "email": "danilbashirov0@vk.com",
           "status": "Заказчик",
-          "inviteStatus": "Приглашен"
+          "inviteStatus": "Подтвердил"
         }
       ],
-      "steps": [],
-      "start": "2024-09-23T19:00:00.000Z",
-      "end": "2024-09-25T19:00:00.000Z"
+      "steps": [
+        {
+          "id": "d5ba443a-a952-4cb0-8021-093eaf534a71",
+          "title": "Оплата",
+          "user": {
+            "id": 10,
+            "firstName": "Данил",
+            "lastName": "Баширов",
+            "middleName": "Владленович",
+            "email": "danilbashirov0@vk.com",
+            "status": "Заказчик",
+            "inviteStatus": "Подтвердил"
+          },
+          "images": [],
+          "payment": {
+            "price": 123451
+          },
+          "isComplete": "Ожидает",
+          "start": "2024-09-26",
+          "end": "2024-09-28"
+        }
+      ],
+      "start": "2024-09-26T19:00:00.000Z",
+      "end": "2024-09-29T19:00:00.000Z"
     }
   })
   @Get('/:id')
@@ -191,7 +206,6 @@ export class AgreementController {
       },
       "status": "Черновик",
       "images": [],
-      "price": null,
       "members": [
         {
           "id": 10,
@@ -218,43 +232,73 @@ export class AgreementController {
     return this.agreementService.createAgreement(request.user.id, agreementDto);
   }
 
+  @ApiProperty({ title: "Добавление изображений к договору." })
   @ApiResponse({
     status: HttpStatus.ACCEPTED, example: {
-      "id": 18,
+      "id": 54,
       "title": "Договор о импортозамещении строительных материалов",
-      "text": "Заказчик обязуется...",
+      "text": null,
       "initiator": {
         "id": 10,
-        "firstName": "Максбетов",
-        "lastName": "Максим",
-        "middleName": "Максимович",
-        "email": "maxmaxbetov@email.com",
+        "firstName": "Данил",
+        "lastName": "Баширов",
+        "middleName": "Владленович",
+        "email": "danilbashirov0@vk.com",
         "status": "Заказчик",
-        "inviteStatus": "Приглашен"
+        "inviteStatus": "Подтвердил"
       },
-      "status": "Черновик",
-      "images": [
-        `https://yurkitgbot.ru/api/images/picture/51552ed5-8fab-4dd3-a0d7-cadb77ba69e6.jpg`,
-        `https://yurkitgbot.ru/api/images/picture/84da4e04-b486-490b-8f63-50c35e474152.jpg`,
-        `https://yurkitgbot.ru/api/images/picture/80d7622c-6bbe-4a1d-bedc-fd665959bf37.png`,
-        `https://yurkitgbot.ru/api/images/picture/9007c520-a13f-42bf-88f4-2a59f7635114.png`,
-        `https://yurkitgbot.ru/api/images/picture/7ab682de-3bc3-4a80-938a-dddca567a1f8.jpg`
-      ],
-      "price": "45245245",
+      "status": "В работе",
+      "images": [],
       "members": [
         {
+          "id": 9,
+          "firstName": "Владислав",
+          "lastName": "Чумак",
+          "middleName": null,
+          "email": null,
+          "status": "Подрядчик",
+          "inviteStatus": "Подтвердил"
+        },
+        {
           "id": 10,
-          "firstName": "Максбетов",
-          "lastName": "Максим",
-          "middleName": "Максимович",
-          "email": "maxmaxbetov@email.com",
+          "firstName": "Данил",
+          "lastName": "Баширов",
+          "middleName": "Владленович",
+          "email": "danilbashirov0@vk.com",
           "status": "Заказчик",
-          "inviteStatus": "Приглашен"
+          "inviteStatus": "Подтвердил"
         }
       ],
-      "steps": [],
-      "start": "2024-09-23T19:00:00.000Z",
-      "end": "2024-09-25T19:00:00.000Z"
+      "steps": [
+        {
+          "id": "d5ba443a-a952-4cb0-8021-093eaf534a71",
+          "title": "Оплата",
+          "user": {
+            "id": 10,
+            "firstName": "Данил",
+            "lastName": "Баширов",
+            "middleName": "Владленович",
+            "email": "danilbashirov0@vk.com",
+            "status": "Заказчик",
+            "inviteStatus": "Подтвердил"
+          },
+          "images": [
+            `https://yurkitgbot.ru/api/images/picture/51552ed5-8fab-4dd3-a0d7-cadb77ba69e6.jpg`,
+            `https://yurkitgbot.ru/api/images/picture/84da4e04-b486-490b-8f63-50c35e474152.jpg`,
+            `https://yurkitgbot.ru/api/images/picture/80d7622c-6bbe-4a1d-bedc-fd665959bf37.png`,
+            `https://yurkitgbot.ru/api/images/picture/9007c520-a13f-42bf-88f4-2a59f7635114.png`,
+            `https://yurkitgbot.ru/api/images/picture/7ab682de-3bc3-4a80-938a-dddca567a1f8.jpg`
+          ],
+          "payment": {
+            "price": 123451
+          },
+          "isComplete": "Ожидает",
+          "start": "2024-09-26",
+          "end": "2024-09-28"
+        }
+      ],
+      "start": "2024-09-26T19:00:00.000Z",
+      "end": "2024-09-29T19:00:00.000Z"
     }
   })
   @ApiResponse({
@@ -273,7 +317,7 @@ export class AgreementController {
   async addAgreementPhotos(
     @Req() request: RequestType,
     @Body() imageDto: ImagesDto
-  ) {
+  ): Promise<AgreementDto> {
     return await this.agreementService.addAgreementPhotos(request.agreement, imageDto.images, request.user.id);
   }
 
@@ -298,6 +342,12 @@ export class AgreementController {
   }
 
   @ApiOperation({ summary: 'Отказ в участии в договоре' })
+  @ApiResponse({
+    status: HttpStatus.OK, example: {
+      isDeclined: true,
+      message: "Вы успешно отклонили участие в договоре"
+    }
+  })
   @Delete('/decline/:id')
   @UseGuards(AuthGuard, Agreement)
   async declineAgreement(@Req() request: RequestType): Promise<{
@@ -314,34 +364,64 @@ export class AgreementController {
   @ApiResponse({
     status: HttpStatus.ACCEPTED,
     example: {
-      id: 18,
-      title: 'Договор о импортозамещении строительных материалов',
-      text: 'Заказчик обязуется...',
-      initiator: {
-        id: 10,
-        firstName: 'Максим',
-        lastName: 'Максбетов',
-        middleName: null,
-        email: null,
-        status: 'Заказчик',
-        inviteStatus: 'Приглашен',
+      "id": 54,
+      "title": "Договор о импортозамещении строительных материалов",
+      "text": null,
+      "initiator": {
+        "id": 10,
+        "firstName": "Данил",
+        "lastName": "Баширов",
+        "middleName": "Владленович",
+        "email": "danilbashirov0@vk.com",
+        "status": "Заказчик",
+        "inviteStatus": "Подтвердил"
       },
-      status: 'Черновик',
-      price: '45245245',
-      members: [
+      "status": "В работе",
+      "images": [],
+      "members": [
         {
-          id: 10,
-          firstName: 'Максим',
-          lastName: 'Максбетов',
-          middleName: null,
-          email: null,
-          status: 'Заказчик',
-          inviteStatus: 'Приглашен',
+          "id": 9,
+          "firstName": "Владислав",
+          "lastName": "Чумак",
+          "middleName": null,
+          "email": null,
+          "status": "Подрядчик",
+          "inviteStatus": "Подтвердил"
         },
+        {
+          "id": 10,
+          "firstName": "Данил",
+          "lastName": "Баширов",
+          "middleName": "Владленович",
+          "email": "danilbashirov0@vk.com",
+          "status": "Заказчик",
+          "inviteStatus": "Подтвердил"
+        }
       ],
-      steps: [],
-      start: '2024-09-24',
-      end: '2024-09-26',
+      "steps": [
+        {
+          "id": "d5ba443a-a952-4cb0-8021-093eaf534a71",
+          "title": "Оплата",
+          "user": {
+            "id": 10,
+            "firstName": "Данил",
+            "lastName": "Баширов",
+            "middleName": "Владленович",
+            "email": "danilbashirov0@vk.com",
+            "status": "Заказчик",
+            "inviteStatus": "Подтвердил"
+          },
+          "images": [],
+          "payment": {
+            "price": 123451
+          },
+          "isComplete": "Ожидает",
+          "start": "2024-09-26",
+          "end": "2024-09-28"
+        }
+      ],
+      "start": "2024-09-26T19:00:00.000Z",
+      "end": "2024-09-29T19:00:00.000Z"
     },
   })
   @Put('/update/:id')
@@ -361,7 +441,7 @@ export class AgreementController {
     status: HttpStatus.OK, example: {
       "message": "Договор был успешно включён в работу.",
       "agreement": {
-        "id": 52,
+        "id": 54,
         "title": "Договор о импортозамещении строительных материалов",
         "text": null,
         "initiator": {
@@ -375,17 +455,7 @@ export class AgreementController {
         },
         "status": "В работе",
         "images": [],
-        "price": null,
         "members": [
-          {
-            "id": 10,
-            "firstName": "Данил",
-            "lastName": "Баширов",
-            "middleName": "Владленович",
-            "email": "danilbashirov0@vk.com",
-            "status": "Заказчик",
-            "inviteStatus": "Подтвердил"
-          },
           {
             "id": 9,
             "firstName": "Владислав",
@@ -394,11 +464,41 @@ export class AgreementController {
             "email": null,
             "status": "Подрядчик",
             "inviteStatus": "Подтвердил"
+          },
+          {
+            "id": 10,
+            "firstName": "Данил",
+            "lastName": "Баширов",
+            "middleName": "Владленович",
+            "email": "danilbashirov0@vk.com",
+            "status": "Заказчик",
+            "inviteStatus": "Подтвердил"
           }
         ],
-        "steps": [],
-        "start": null,
-        "end": null
+        "steps": [
+          {
+            "id": "d5ba443a-a952-4cb0-8021-093eaf534a71",
+            "title": "Оплата",
+            "user": {
+              "id": 10,
+              "firstName": "Данил",
+              "lastName": "Баширов",
+              "middleName": "Владленович",
+              "email": "danilbashirov0@vk.com",
+              "status": "Заказчик",
+              "inviteStatus": "Подтвердил"
+            },
+            "images": [],
+            "payment": {
+              "price": 123451
+            },
+            "isComplete": "Ожидает",
+            "start": "2024-09-26",
+            "end": "2024-09-28"
+          }
+        ],
+        "start": "2024-09-26T19:00:00.000Z",
+        "end": "2024-09-29T19:00:00.000Z"
       }
     }
   })

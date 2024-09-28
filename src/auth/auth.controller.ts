@@ -76,7 +76,7 @@ export class AuthController {
     const result = await this.authService.signUp(userDto);
     response.cookie('access_token', result.token, {
       sameSite: "none",
-      secure: true
+      secure: false
     });
 
     return result.user;
@@ -162,7 +162,7 @@ export class AuthController {
     const result = await this.authService.signIn(loginDto);
     response.cookie('access_token', result.token, {
       sameSite: "none",
-      secure: true
+      secure: false
     });
     return result.user;
   }

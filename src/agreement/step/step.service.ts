@@ -4,7 +4,7 @@ import { Image } from "src/images/image.entity";
 import { ImagesService } from "src/images/images.service";
 import { DeleteResult, InsertResult, Repository } from "typeorm";
 import { AgreementStepDto } from "../dtos/agreement-dto";
-import { Step } from "../dtos/edit-steps-dto";
+import { Step, StepDto } from "../dtos/edit-steps-dto";
 import { Agreement } from "../entities/agreement.entity";
 import { AgreementMember } from "../members/member.entity";
 import { MemberService } from "../members/member.service";
@@ -69,6 +69,16 @@ export class StepService {
 
     }
 
+    async completeStep(step: AgreementStep, userId: number): Promise<AgreementStepDto> {
+        if (step.status !== "В процессе" && step.status !== "Ожидает") {
+            throw new BadRequestException("Нельзя завершить этап, так как он не находится в статусе ожидания или в процессе");
+        }
+
+        step.status = "Завершён";
+        const saved = await this.stepRepository.save(step);
+        return new AgreementStepDto(saved, userId);
+    }
+
     async deleteStep(agreement: Agreement, stepId: UUID) {
         if (agreement.status !== "Черновик") {
             throw new BadRequestException("Нельзя удалить этап, так как договор не является черновиком");
@@ -106,7 +116,7 @@ export class StepService {
         return new AgreementStepDto(stepSaved, userId);
     }
 
-    async addStep(step: Step, agreement: Agreement): Promise<AgreementStep> {
+    async addStep(step: Step, agreement: Agreement): Promise<AgreementStepDto> {
         const member: AgreementMember = await this.memberRepository.findOne({
             where: {
                 agreement: {
@@ -144,7 +154,7 @@ export class StepService {
 
         agreement.steps.push(stepFound);
         await this.agreementRepository.save(agreement);
-        return stepFound;
+        return new AgreementStepDto(stepFound, step.userId);
     }
 
     async findStep(id: UUID) {

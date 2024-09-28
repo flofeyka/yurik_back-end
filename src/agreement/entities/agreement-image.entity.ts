@@ -12,7 +12,7 @@ export class AgreementImage {
     @JoinColumn()
     image: Image;
 
-    @ManyToOne(() => Agreement, (agreement: Agreement) => agreement.images)
+    @ManyToOne(() => Agreement, (agreement: Agreement) => agreement.images, { onDelete: "SET NULL" })
     @JoinColumn()
     agreement: Agreement;
 

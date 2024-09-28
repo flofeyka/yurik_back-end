@@ -17,7 +17,7 @@ export class AgreementsListDto {
   }[]
   steps: {
     title: string;
-    status: "Готов" | "Отклонён" | "В процессе" | "Ожидает";
+    status: "Готов" | "Отклонён" | "В процессе" | "Ожидает" | "Завершён";
     payment: null | {
       price: number;
       paymentLink: string | undefined
@@ -29,6 +29,7 @@ export class AgreementsListDto {
   constructor(model: Agreement) {
     this.id = model.id;
     this.title = model.title;
+    this.status = model.status;
     this.members = model.members.map((member: AgreementMember) => {
       return {
         firstName: member.user.firstName,

@@ -17,6 +17,6 @@ export class Lawyer {
   @JoinColumn()
   user: User;
 
-  @OneToMany(() => Agreement, (agreement: Agreement) => agreement.lawyer)
+  @OneToMany(() => Agreement, (agreement: Agreement) => agreement.lawyer, {onDelete: 'CASCADE'})
   agreements: Agreement[];
 }

@@ -20,7 +20,9 @@ export class AgreementMember {
   @JoinColumn()
   user: User;
 
-  @ManyToOne(() => Agreement, (agreement: Agreement) => agreement.members)
+  @ManyToOne(() => Agreement, (agreement: Agreement) => agreement.members, {
+    onDelete: 'CASCADE',
+  })
   agreement: Agreement;
 
   @Column()

@@ -37,9 +37,10 @@ export class Agreement {
     (member: AgreementMember) => member.agreement,
     { eager: true, onDelete: 'CASCADE'},
   )
+  @JoinColumn()
   public members: AgreementMember[];
 
-  @OneToMany(() => AgreementImage, (agreementImage: AgreementImage) => agreementImage.agreement, {onDelete: "CASCADE", cascade: true})
+  @OneToMany(() => AgreementImage, (agreementImage: AgreementImage) => agreementImage.agreement, {onDelete: "CASCADE"})
   public images: AgreementImage[]
 
   @OneToOne(() => AgreementMember, { eager: true })
@@ -69,6 +70,7 @@ export class Agreement {
   @ManyToOne(() => Lawyer, (lawyer: Lawyer) => lawyer.agreements, {
     nullable: true,
     eager: true,
+    onDelete: "CASCADE"
   })
   public lawyer: Lawyer;
 

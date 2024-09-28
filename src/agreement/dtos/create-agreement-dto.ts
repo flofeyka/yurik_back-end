@@ -10,10 +10,6 @@ export class CreateAgreementDto {
   @IsString()
   readonly title: string;
 
-  @ApiProperty({ title: 'Персональные данные участника договора', example: LegalInformationDto})
-  @IsObject()
-  readonly personalData: LegalInformationDto;
-
   @ApiProperty({ title: 'Кто инициирует договор ', example: 'Подрядчик' })
   @IsString()
   readonly initiatorStatus: 'Подрядчик' | 'Заказчик';

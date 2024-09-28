@@ -145,7 +145,6 @@ export class AgreementService {
         status: agreementDto.initiatorStatus
       },
       agreementFound,
-      agreementDto.personalData,
       "Подтвердил"
     );
 

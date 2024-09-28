@@ -29,8 +29,6 @@ export class AgreementGuard implements CanActivate {
       agreementFound.members.find(
         (member: AgreementMember) => member.user.id === request.user.id,
       );
-      console.log(agreementFound);
-      console.log(memberFound);
     if (!memberFound && agreementFound.lawyer?.user.id !== request.user.id) {
       throw new BadRequestException(
         'Вы не являетесь действующим участником или юристом данного договора чтобы совершить это действие',

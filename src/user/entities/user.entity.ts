@@ -3,12 +3,9 @@ import {
   Column,
   Entity,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Agreement } from '../../agreement/entities/agreement.entity';
 import { Image } from '../../images/image.entity';
 import { TelegramAccount } from './telegram-account.entity';
 import { PersonalData } from './user.personal_data';
@@ -38,7 +35,7 @@ export class User {
 
   @ApiProperty({
     title: 'Номер телефона. Обязательное поле',
-    example: 89123456789,
+    example: "79123456789",
   })
   @Column({ nullable: true })
   public readonly phoneNumber: string;
@@ -65,13 +62,8 @@ export class User {
   @OneToOne(
     () => PersonalData,
     (personalData: PersonalData) => personalData.user,
-    { eager: true },
+    { eager: true, nullable: true, onDelete: "SET NULL", cascade: true, onUpdate: "CASCADE" },
   )
   @JoinColumn()
   personalData: PersonalData;
-
-  //Нужно будет реализовать список предлагаемых, действующих и отклоненных договоров.
-  @ManyToMany(() => Agreement)
-  @JoinTable({ name: 'user_agreements' })
-  public readonly agreements: Agreement[];
 }

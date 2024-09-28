@@ -63,7 +63,6 @@ export class AgreementService {
       }
     });
 
-    console.log(agreements[0]);
 
 
     return agreements.map(

@@ -1,12 +1,11 @@
 import {
-    Column,
-    Entity,
-    JoinColumn,
-    ManyToOne,
-    OneToMany,
-    PrimaryGeneratedColumn,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Image } from '../../../images/image.entity';
 import { Agreement } from '../../entities/agreement.entity';
 import { AgreementMember } from '../../members/member.entity';
 import { StepImage } from './step-image.entity';
@@ -29,14 +28,14 @@ export class AgreementStep {
   @ManyToOne(
     () => AgreementMember,
     (agreementMember: AgreementMember) => agreementMember.agreement,
-    { nullable: true, eager: true },
+    { nullable: true, eager: true, onUpdate: "CASCADE", onDelete: "CASCADE" },
   )
   user: AgreementMember;
 
-  @Column({ default: false })
+  @Column({ default: "Ожидает" })
   status: "Готов" | "Отклонён" | "В процессе" | "Ожидает";
 
-  @Column({nullable: true, type: "json"})
+  @Column({ nullable: true, type: "json" })
   payment: {
     price: number;
     paymentLink: string;

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadGatewayException, BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { AgreementDto } from "../dtos/agreement-dto";
 import { Agreement } from "../entities/agreement.entity";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -82,8 +82,34 @@ export class MemberService {
         };
     }
 
+    async deleteMember(
+        agreement: Agreement,
+        memberId: number,
+        userId: number
+    ): Promise<{
+        success: boolean;
+        message: string;
+    }> {
+        if (agreement.initiator.user.id !== userId) {
+            throw new BadRequestException("Вы не можете удалить инициатора договора");
+        }
+        if (agreement.members.length < 2) {
+            throw new BadRequestException("Вы не можете удалить последнего участника");
+        }
+        const member: AgreementMember = this.findMember(agreement, memberId);
+        if (member.user.id === userId) {
+            throw new BadGatewayException("Вы не можете удалить себя из договора");
+        }
+        const deleted = await this.memberRepository.delete(member);
+        if (deleted.affected !== 1) {
+            throw new BadGatewayException("Не удалось удалить участника.");
+        }
 
-
+        return {
+            success: true,
+            message: "Участник был успешно удален"
+        }
+    }
 
     async addMember(
         member: {
@@ -163,7 +189,7 @@ export class MemberService {
 
     findMember(agreement: Agreement, userId: number): AgreementMember {
         const member: AgreementMember = agreement.members.find(
-            (member: AgreementMember) => member.user.id === userId,
+            (member: AgreementMember) => member.user.id === Number(userId),
         );
         if (!member) {
             throw new NotFoundException(

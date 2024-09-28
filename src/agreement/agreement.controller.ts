@@ -27,6 +27,7 @@ import { Agreement } from './entities/agreement.entity';
 import { AgreementGuard } from './guards/agreement.guard';
 import { LawyerGuard } from './lawyer/lawyer.guard';
 import { Step, StepDto } from './dtos/edit-steps-dto';
+import { AgreementValidityGuard } from './guards/agreement-validity.guard';
 
 @ApiTags('Agreement API')
 @Controller('agreement')
@@ -118,7 +119,6 @@ export class AgreementController {
       | 'Черновик'
       | 'Завершён'
   ): Promise<AgreementsListDto[]> {
-    console.log(type);
     return this.agreementService.getAgreements(request.user.id, type);
   }
 
@@ -403,7 +403,7 @@ export class AgreementController {
     }
   })
   @Post('/enable/:id')
-  @UseGuards(AuthGuard, AgreementGuard)
+  @UseGuards(AuthGuard, AgreementGuard, AgreementValidityGuard)
   async enableAgreement(@Req() request: RequestType): Promise<{
     message: string;
     agreement: AgreementDto;

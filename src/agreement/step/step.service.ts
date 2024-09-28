@@ -1,16 +1,16 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { AgreementStepDto } from "../dtos/agreement-dto";
-import { AgreementStep } from "./entities/step.entity";
-import { ImageDto } from "src/images/dtos/ImageDto";
-import { EditStepsDto, Step } from "../dtos/edit-steps-dto";
-import { AgreementMember } from "../members/member.entity";
-import { Agreement } from "../entities/agreement.entity";
-import { InsertResult, Repository } from "typeorm";
-import { ImagesService } from "src/images/images.service";
 import { InjectRepository } from "@nestjs/typeorm";
-import { UUID } from "crypto";
 import { Image } from "src/images/image.entity";
+import { ImagesService } from "src/images/images.service";
+import { InsertResult, Repository } from "typeorm";
+import { AgreementStepDto } from "../dtos/agreement-dto";
+import { Step } from "../dtos/edit-steps-dto";
+import { Agreement } from "../entities/agreement.entity";
+import { AgreementMember } from "../members/member.entity";
+import { MemberService } from "../members/member.service";
+import { EditStepDto } from "./dtos/edit-step-dto";
 import { StepImage } from "./entities/step-image.entity";
+import { AgreementStep } from "./entities/step.entity";
 
 @Injectable()
 export class StepService {
@@ -19,10 +19,10 @@ export class StepService {
         @InjectRepository(AgreementMember) private readonly memberRepository: Repository<AgreementMember>,
         @InjectRepository(AgreementStep) private readonly stepRepository: Repository<AgreementStep>,
         @InjectRepository(StepImage) private readonly stepImageRepository: Repository<StepImage>,
+        private readonly memberService: MemberService,
         private readonly imagesService: ImagesService,
     ) { }
     async addStepImages(step: AgreementStep, images: string[], userId: number): Promise<AgreementStepDto> {
-        console.log(step.images);
         if (images.length + step.images.length > 10) {
             throw new BadRequestException('В этапе не может содержаться больше 10 фотографий');
         }
@@ -44,28 +44,33 @@ export class StepService {
                     step: step,
                 }).execute();
 
-                return await this.stepImageRepository.findOne({ where: {id: stepImage.identifiers[0].id}, relations: {
-                    image: true
-                }});
+                return await this.stepImageRepository.findOne({
+                    where: { id: stepImage.identifiers[0].id }, relations: {
+                        image: true
+                    }
+                });
             }),
         );
         step.images = [...step?.images, ...imagesFound];
         const stepSaved = await this.stepRepository.save(step);
-        console.log(stepSaved);
 
         return new AgreementStepDto(stepSaved, userId);
     }
 
-    async editStep(stepsDto: EditStepsDto) {
-        const steps = Promise.all(
-            stepsDto.steps.map(async (step: Step) => {
-                const stepFound = await this.stepRepository.findOne({
-                    where: {
-                        id: step?.id,
-                    },
-                });
-            }),
-        );
+
+    async editStep(agreement: Agreement, stepId: number, editStepDto: EditStepDto, userId: number): Promise<AgreementStepDto> {
+        const step = await this.findStep(stepId);
+        if (step.start && step.end && !(new Date(editStepDto.start) < new Date(editStepDto.end))) {
+            throw new BadRequestException('Дата начала этапа не может быть позже даты окончания этапа');
+        }
+        const member: AgreementMember = this.memberService.findMember(agreement, editStepDto.userId);
+        const stepSaved = await this.stepRepository.save({
+            ...step,
+            ...editStepDto,
+            user: member
+        });
+
+        return new AgreementStepDto(stepSaved, userId);
     }
 
     async addStep(step: Step, agreement: Agreement): Promise<AgreementStep> {
@@ -111,7 +116,7 @@ export class StepService {
 
     async findStep(id: number) {
         const step = await this.stepRepository.findOne({
-            where: { id: id },
+            where: { id },
             relations: {
                 user: {
                     user: true,

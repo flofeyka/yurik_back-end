@@ -1,5 +1,5 @@
-import { Body, Controller, Param, Post, Req, UseGuards } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, HttpCode, HttpStatus, Param, Post, Req, UseGuards } from "@nestjs/common";
+import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "src/auth/auth.guard";
 import { RequestType } from "types/types";
 import { AgreementDto } from "../dtos/agreement-dto";
@@ -33,5 +33,23 @@ export class MemberController {
             inviteDto.legalInformation,
             request.agreement
         );
+    }
+
+    @ApiOperation({
+        summary: "Удаление участника из договора"
+    })
+    @ApiResponse({
+        status: HttpStatus.OK, example: {
+            success: true,
+            message: "Участник был успешно удален"
+        }
+    })
+    @Delete("/:id/:userId")
+    @UseGuards(AuthGuard, AgreementGuard)
+    async deleteMember(
+        @Req() request: RequestType,
+        @Param('userId') userId: number,
+    ): Promise<any> {
+        return await this.memberService.deleteMember(request.agreement, userId, request.user.id);
     }
 }

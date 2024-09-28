@@ -16,14 +16,14 @@ export class AgreementStep {
   @PrimaryGeneratedColumn('uuid')
   id: UUID;
 
-  @ManyToOne(() => Agreement)
+  @ManyToOne(() => Agreement, (agreement: Agreement) => agreement.steps, {onDelete: "CASCADE"})
+  @JoinColumn()
   agreement: Agreement;
 
   @Column()
   title: string;
 
   @OneToMany(() => StepImage, (image: StepImage) => image.step, { eager: true, onDelete: "CASCADE" })
-  @JoinColumn()
   images: StepImage[];
 
   @ManyToOne(
@@ -34,7 +34,7 @@ export class AgreementStep {
   user: AgreementMember;
 
   @Column({ default: "Ожидает" })
-  status: "Готов" | "Отклонён" | "В процессе" | "Ожидает";
+  status: "Готов" | "Отклонён" | "В процессе" | "Ожидает" | "Завершён";
 
   @Column({ nullable: true, type: "json" })
   payment: {

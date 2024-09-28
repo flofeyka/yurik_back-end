@@ -8,18 +8,41 @@ class paymentStep {
 }
 
 export class Step {
-  @IsUUID()
-  id: UUID;
+  @ApiProperty({
+    title: "Заголовок шага", example: "Закупка материалов"
+  })
   @IsString()
   title: string;
+
+  @ApiProperty({
+    title: "ID ответственного за шаг", example: 12
+  })
   @IsNumber()
   userId: number;
+
+  @ApiProperty({
+    title: "Платежные данные", example: {
+      price: 1234315
+    }
+  })
   @IsObject()
   payment: paymentStep
+
+  @ApiProperty({
+    title: "Комментарий к шагу", example: "Заказчик обязуется..."
+  })
   @IsString()
   comment: string | null;
+
+  @ApiProperty({
+    title: "Дата начала выполнения шага", example: '12-12-2023'
+  })
   @IsDateString()
   start: Date;
+
+  @ApiProperty({
+    title: "Дата начала выполнения шага", example: '12-12-2023'
+  })
   @IsDateString()
   end: Date;
 }

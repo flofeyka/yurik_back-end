@@ -21,7 +21,24 @@ import { ImagesService } from '../images/images.service';
 @ApiTags('Users API')
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
+
+
+  @ApiOperation({ summary: 'Регистрация аккаунта Telegram в системе' })
+  @ApiResponse({ status: HttpStatus.CREATED, example: true })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    example: {
+      message: 'Telegram-аккаунт уже зарегистрирован в системе.',
+      error: 'Bad Request',
+      statusCode: 400,
+    },
+  })
+  @HttpCode(HttpStatus.CREATED)
+  @Post('/telegram/add/:telegram_id')
+  async addTelegramAccount(@Param('telegram_id') telegramID: number) {
+    return this.userService.addTelegramAccount(telegramID);
+  }
 
   @ApiOperation({ summary: 'Изменение и добавление пользовательских данных.' })
   @ApiResponse({
@@ -59,19 +76,4 @@ export class UserController {
     return this.userService.editUser(request.user.id, userDto);
   }
 
-  @ApiOperation({ summary: 'Регистрация аккаунта Telegram в системе' })
-  @ApiResponse({ status: HttpStatus.CREATED, example: true })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    example: {
-      message: 'Telegram-аккаунт уже зарегистрирован в системе.',
-      error: 'Bad Request',
-      statusCode: 400,
-    },
-  })
-  @HttpCode(HttpStatus.CREATED)
-  @Post('/telegram/add/:telegram_id')
-  async addTelegramAccount(@Param('telegram_id') telegramID: number) {
-    return this.userService.addTelegramAccount(telegramID);
-  }
 }

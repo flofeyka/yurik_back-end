@@ -10,19 +10,19 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { SendMessageDto } from './dtos/SendMessageDto';
-import { GigachatService } from './gigachat.service';
-import { AuthGuard } from '../auth/auth.guard';
-import { RequestType } from '../../types/types';
-import { CreateDialogDto } from './dtos/create-dialog-dto';
 import { UUID } from 'crypto';
+import { RequestType } from '../../types/types';
+import { AuthGuard } from '../auth/auth.guard';
+import { CreateDialogDto } from './dtos/create-dialog-dto';
 import { DialogsDto } from './dtos/dialogs-dto';
+import { SendMessageDto } from './dtos/SendMessageDto';
 import { GigaChatDialog } from './entities/dialog.entity';
+import { GigachatService } from './gigachat.service';
 
 @ApiTags('Gigachat API')
 @Controller('gigachat')
 export class GigachatController {
-  constructor(private readonly gigachatService: GigachatService) {}
+  constructor(private readonly gigachatService: GigachatService) { }
 
   @ApiOperation({ summary: 'Получить список диалогов ' })
   @ApiResponse({
@@ -44,6 +44,29 @@ export class GigachatController {
   @UseGuards(AuthGuard)
   async getDialogs(@Req() request: RequestType): Promise<DialogsDto[]> {
     return this.gigachatService.getDialogs(request.user.id);
+  }
+
+  @ApiOperation({ summary: 'Создание диалога с Gigachat' })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    example: {
+      id: '3b94ab61-6174-4aa8-8e2f-ed008358ff92',
+      name: 'Testing name',
+      imgUrl: 'http://api.yurik.ru/images/picture/uuid.jpg',
+      lastMessage: null,
+    },
+  })
+  @Post('/dialog/create')
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  async createDialog(
+    @Req() request: RequestType,
+    @Body() createDialogDto: CreateDialogDto,
+  ): Promise<DialogsDto> {
+    return this.gigachatService.createNewDialog(
+      request.user.id,
+      createDialogDto,
+    );
   }
 
   @ApiOperation({ summary: 'Получить список сообщений у диалога' })
@@ -107,28 +130,5 @@ export class GigachatController {
     role: 'assistant';
   }> {
     return this.gigachatService.sendToGigaChat(messageDto);
-  }
-
-  @ApiOperation({ summary: 'Создание диалога с Gigachat' })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    example: {
-      id: '3b94ab61-6174-4aa8-8e2f-ed008358ff92',
-      name: 'Testing name',
-      imgUrl: 'http://api.yurik.ru/images/picture/uuid.jpg',
-      lastMessage: null,
-    },
-  })
-  @Post('/dialog/create')
-  @UseGuards(AuthGuard)
-  @HttpCode(HttpStatus.CREATED)
-  async createDialog(
-    @Req() request: RequestType,
-    @Body() createDialogDto: CreateDialogDto,
-  ): Promise<DialogsDto> {
-    return this.gigachatService.createNewDialog(
-      request.user.id,
-      createDialogDto,
-    );
   }
 }

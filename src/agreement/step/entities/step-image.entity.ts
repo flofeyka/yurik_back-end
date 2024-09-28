@@ -13,5 +13,6 @@ export class StepImage {
     image: Image;
 
     @ManyToOne(() => AgreementStep, (step: AgreementStep) => step.images, {onDelete: "SET NULL"})
+    @JoinColumn()
     step: AgreementStep;
 }

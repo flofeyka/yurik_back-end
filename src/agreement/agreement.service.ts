@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AppService } from 'src/app.service';
 import { LegalInformationDto } from 'src/user/dtos/legal-information-dto';
 import { PersonalData } from 'src/user/entities/user.personal_data';
-import { InsertResult, Repository } from 'typeorm';
+import { DeleteResult, InsertResult, Repository } from 'typeorm';
 import { ImageDto } from '../images/dtos/ImageDto';
 import { ImagesService } from '../images/images.service';
 import { User } from '../user/entities/user.entity';
@@ -35,6 +35,41 @@ export class AgreementService {
     private readonly memberService: MemberService,
   ) { }
 
+  async createAgreement(
+    userId: number,
+    agreementDto: CreateAgreementDto,
+  ): Promise<AgreementDto> {
+    const agreementCreated: InsertResult = await this.agreementRepository
+      .createQueryBuilder()
+      .insert()
+      .into(Agreement)
+      .values({
+        ...agreementDto
+      })
+      .execute();
+
+    const agreementFound = await this.findAgreement(
+      agreementCreated.identifiers[0].id,
+    );
+
+    const initiatorAdded = await this.memberService.addMember(
+      {
+        userId,
+        status: agreementDto.initiatorStatus
+      },
+      agreementFound,
+
+      "Подтвердил"
+    );
+
+    const memberUpdated = await this.agreementRepository.save({
+      ...agreementFound,
+      members: [initiatorAdded],
+      initiator: initiatorAdded,
+    });
+
+    return new AgreementDto(memberUpdated, userId);
+  }
 
   async getAgreements(userId: number, type: | 'В работе'
     | 'Отклонён'
@@ -87,74 +122,29 @@ export class AgreementService {
     return new AgreementDto(agreementSaved, userId);
   }
 
-  async addAgreementPhotos(agreement: Agreement, images: string[], userId): Promise<AgreementDto> {
-    if (agreement.images.length + images.length > 10) {
-      throw new BadRequestException("Соглашение может иметь не более 10 фотографий.");
+  async deleteAgreement(agreement: Agreement, userId: number): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    if(agreement.initiator.user.id !== userId) {
+      throw new BadRequestException('Вы не являетесь инициатором договора, чтобы его удалить.');
     }
-    const imagesFound: AgreementImage[] = await Promise.all(
-      images.map(async (image: string) => {
-        if (agreement.images.find(i => image === i.image.name)) {
-          throw new BadRequestException("Фотография уже была добавлена.");
-        }
-        const imageFound =
-          await this.imagesService.getImageByName(image);
-        if (!imageFound) {
-          throw new NotFoundException(
-            `Фотография с названием ${image} не существует`,
-          );
-        }
-        const agreementImage = await this.agreementImageRepository.createQueryBuilder().insert().into(AgreementImage).values({
-          agreement: agreement,
-          image: imageFound,
-        }).execute();
-        return await this.agreementImageRepository.findOne({
-          where: {
-            id: agreementImage.identifiers[0].id,
-          },
-        });
-      }));
 
-    const agreementSaved: Agreement = await this.agreementRepository.save({
-      ...agreement,
-      images: [...imagesFound, ...agreement.images]
+    if(agreement.status !== "Черновик") {
+      throw new BadRequestException("Договор нельзя удалить, так как он уже был подписан");
+    }
+
+    const deleteResult: DeleteResult = await this.agreementRepository.delete({
+      id: agreement.id
     });
+    if(deleteResult.affected !== 1) {
+      throw new BadRequestException('Не удалось удалить договор');
+    }
 
-    return new AgreementDto(agreementSaved, userId);
-  }
-
-  async createAgreement(
-    userId: number,
-    agreementDto: CreateAgreementDto,
-  ): Promise<AgreementDto> {
-    const agreementCreated: InsertResult = await this.agreementRepository
-      .createQueryBuilder()
-      .insert()
-      .into(Agreement)
-      .values({
-        ...agreementDto
-      })
-      .execute();
-
-    const agreementFound = await this.findAgreement(
-      agreementCreated.identifiers[0].id,
-    );
-
-    const initiatorAdded = await this.memberService.addMember(
-      {
-        userId,
-        status: agreementDto.initiatorStatus
-      },
-      agreementFound,
-      "Подтвердил"
-    );
-
-    const memberUpdated = await this.agreementRepository.save({
-      ...agreementFound,
-      members: [initiatorAdded],
-      initiator: initiatorAdded,
-    });
-
-    return new AgreementDto(memberUpdated, userId);
+    return {
+      success: true,
+      message: 'Договор был успешно удален'
+    }
   }
 
   async confirmAgreement(
@@ -221,30 +211,6 @@ export class AgreementService {
     };
   }
 
-  async findAgreement(id: number): Promise<Agreement> {
-    const agreementFound: Agreement = await this.agreementRepository.findOne({
-      where: {
-        id
-      }, relations: {
-        images: true,
-        members: {
-          user: true
-        },
-        steps: {
-          images: {
-            image: true
-          }
-        }
-      }
-    });
-
-    if (!agreementFound) {
-      throw new NotFoundException('Договор с этим идентификатором не найден');
-    }
-
-    return agreementFound;
-  }
-
   async enableAgreementAtWork(
     userId: number,
     agreement: Agreement,
@@ -267,5 +233,111 @@ export class AgreementService {
       message: 'Договор был успешно включён в работу.',
       agreement: new AgreementDto(agreementAtWork, userId),
     };
+  }
+
+  async completeAgreement(agreement: Agreement, userId: number): Promise<AgreementDto> {
+    if (agreement.initiator.user.id !== userId) {
+      throw new BadRequestException(
+        'Вы не можете завершить договор, так как вы не являетесь его инициатором.',
+      );
+    }
+
+    if (agreement.status !== "В работе") {
+      throw new BadRequestException("Договор не находится в работе.");
+    }
+
+    if (agreement.steps.find((step: AgreementStep) => step.status === 'В процессе' || step.status == "Ожидает")) {
+      throw new BadRequestException("Не все шаги завершены.");
+    }
+
+    if(agreement.steps.every(step => step.status === "Отклонён")) {
+      throw new BadRequestException("Вы не можете завершить договор, так как все шаги отклонены. Пожалуйста, отклоните договор.")
+    }
+
+    const agreementSaved: Agreement = await this.agreementRepository.save({
+      ...agreement,
+      status: 'Завершён',
+    });
+
+    return new AgreementDto(agreementSaved, userId);
+  }
+
+  async rejectAgreement(agreement: Agreement, userId: number): Promise<AgreementDto> {
+    if (agreement.initiator.user.id !== userId) {
+      throw new BadRequestException(
+        'Вы не можете отклонить договор, так как вы не являетесь его инициатором.',
+      );
+    }
+
+    if(agreement.status !== "В работе") {
+      throw new BadRequestException("Договор не находится в работе.");
+    }
+
+    if(!agreement.steps.find(step => step.status === "Отклонён")) {
+      throw new BadRequestException("Чтобы разорвать договор должен быть отклонён хотя бы один шаг ");
+    }
+
+    agreement.status = "Отклонён";
+    const agreementSaved: Agreement = await this.agreementRepository.save(agreement);
+    return new AgreementDto(agreementSaved, userId);
+  }
+
+  async addAgreementPhotos(agreement: Agreement, images: string[], userId: number): Promise<AgreementDto> {
+    if (agreement.images.length + images.length > 10) {
+      throw new BadRequestException("Соглашение может иметь не более 10 фотографий.");
+    }
+    const imagesFound: AgreementImage[] = await Promise.all(
+      images.map(async (image: string) => {
+        if (agreement.images.find(i => image === i.image.name)) {
+          throw new BadRequestException("Фотография уже была добавлена.");
+        }
+        const imageFound =
+          await this.imagesService.getImageByName(image);
+        if (!imageFound) {
+          throw new NotFoundException(
+            `Фотография с названием ${image} не существует`,
+          );
+        }
+        const agreementImage = await this.agreementImageRepository.createQueryBuilder().insert().into(AgreementImage).values({
+          agreement: agreement,
+          image: imageFound,
+        }).execute();
+        return await this.agreementImageRepository.findOne({
+          where: {
+            id: agreementImage.identifiers[0].id,
+          },
+        });
+      }));
+
+    const agreementSaved: Agreement = await this.agreementRepository.save({
+      ...agreement,
+      images: [...imagesFound, ...agreement.images]
+    });
+
+    return new AgreementDto(agreementSaved, userId);
+  }
+
+  async findAgreement(id: number): Promise<Agreement> {
+    const agreementFound: Agreement = await this.agreementRepository.findOne({
+      where: {
+        id
+      }, relations: {
+        images: true,
+        members: {
+          user: true
+        },
+        steps: {
+          images: {
+            image: true
+          }
+        }
+      }
+    });
+
+    if (!agreementFound) {
+      throw new NotFoundException('Договор с этим идентификатором не найден');
+    }
+
+    return agreementFound;
   }
 }

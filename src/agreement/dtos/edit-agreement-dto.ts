@@ -2,10 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsDateString, IsNumber, IsString } from 'class-validator';
 
 export class EditAgreementDto {
-  @ApiProperty({ title: 'Стоимость услуг', example: 15000 })
-  @IsNumber()
-  readonly price: number;
-
   @ApiProperty({
     title: 'Содержание договора',
     example: 'Заказчик обязуется...',

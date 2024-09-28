@@ -76,7 +76,8 @@ export class AuthController {
     const result = await this.authService.signUp(userDto);
     response.cookie('access_token', result.token, {
       sameSite: "none",
-      secure: false
+      secure: false,
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14)
     });
 
     return result.user;
@@ -162,7 +163,8 @@ export class AuthController {
     const result = await this.authService.signIn(loginDto);
     response.cookie('access_token', result.token, {
       sameSite: "none",
-      secure: false
+      secure: false,
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14),
     });
     return result.user;
   }

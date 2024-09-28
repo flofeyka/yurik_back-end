@@ -15,7 +15,7 @@ import { CreateUserDto } from 'src/user/dtos/create-user-dto';
 import { RequestType } from '../../types/types';
 import { UserDto } from '../user/dtos/user-dto';
 import { AuthGuard } from './auth.guard';
-import { AuthService } from './auth.service';
+import { AuthService, tokenAndUserType } from './auth.service';
 import { LoginDto } from './dtos/login-dto';
 
 @ApiTags('Auth API')
@@ -72,15 +72,8 @@ export class AuthController {
   async signUp(
     @Body() userDto: CreateUserDto,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<UserDto> {
-    const result = await this.authService.signUp(userDto);
-    response.cookie('access_token', result.token, {
-      sameSite: "none",
-      secure: false,
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14)
-    });
-
-    return result.user;
+  ): Promise<tokenAndUserType> {
+    return await this.authService.signUp(userDto);
   }
 
   @ApiOperation({ summary: 'Получение данных юзера' })
@@ -159,13 +152,7 @@ export class AuthController {
   async signIn(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<UserDto> {
-    const result = await this.authService.signIn(loginDto);
-    response.cookie('access_token', result.token, {
-      sameSite: "none",
-      secure: false,
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14),
-    });
-    return result.user;
+  ): Promise<tokenAndUserType> {
+    return await this.authService.signIn(loginDto);
   }
 }

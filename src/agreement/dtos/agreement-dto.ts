@@ -31,7 +31,7 @@ export class AgreementMemberDto {
 export class AgreementStepDto {
   public id: number;
   public title: string;
-  public isComplete: boolean;
+  public status: "Готов" | "Отклонён" | "В процессе" | "Ожидает";
   public images: string[];
   public payment: null | {
     price: number;
@@ -51,7 +51,7 @@ export class AgreementStepDto {
         price: model.payment.price,
         paymentLink: model.user.user.id === userId ? model.payment.paymentLink : undefined
       } : null,
-      isComplete: model.status,
+      status: model.status,
       start: model.start,
       end: model.end
     });

@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { InjectRepository } from "@nestjs/typeorm";
 import { Image } from "src/images/image.entity";
 import { ImagesService } from "src/images/images.service";
-import { InsertResult, Repository } from "typeorm";
+import { DeleteResult, InsertResult, Repository } from "typeorm";
 import { AgreementStepDto } from "../dtos/agreement-dto";
 import { Step } from "../dtos/edit-steps-dto";
 import { Agreement } from "../entities/agreement.entity";
@@ -11,6 +11,7 @@ import { MemberService } from "../members/member.service";
 import { EditStepDto } from "./dtos/edit-step-dto";
 import { StepImage } from "./entities/step-image.entity";
 import { AgreementStep } from "./entities/step.entity";
+import { UUID } from "crypto";
 
 @Injectable()
 export class StepService {
@@ -57,8 +58,40 @@ export class StepService {
         return new AgreementStepDto(stepSaved, userId);
     }
 
+    async cancelStep(step: AgreementStep) {
+        if (step.status !== "Ожидает" && step.status !== "В процессе") {
+            throw new BadRequestException("Нельзя отменить этап, так как он не находится в статусе ожидания или в процессе");
+        }
 
-    async editStep(agreement: Agreement, stepId: number, editStepDto: EditStepDto, userId: number): Promise<AgreementStepDto> {
+        step.status = "Отклонён";
+        const saved = await this.stepRepository.save(step);
+        return new AgreementStepDto(saved, step.user.user.id);
+
+    }
+
+    async deleteStep(agreement: Agreement, stepId: UUID) {
+        if (agreement.status !== "Черновик") {
+            throw new BadRequestException("Нельзя удалить этап, так как договор не является черновиком");
+        }
+
+
+        const step: AgreementStep = await this.findStep(stepId);
+        if (agreement.steps.find((step: AgreementStep) => step.id !== stepId)) {
+            throw new BadRequestException("Нельзя удалить этап, так как он не принадлежит данному договору");
+        }
+        const deleteResust: DeleteResult = await this.stepRepository.delete(step);
+        if (deleteResust.affected !== 1) {
+            throw new BadRequestException("Не удалось удалить этап");
+        }
+
+        return {
+            success: true,
+            message: "Этап был успешно удален"
+        }
+
+    }
+
+    async editStep(agreement: Agreement, stepId: UUID, editStepDto: EditStepDto, userId: number): Promise<AgreementStepDto> {
         const step = await this.findStep(stepId);
         if (step.start && step.end && !(new Date(editStepDto.start) < new Date(editStepDto.end))) {
             throw new BadRequestException('Дата начала этапа не может быть позже даты окончания этапа');
@@ -114,7 +147,7 @@ export class StepService {
         return stepFound;
     }
 
-    async findStep(id: number) {
+    async findStep(id: UUID) {
         const step = await this.stepRepository.findOne({
             where: { id },
             relations: {
@@ -123,7 +156,7 @@ export class StepService {
                 },
                 images: {
                     image: true
-                }
+                },
             },
         });
 

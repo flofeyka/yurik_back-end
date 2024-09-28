@@ -67,7 +67,6 @@ export class MemberService {
                 status,
             },
             agreement,
-            personalData
         )
 
         agreement.members.push(newMember);
@@ -117,42 +116,9 @@ export class MemberService {
             status: 'Заказчик' | 'Подрядчик';
         },
         agreement: Agreement,
-        personalData: LegalInformationDto,
         inviteStatus: "Приглашен" | "Подтвердил" | "Отклонил" = "Приглашен"
     ): Promise<AgreementMember> {
         const user: User = await this.userService.findUser(member.userId);
-        const personalDataFound: PersonalData | null = await this.usersPersonalDataRepository.findOne({
-            where: [
-                {
-                    user: {
-                        id: user.id,
-                    },
-                }
-            ],
-            relations: {
-                user: true
-            }
-        });
-
-        if (personalDataFound) {
-            const personalUpdated = await this.usersPersonalDataRepository.save({
-                ...personalDataFound,
-                ...personalData
-            });
-            user.personalData = personalUpdated;
-        } else {
-            const personalDataCreated = await this.usersPersonalDataRepository.createQueryBuilder().insert().into(PersonalData).values([{
-                ...personalData,
-                user: user,
-            }]).execute();
-
-            user.personalData = await this.usersPersonalDataRepository.findOne({
-                where: {
-                    id: personalDataCreated.identifiers[0].id,
-                },
-            });
-            await this.userRepository.save(user);
-        }
 
         const memberCreated: InsertResult = await this.memberRepository
             .createQueryBuilder()

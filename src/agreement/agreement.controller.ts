@@ -121,66 +121,7 @@ export class AgreementController {
 
   @ApiOperation({ summary: 'Получение договора по id' })
   @ApiResponse({
-    status: 200, example: {
-      "id": 54,
-      "title": "Договор о импортозамещении строительных материалов",
-      "text": null,
-      "initiator": {
-        "id": 10,
-        "firstName": "Данил",
-        "lastName": "Баширов",
-        "middleName": "Владленович",
-        "email": "danilbashirov0@vk.com",
-        "status": "Заказчик",
-        "inviteStatus": "Подтвердил"
-      },
-      "status": "В работе",
-      "images": [],
-      "members": [
-        {
-          "id": 9,
-          "firstName": "Владислав",
-          "lastName": "Чумак",
-          "middleName": null,
-          "email": null,
-          "status": "Подрядчик",
-          "inviteStatus": "Подтвердил"
-        },
-        {
-          "id": 10,
-          "firstName": "Данил",
-          "lastName": "Баширов",
-          "middleName": "Владленович",
-          "email": "danilbashirov0@vk.com",
-          "status": "Заказчик",
-          "inviteStatus": "Подтвердил"
-        }
-      ],
-      "steps": [
-        {
-          "id": "d5ba443a-a952-4cb0-8021-093eaf534a71",
-          "title": "Оплата",
-          "user": {
-            "id": 10,
-            "firstName": "Данил",
-            "lastName": "Баширов",
-            "middleName": "Владленович",
-            "email": "danilbashirov0@vk.com",
-            "status": "Заказчик",
-            "inviteStatus": "Подтвердил"
-          },
-          "images": [],
-          "payment": {
-            "price": 123451
-          },
-          "isComplete": "Ожидает",
-          "start": "2024-09-26",
-          "end": "2024-09-28"
-        }
-      ],
-      "start": "2024-09-26T19:00:00.000Z",
-      "end": "2024-09-29T19:00:00.000Z"
-    }
+    status: 200, type: AgreementDto
   })
   @Get('/:id')
   @UseGuards(AuthGuard, AgreementGuard)
@@ -192,36 +133,7 @@ export class AgreementController {
 
   @ApiOperation({ summary: 'Создание договора' })
   @ApiResponse({
-    status: HttpStatus.CREATED, example: {
-      "id": 52,
-      "title": "Договор о импортозамещении строительных материалов",
-      "text": null,
-      "initiator": {
-        "id": 10,
-        "firstName": "Данил",
-        "lastName": "Баширов",
-        "middleName": "Владленович",
-        "email": "danilbashirov0@vk.com",
-        "status": "Заказчик",
-        "inviteStatus": "Подтвердил"
-      },
-      "status": "Черновик",
-      "images": [],
-      "members": [
-        {
-          "id": 10,
-          "firstName": "Данил",
-          "lastName": "Баширов",
-          "middleName": "Владленович",
-          "email": "danilbashirov0@vk.com",
-          "status": "Заказчик",
-          "inviteStatus": "Подтвердил"
-        }
-      ],
-      "steps": [],
-      "start": null,
-      "end": null
-    }
+    status: HttpStatus.CREATED, type: AgreementDto
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
@@ -245,67 +157,7 @@ export class AgreementController {
 
   @ApiOperation({ summary: 'Редактирование договора', description: "Редактирование договора. Выполняется, если не все пункты были заполнены, либо одну из сторон не устроили условия договора." })
   @ApiResponse({
-    status: HttpStatus.ACCEPTED,
-    example: {
-      "id": 54,
-      "title": "Договор о импортозамещении строительных материалов",
-      "text": null,
-      "initiator": {
-        "id": 10,
-        "firstName": "Данил",
-        "lastName": "Баширов",
-        "middleName": "Владленович",
-        "email": "danilbashirov0@vk.com",
-        "status": "Заказчик",
-        "inviteStatus": "Подтвердил"
-      },
-      "status": "В работе",
-      "images": [],
-      "members": [
-        {
-          "id": 9,
-          "firstName": "Владислав",
-          "lastName": "Чумак",
-          "middleName": null,
-          "email": null,
-          "status": "Подрядчик",
-          "inviteStatus": "Подтвердил"
-        },
-        {
-          "id": 10,
-          "firstName": "Данил",
-          "lastName": "Баширов",
-          "middleName": "Владленович",
-          "email": "danilbashirov0@vk.com",
-          "status": "Заказчик",
-          "inviteStatus": "Подтвердил"
-        }
-      ],
-      "steps": [
-        {
-          "id": "d5ba443a-a952-4cb0-8021-093eaf534a71",
-          "title": "Оплата",
-          "user": {
-            "id": 10,
-            "firstName": "Данил",
-            "lastName": "Баширов",
-            "middleName": "Владленович",
-            "email": "danilbashirov0@vk.com",
-            "status": "Заказчик",
-            "inviteStatus": "Подтвердил"
-          },
-          "images": [],
-          "payment": {
-            "price": 123451
-          },
-          "isComplete": "Ожидает",
-          "start": "2024-09-26",
-          "end": "2024-09-28"
-        }
-      ],
-      "start": "2024-09-26T19:00:00.000Z",
-      "end": "2024-09-29T19:00:00.000Z"
-    },
+    status: HttpStatus.ACCEPTED, example: AgreementDto
   })
   @Put('/update/:id')
   @UseGuards(AuthGuard, AgreementGuard)
@@ -378,69 +230,7 @@ export class AgreementController {
 
   @ApiOperation({ summary: 'Включение договора в работу.', description: "Включение договора в работу. Выполняется в том случае, если обе стороны устраивает договор, этапы, обязательства, цена и т.д.." })
   @ApiResponse({
-    status: HttpStatus.OK, example: {
-      "message": "Договор был успешно включён в работу.",
-      "agreement": {
-        "id": 54,
-        "title": "Договор о импортозамещении строительных материалов",
-        "text": null,
-        "initiator": {
-          "id": 10,
-          "firstName": "Данил",
-          "lastName": "Баширов",
-          "middleName": "Владленович",
-          "email": "danilbashirov0@vk.com",
-          "status": "Заказчик",
-          "inviteStatus": "Подтвердил"
-        },
-        "status": "В работе",
-        "images": [],
-        "members": [
-          {
-            "id": 9,
-            "firstName": "Владислав",
-            "lastName": "Чумак",
-            "middleName": null,
-            "email": null,
-            "status": "Подрядчик",
-            "inviteStatus": "Подтвердил"
-          },
-          {
-            "id": 10,
-            "firstName": "Данил",
-            "lastName": "Баширов",
-            "middleName": "Владленович",
-            "email": "danilbashirov0@vk.com",
-            "status": "Заказчик",
-            "inviteStatus": "Подтвердил"
-          }
-        ],
-        "steps": [
-          {
-            "id": "d5ba443a-a952-4cb0-8021-093eaf534a71",
-            "title": "Оплата",
-            "user": {
-              "id": 10,
-              "firstName": "Данил",
-              "lastName": "Баширов",
-              "middleName": "Владленович",
-              "email": "danilbashirov0@vk.com",
-              "status": "Заказчик",
-              "inviteStatus": "Подтвердил"
-            },
-            "images": [],
-            "payment": {
-              "price": 123451
-            },
-            "isComplete": "Ожидает",
-            "start": "2024-09-26",
-            "end": "2024-09-28"
-          }
-        ],
-        "start": "2024-09-26T19:00:00.000Z",
-        "end": "2024-09-29T19:00:00.000Z"
-      }
-    }
+    status: HttpStatus.OK, example: AgreementDto
   })
   @ApiBadRequestResponse({
     example: [{
@@ -479,73 +269,7 @@ export class AgreementController {
 
   @ApiOperation({ summary: "Завершение договора", description: "Завершение договора применяется в том случае, если обе стороны выполнили все, либо частично не выполнили(и это устроило другую сторону) все обязательства, прописанные в договоре и этапах соответственно." })
   @ApiResponse({
-    status: HttpStatus.OK, example: {
-      "id": 53,
-      "title": "Договор о импортозамещении строительных материалов",
-      "text": null,
-      "initiator": {
-        "id": 10,
-        "firstName": "Данил",
-        "lastName": "Баширов",
-        "middleName": "Владленович",
-        "email": "danilbashirov0@vk.com",
-        "status": "Заказчик",
-        "inviteStatus": "Подтвердил"
-      },
-      "status": "Завершён",
-      "images": [],
-      "members": [
-        {
-          "id": 10,
-          "firstName": "Данил",
-          "lastName": "Баширов",
-          "middleName": "Владленович",
-          "email": "danilbashirov0@vk.com",
-          "status": "Заказчик",
-          "inviteStatus": "Подтвердил"
-        }
-      ],
-      "steps": [
-        {
-          "id": "a35e4321-fb8c-498b-9bf0-e1ef6915ed71",
-          "title": "Закупка материаловss",
-          "user": {
-            "id": 10,
-            "firstName": "Данил",
-            "lastName": "Баширов",
-            "middleName": "Владленович",
-            "email": "danilbashirov0@vk.com",
-            "status": "Заказчик",
-            "inviteStatus": "Подтвердил"
-          },
-          "images": [],
-          "payment": null,
-          "status": "Завершён",
-          "start": "2024-09-27",
-          "end": "2024-09-28"
-        },
-        {
-          "id": "6c5679cf-831c-434e-816f-9a10963cc0bb",
-          "title": "Закупка материаловss",
-          "user": {
-            "id": 10,
-            "firstName": "Данил",
-            "lastName": "Баширов",
-            "middleName": "Владленович",
-            "email": "danilbashirov0@vk.com",
-            "status": "Заказчик",
-            "inviteStatus": "Подтвердил"
-          },
-          "images": [],
-          "payment": null,
-          "status": "Завершён",
-          "start": "2024-09-27",
-          "end": "2024-09-28"
-        }
-      ],
-      "start": null,
-      "end": null
-    }
+    status: HttpStatus.OK, example: AgreementDto
   })
   @ApiBadRequestResponse({
     example: [{
@@ -567,66 +291,7 @@ export class AgreementController {
 
   @ApiOperation({ summary: "Разорвать договор", description: "Разорвать договор. Применяется в том случае, если стороны не выполнили свои обязательства и это не устроило одну из сторон." })
   @ApiResponse({
-    status: HttpStatus.OK, example: {
-      "id": 56,
-      "title": "Договор о импортозамещении строительных материалов",
-      "text": "Договор о строительстве школы №123456789 между компанией «СтройМастер» и строительной фирмой «Авангард». Компания «СтройМастер» поручает, а строительная фирма «Авангард» принимает на себя обязательства по строительству новой школы на земельном участке, расположенном по адресу: ул. Новая, д. 10, город Москва. Работы должны быть выполнены в соответствии с проектной документацией, утвержденной заказчиком, в срок до 31 декабря 2024 года. Стоимость работ составляет 100 миллионов рублей.",
-      "initiator": {
-        "id": 10,
-        "firstName": "Данил",
-        "lastName": "Баширов",
-        "middleName": "Владленович",
-        "email": "danilbashirov0@vk.com",
-        "status": "Заказчик",
-        "inviteStatus": "Подтвердил"
-      },
-      "status": "Отклонён",
-      "images": [],
-      "members": [
-        {
-          "id": 10,
-          "firstName": "Данил",
-          "lastName": "Баширов",
-          "middleName": "Владленович",
-          "email": "danilbashirov0@vk.com",
-          "status": "Заказчик",
-          "inviteStatus": "Подтвердил"
-        },
-        {
-          "id": 9,
-          "firstName": "Владислав",
-          "lastName": "Чумак",
-          "middleName": null,
-          "email": null,
-          "status": "Подрядчик",
-          "inviteStatus": "Подтвердил"
-        }
-      ],
-      "steps": [
-        {
-          "id": "e8091c5c-0010-4e45-a4ef-17cd9d4b885b",
-          "title": "Оплата",
-          "user": {
-            "id": 10,
-            "firstName": "Данил",
-            "lastName": "Баширов",
-            "middleName": "Владленович",
-            "email": "danilbashirov0@vk.com",
-            "status": "Заказчик",
-            "inviteStatus": "Подтвердил"
-          },
-          "images": [],
-          "payment": {
-            "price": 123451
-          },
-          "status": "Отклонён",
-          "start": "2024-09-28",
-          "end": "2024-10-01"
-        }
-      ],
-      "start": "2024-09-27T19:00:00.000Z",
-      "end": "2024-10-01T19:00:00.000Z"
-    }
+    status: HttpStatus.OK, type: AgreementDto
   })
   @ApiBadRequestResponse({
     example: [
@@ -645,72 +310,7 @@ export class AgreementController {
 
   @ApiProperty({ title: "Добавление изображений к договору." })
   @ApiResponse({
-    status: HttpStatus.ACCEPTED, example: {
-      "id": 54,
-      "title": "Договор о импортозамещении строительных материалов",
-      "text": null,
-      "initiator": {
-        "id": 10,
-        "firstName": "Данил",
-        "lastName": "Баширов",
-        "middleName": "Владленович",
-        "email": "danilbashirov0@vk.com",
-        "status": "Заказчик",
-        "inviteStatus": "Подтвердил"
-      },
-      "status": "В работе",
-      "images": [],
-      "members": [
-        {
-          "id": 9,
-          "firstName": "Владислав",
-          "lastName": "Чумак",
-          "middleName": null,
-          "email": null,
-          "status": "Подрядчик",
-          "inviteStatus": "Подтвердил"
-        },
-        {
-          "id": 10,
-          "firstName": "Данил",
-          "lastName": "Баширов",
-          "middleName": "Владленович",
-          "email": "danilbashirov0@vk.com",
-          "status": "Заказчик",
-          "inviteStatus": "Подтвердил"
-        }
-      ],
-      "steps": [
-        {
-          "id": "d5ba443a-a952-4cb0-8021-093eaf534a71",
-          "title": "Оплата",
-          "user": {
-            "id": 10,
-            "firstName": "Данил",
-            "lastName": "Баширов",
-            "middleName": "Владленович",
-            "email": "danilbashirov0@vk.com",
-            "status": "Заказчик",
-            "inviteStatus": "Подтвердил"
-          },
-          "images": [
-            `https://yurkitgbot.ru/api/images/picture/51552ed5-8fab-4dd3-a0d7-cadb77ba69e6.jpg`,
-            `https://yurkitgbot.ru/api/images/picture/84da4e04-b486-490b-8f63-50c35e474152.jpg`,
-            `https://yurkitgbot.ru/api/images/picture/80d7622c-6bbe-4a1d-bedc-fd665959bf37.png`,
-            `https://yurkitgbot.ru/api/images/picture/9007c520-a13f-42bf-88f4-2a59f7635114.png`,
-            `https://yurkitgbot.ru/api/images/picture/7ab682de-3bc3-4a80-938a-dddca567a1f8.jpg`
-          ],
-          "payment": {
-            "price": 123451
-          },
-          "isComplete": "Ожидает",
-          "start": "2024-09-26",
-          "end": "2024-09-28"
-        }
-      ],
-      "start": "2024-09-26T19:00:00.000Z",
-      "end": "2024-09-29T19:00:00.000Z"
-    }
+    status: HttpStatus.ACCEPTED, type: AgreementDto
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST, example: [{

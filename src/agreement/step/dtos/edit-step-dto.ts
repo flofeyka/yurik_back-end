@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDateString, IsNumber, IsObject, IsString, IsUUID } from "class-validator";
-import { UUID } from "crypto";
+import { IsDateString, IsNumber, IsObject, IsString } from "class-validator";
 
 export class EditStepDto {
     @ApiProperty({ title: "Заголовок шага", example: "Закупка материалов" })
@@ -21,9 +20,8 @@ export class EditStepDto {
 
     @ApiProperty({
         title: "Платежные данные", example: {
-            payment: {
-                price: 231432
-            }
+            price: 231432
+
         }
     })
     @IsObject()

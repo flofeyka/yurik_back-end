@@ -86,6 +86,19 @@ export class StepService {
         return new AgreementDto(saved, userId);
     }
 
+    async takeStep(step: AgreementStep, agreement: Agreement): Promise<AgreementStepDto> {
+        if (agreement.status !== "В работе") {
+            throw new BadRequestException("Нельзя взять этап в недействующем договоре");
+        }
+        if (step.status !== "Ожидает") {
+            throw new BadRequestException("Нельзя взять этап, так как он не находится в статусе ожидания");
+        }
+
+        step.status = "В процессе";
+        const saved = await this.stepRepository.save(step);
+        return new AgreementStepDto(saved, step.user.user.id);
+    }
+
     async cancelStep(step: AgreementStep) {
         if (step.status !== "Ожидает" && step.status !== "В процессе") {
             throw new BadRequestException("Нельзя отменить этап, так как он не находится в статусе ожидания или в процессе");

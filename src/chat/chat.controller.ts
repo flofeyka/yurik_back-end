@@ -4,6 +4,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { RequestType } from 'types/types';
 import { ChatService } from './chat.service';
 import { Chat } from './entities/chat.entity';
+import { UUID } from 'crypto';
 
 @ApiTags('Chats API')
 @Controller('chats')
@@ -20,7 +21,7 @@ export class ChatController {
   @ApiOperation({ summary: 'Получение чата и его сообщений по id' })
   @Get('/:chatId')
   @UseGuards(AuthGuard)
-  async getChat(@Param('chatId') chatId: number): Promise<Chat> {
+  async getChat(@Param('chatId') chatId: UUID): Promise<Chat> {
     return await this.chatService.getChat(chatId);
   }
 }

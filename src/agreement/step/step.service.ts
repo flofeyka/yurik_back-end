@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Image } from "src/images/image.entity";
 import { ImagesService } from "src/images/images.service";
 import { DeleteResult, InsertResult, Repository } from "typeorm";
-import { AgreementStepDto } from "../dtos/agreement-dto";
+import { AgreementDto, AgreementStepDto } from "../dtos/agreement-dto";
 import { Step, StepDto } from "../dtos/edit-steps-dto";
 import { Agreement } from "../entities/agreement.entity";
 import { AgreementMember } from "../members/member.entity";
@@ -12,6 +12,7 @@ import { EditStepDto } from "./dtos/edit-step-dto";
 import { StepImage } from "./entities/step-image.entity";
 import { AgreementStep } from "./entities/step.entity";
 import { UUID } from "crypto";
+import { ChangeOrder } from "./dtos/change-order-dto";
 
 @Injectable()
 export class StepService {
@@ -56,6 +57,33 @@ export class StepService {
         const stepSaved = await this.stepRepository.save(step);
 
         return new AgreementStepDto(stepSaved, userId);
+    }
+
+    async changeStepsOrder(agreement: Agreement, stepsDto: ChangeOrder, userId: number): Promise<AgreementDto> {
+        if(agreement.status !== "Черновик") {
+            throw new BadRequestException('Вы не можете изменить порядок этапов, так как договор был подписан.');
+        }
+        if(agreement.initiator.user.id !== userId) {
+            throw new BadRequestException('Вы не можете изменить порядок этапов в договоре, так как не являетесь его инициатором.');
+        }
+        if(stepsDto.steps.length !== agreement.steps.length) {
+            throw new BadRequestException('Количество этапов в запросе не совпадает с количеством этапов в договоре.');
+        }
+        const stepsFound: AgreementStep[] = await Promise.all(stepsDto.steps.map(async (step: {id: UUID}) => {
+            const stepFound: AgreementStep = await this.findStep(step.id);
+            if(!stepFound) {
+                throw new BadRequestException(`Этап с id ${step.id} не найден.`);
+            }
+            if(!agreement.steps.find((agreementStep: AgreementStep) => agreementStep.id === stepFound.id )) {
+                throw new BadRequestException(`Этап с id ${step.id} не найден.`);
+            }
+
+            return stepFound;
+        }));
+
+        agreement.steps = stepsFound;
+        const saved = await this.agreementRepository.save(agreement);
+        return new AgreementDto(saved, userId);
     }
 
     async cancelStep(step: AgreementStep) {

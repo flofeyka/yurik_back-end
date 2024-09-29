@@ -16,7 +16,7 @@ export class AgreementMember {
   @PrimaryGeneratedColumn('uuid')
   id: UUID;
 
-    @ManyToOne(() => User, { eager: true, onDelete: "CASCADE" })
+  @ManyToOne(() => User, { eager: true, onDelete: "CASCADE" })
   @JoinColumn()
   user: User;
 

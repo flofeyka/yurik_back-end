@@ -1,29 +1,33 @@
-import { Injectable } from '@nestjs/common';
 import {
-    OnGatewayConnection,
-    SubscribeMessage,
-    WebSocketGateway,
-    WebSocketServer
+  MessageBody,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer
 } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { UUID } from 'crypto';
+import { Socket } from 'dgram';
+import { Server } from 'http';
 import { ChatService } from './chat.service';
 
-@WebSocketGateway({
-  cors: {
-    origin: '*',
-  },
-})
-@Injectable()
-export class ChatGateway implements OnGatewayConnection {
+@WebSocketGateway({})
+export class ChatGateway {
   constructor(private readonly chatService: ChatService) {}
 
   @WebSocketServer() server: Server;
 
-  handleConnection(client: any, ...args: any[]) {}
+  // handleConnection(client: any, ...args: any[]) {}
 
-  @SubscribeMessage('sendMessage')
-  handleMessage(client: Socket, message: any) {
-    // this.chatService.createMessage()
-    this.server.emit('reply', 'broadcasting...');
+  @SubscribeMessage('chat_messages')
+  async handleMessage(client: Socket, payload: {
+    id: UUID,
+    message: string,
+
+  }) {
+    await this.chatService.createMessage(payload.id, payload.message);
+  }
+
+  @SubscribeMessage('chats_messages')
+  handleChatsMessage(client: Socket, message: any) {
+
   }
 }

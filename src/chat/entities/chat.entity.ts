@@ -7,11 +7,12 @@ import {
     PrimaryGeneratedColumn
 } from 'typeorm';
 import { Message } from './chat.message.entity';
+import { UUID } from 'crypto';
 
 @Entity({ name: 'chat' })
 export class Chat {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: UUID;
 
   @OneToOne(() => Agreement, (agreement: Agreement) => agreement.chat)
   @JoinColumn()

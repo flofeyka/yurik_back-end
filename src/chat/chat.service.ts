@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Message } from './entities/chat.message.entity';
 import { Chat } from './entities/chat.entity';
 import { Agreement } from 'src/agreement/entities/agreement.entity';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class ChatService {
@@ -13,7 +14,7 @@ export class ChatService {
     @InjectRepository(Chat) private readonly chatRepository: Repository<Chat>,
   ) {}
 
-  async getChat(chatId: number) {
+  async getChat(chatId: UUID) {
     return await this.chatRepository.findOne({
       where: { id: chatId },
       relations: {
@@ -30,7 +31,7 @@ export class ChatService {
     return newChat;
   }
 
-  async createMessage(chatId: number, message: string) {
+  async createMessage(chatId: UUID, message: string) {
     const chat = await this.chatRepository.findOne({
       where: { id: chatId },
       relations: {

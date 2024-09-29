@@ -1,13 +1,17 @@
-import { last } from 'rxjs';
+import { ApiProperty } from '@nestjs/swagger';
+import { ImageDto } from 'src/images/dtos/ImageDto';
 import { Agreement } from '../entities/agreement.entity';
 import { AgreementMember } from '../members/member.entity';
 import { AgreementStep } from '../step/entities/step.entity';
-import { ImageDto } from 'src/images/dtos/ImageDto';
 
 export class AgreementsListDto {
+  @ApiProperty({ title: 'ID договора', example: 1 })
   id: number;
+  @ApiProperty({ title: 'Название договора', example: 'Договор возмездного оказания услуг' })
   title: string;
+  @ApiProperty({ title: 'Статус договора', example: 'В работе' })
   status: string;
+
   members: {
     firstName: string,
     lastName: string,

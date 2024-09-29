@@ -1,15 +1,16 @@
 import { Body, Controller, Delete, HttpStatus, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
-import { ApiBadRequestResponse, ApiNotFoundResponse, ApiProperty, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiBadRequestResponse, ApiNotFoundResponse, ApiOperation, ApiProperty, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { UUID } from "crypto";
 import { AuthGuard } from "src/auth/auth.guard";
 import { RequestType } from "types/types";
+import { AgreementStepDto } from "../dtos/agreement-dto";
 import { Step } from "../dtos/edit-steps-dto";
 import { ImagesDto } from "../dtos/images-dto";
 import { AgreementGuard } from "../guards/agreement.guard";
-import { StepService } from "./step.service";
-import { StepGuard } from "./guards/step.guard";
+import { ChangeOrder } from "./dtos/change-order-dto";
 import { EditStepDto } from "./dtos/edit-step-dto";
-import { UUID } from "crypto";
-import { AgreementDto, AgreementStepDto } from "../dtos/agreement-dto";
+import { StepGuard } from "./guards/step.guard";
+import { StepService } from "./step.service";
 
 @ApiTags("Agreement Step API")
 @Controller("/agreement/step")
@@ -175,6 +176,112 @@ export class StepController {
         message: string;
     }> {
         return await this.stepService.deleteStep(request.agreement, stepId);
+    }
+
+    @ApiOperation({
+        summary: "Изменение последовательности шагов"
+    })
+    @ApiResponse({
+        status: HttpStatus.OK, example: {
+            "id": 61,
+            "title": "Договор о импортозамещении строительных материалов",
+            "text": null,
+            "initiator": {
+                "id": 10,
+                "firstName": "Данил",
+                "lastName": "Баширов",
+                "middleName": "Владленович",
+                "email": "danilbashirov0@vk.com",
+                "status": "Заказчик",
+                "inviteStatus": "Подтвердил"
+            },
+            "status": "Черновик",
+            "images": [],
+            "members": [
+                {
+                    "id": 10,
+                    "firstName": "Данил",
+                    "lastName": "Баширов",
+                    "middleName": "Владленович",
+                    "email": "danilbashirov0@vk.com",
+                    "status": "Заказчик",
+                    "inviteStatus": "Подтвердил"
+                }
+            ],
+            "steps": [
+                {
+                    "id": "b2164a80-e6a2-4424-ab17-197552c11f3c",
+                    "title": "Шаг два",
+                    "user": {
+                        "id": 10,
+                        "firstName": "Данил",
+                        "lastName": "Баширов",
+                        "middleName": "Владленович",
+                        "email": "danilbashirov0@vk.com",
+                        "status": "Заказчик",
+                        "inviteStatus": "Подтвердил"
+                    },
+                    "images": [],
+                    "payment": null,
+                    "status": "Ожидает",
+                    "start": "2024-09-28",
+                    "end": "2024-10-01"
+                },
+                {
+                    "id": "5678e92b-2141-4dc1-a8a1-9ab79be83a77",
+                    "title": "Шаг один",
+                    "user": {
+                        "id": 10,
+                        "firstName": "Данил",
+                        "lastName": "Баширов",
+                        "middleName": "Владленович",
+                        "email": "danilbashirov0@vk.com",
+                        "status": "Заказчик",
+                        "inviteStatus": "Подтвердил"
+                    },
+                    "images": [],
+                    "payment": {
+                        "price": 123451
+                    },
+                    "status": "Ожидает",
+                    "start": "2024-09-28",
+                    "end": "2024-10-01"
+                }
+            ],
+            "start": null,
+            "end": null
+        }
+    })
+    @ApiBadRequestResponse({
+        example: [
+            {
+                "message": "Количество этапов в запросе не совпадает с количеством этапов в договоре.",
+                "error": "Bad Request",
+                "statusCode": 400
+            },
+            {
+                "message": "Вы не можете изменить порядок этапов, так как договор был подписан.",
+                "error": "Bad Request",
+                "statusCode": 400
+            },
+            {
+                "message": "Вы не можете изменить порядок этапов в договоре, так как не являетесь его инициатором.",
+                "error": "Bad Request",
+                "statusCode": 400
+            }
+        ]
+    })
+    @ApiNotFoundResponse({
+        example: {
+            "message": "Этап с id b2164a80-e6a2-4424-ab17-197552c11f3c не найден.",
+            "error": "Not Found",
+            "statusCode": 404
+        }
+    })
+    @UseGuards(AuthGuard, AgreementGuard)
+    @Put("/change-order")
+    async changeOrder(@Req() request: RequestType, @Body() stepsDto: ChangeOrder) {
+        return this.stepService.changeStepsOrder(request.agreement, stepsDto, request.user.id);
     }
 
     @ApiProperty({ title: "Добавление фотографий к шагу " })

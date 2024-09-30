@@ -34,13 +34,13 @@ export class AgreementsListDto {
     this.id = model.id;
     this.title = model.title;
     this.status = model.status;
-    this.members = model.members.map((member: AgreementMember) => {
+    this.members = model.members?.map((member: AgreementMember) => {
       return {
         firstName: member.user.firstName,
         lastName: member.user.lastName,
         middleName: member.user.middleName,
         status: member.status,
-        image: new ImageDto(member.user.image)
+        image: member.user.image ? new ImageDto(member.user.image) : null
       }
     });
     this.steps = model.steps?.map((step: AgreementStep) => {

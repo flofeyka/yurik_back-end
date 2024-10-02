@@ -6,6 +6,7 @@ import { AgreementMember } from "../members/member.entity";
 import { AgreementStep } from "../step/entities/step.entity";
 import { StepImage } from "../step/entities/step-image.entity";
 import { ApiProperty } from "@nestjs/swagger";
+import { ImageDto } from "src/images/dtos/ImageDto";
 
 export class AgreementMemberDto {
   @ApiProperty({ title: "ID участника договора", example: 12 })
@@ -14,6 +15,8 @@ export class AgreementMemberDto {
   public firstName: string;
   @ApiProperty({ title: "Фамилия участника договора", example: "Иванов" })
   public lastName: string;
+  @ApiProperty({ title: "Картинка", type: Image })
+  public image: string | null;
   @ApiProperty({ title: "Отчество участника договора", example: "Иванович" })
   public middleName: string;
   @ApiProperty({ title: "Почта участника договора", example: "ivan@mail.ru" })
@@ -28,6 +31,7 @@ export class AgreementMemberDto {
     this.firstName = model.user.firstName;
     this.lastName = model.user.lastName;
     this.middleName = model.user.middleName;
+    this.image = model.user.image ? new ImageDto(model.user.image).imgUrl : null;
     this.email = model.user.email;
     this.status = model.status;
     this.inviteStatus = model.inviteStatus;

@@ -4,25 +4,19 @@ import {
   NotFoundException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AppService } from 'src/app.service';
-import { LegalInformationDto } from 'src/user/dtos/legal-information-dto';
-import { PersonalData } from 'src/user/entities/user.personal_data';
 import { DeleteResult, InsertResult, Repository } from 'typeorm';
-import { ImageDto } from '../images/dtos/ImageDto';
 import { ImagesService } from '../images/images.service';
-import { User } from '../user/entities/user.entity';
-import { UserService } from '../user/user.service';
-import { AgreementDto, AgreementStepDto } from './dtos/agreement-dto';
+import { AgreementDto } from './dtos/agreement-dto';
 import { AgreementsListDto } from './dtos/agreements-list-dto';
 import { CreateAgreementDto } from './dtos/create-agreement-dto';
 import { EditAgreementDto } from './dtos/edit-agreement-dto';
-import { EditStepsDto, Step, StepDto } from './dtos/edit-steps-dto';
 import { AgreementImage } from './entities/agreement-image.entity';
 import { Agreement } from './entities/agreement.entity';
-import { Lawyer } from './lawyer/lawyer.entity';
 import { AgreementMember } from './members/member.entity';
-import { AgreementStep } from './step/entities/step.entity';
 import { MemberService } from './members/member.service';
+import { AgreementStep } from './step/entities/step.entity';
+import { ChatService } from 'src/chat/chat.service';
+import { Chat } from 'src/chat/entities/chat.entity';
 
 @Injectable()
 export class AgreementService {
@@ -33,6 +27,7 @@ export class AgreementService {
     private readonly imagesService: ImagesService,
     @InjectRepository(AgreementImage) private readonly agreementImageRepository: Repository<AgreementImage>,
     private readonly memberService: MemberService,
+    private readonly chatService: ChatService
   ) { }
 
   async createAgreement(
@@ -44,7 +39,7 @@ export class AgreementService {
       .insert()
       .into(Agreement)
       .values({
-        ...agreementDto
+        ...agreementDto,
       })
       .execute();
 
@@ -62,11 +57,10 @@ export class AgreementService {
       "Подтвердил"
     );
 
-    const memberUpdated = await this.agreementRepository.save({
-      ...agreementFound,
-      members: [initiatorAdded],
-      initiator: initiatorAdded,
-    });
+    agreementFound.chat = await this.chatService.createChat(agreementFound);
+    agreementFound.members = [initiatorAdded],
+      agreementFound.initiator = initiatorAdded;
+    const memberUpdated = await this.agreementRepository.save(agreementFound);
 
     return new AgreementDto(memberUpdated, userId);
   }
@@ -114,6 +108,14 @@ export class AgreementService {
     editDealDto: EditAgreementDto,
     userId: number
   ): Promise<AgreementDto> {
+    if (agreement.status !== "Черновик") {
+      throw new BadRequestException("Вы не можете отредактировать этот договор, т.к. он уже был утвержден и подписан.")
+    }
+
+    if (agreement.initiator.user.id !== userId) {
+      throw new BadRequestException("Вы не можете редактировать данный договор, т.к. не являетесь его инициатором. Обратитесь к инициатору в чате договора.")
+    }
+
     const agreementSaved: Agreement = await this.agreementRepository.save({
       ...agreement,
       ...editDealDto
@@ -126,18 +128,18 @@ export class AgreementService {
     success: boolean;
     message: string;
   }> {
-    if(agreement.initiator.user.id !== userId) {
+    if (agreement.initiator.user.id !== userId) {
       throw new BadRequestException('Вы не являетесь инициатором договора, чтобы его удалить.');
     }
 
-    if(agreement.status !== "Черновик") {
+    if (agreement.status !== "Черновик") {
       throw new BadRequestException("Договор нельзя удалить, так как он уже был подписан");
     }
 
     const deleteResult: DeleteResult = await this.agreementRepository.delete({
       id: agreement.id
     });
-    if(deleteResult.affected !== 1) {
+    if (deleteResult.affected !== 1) {
       throw new BadRequestException('Не удалось удалить договор');
     }
 
@@ -223,11 +225,8 @@ export class AgreementService {
         'Вы не можете включить договор в работу, так как вы не являетесь его инициатором.',
       );
     }
-
-    const agreementAtWork: Agreement = await this.agreementRepository.save({
-      ...agreement,
-      status: 'В работе',
-    });
+    agreement.status = "В работе"
+    const agreementAtWork: Agreement = await this.agreementRepository.save(agreement);
 
     return {
       message: 'Договор был успешно включён в работу.',
@@ -250,9 +249,10 @@ export class AgreementService {
       throw new BadRequestException("Не все шаги завершены.");
     }
 
-    if(agreement.steps.every(step => step.status === "Отклонён")) {
+    if (agreement.steps.every(step => step.status === "Отклонён")) {
       throw new BadRequestException("Вы не можете завершить договор, так как все шаги отклонены. Пожалуйста, отклоните договор.")
     }
+
 
     const agreementSaved: Agreement = await this.agreementRepository.save({
       ...agreement,
@@ -269,11 +269,11 @@ export class AgreementService {
       );
     }
 
-    if(agreement.status !== "В работе") {
+    if (agreement.status !== "В работе") {
       throw new BadRequestException("Договор не находится в работе.");
     }
 
-    if(!agreement.steps.find(step => step.status === "Отклонён")) {
+    if (!agreement.steps.find(step => step.status === "Отклонён")) {
       throw new BadRequestException("Чтобы разорвать договор должен быть отклонён хотя бы один шаг ");
     }
 

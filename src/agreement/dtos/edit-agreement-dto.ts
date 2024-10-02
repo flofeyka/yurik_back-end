@@ -3,20 +3,27 @@ import { IsArray, IsDateString, IsNumber, IsString } from 'class-validator';
 
 export class EditAgreementDto {
   @ApiProperty({
+    title: "Заголовок договора",
+    example: 'Договор строительного подряда №5134'
+  })
+  @IsString()
+  public readonly title: string;
+
+  @ApiProperty({
     title: 'Содержание договора',
     example: 'Заказчик обязуется...',
   })
   @IsString()
-  readonly text: string;
+  public readonly text: string;
 
   @IsDateString()
   @ApiProperty({
     title: 'Дата начала действия договора',
     example: '2023-12-12',
   })
-  readonly start: string;
+  public readonly start: string;
 
   @IsDateString()
   @ApiProperty({ title: 'Дата конца действия договора', example: '2024-12-12' })
-  readonly end: string;
+  public readonly end: string;
 }

@@ -12,7 +12,7 @@ import {
   Req,
   UseGuards
 } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOperation, ApiProperty, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiNotFoundResponse, ApiOperation, ApiProperty, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RequestType } from '../../types/types';
 import { AuthGuard } from '../auth/auth.guard';
 import { AgreementService } from './agreement.service';
@@ -158,6 +158,27 @@ export class AgreementController {
   @ApiOperation({ summary: 'Редактирование договора', description: "Редактирование договора. Выполняется, если не все пункты были заполнены, либо одну из сторон не устроили условия договора." })
   @ApiResponse({
     status: HttpStatus.ACCEPTED, example: AgreementDto
+  })
+  @ApiBadRequestResponse({
+    example: [
+      {
+        "message": "Вы не можете отредактировать этот договор, т.к. он уже был утвержден и подписан.",
+        "error": "Bad Request",
+        "statusCode": 400
+      },
+      {
+        "message": "Вы не можете редактировать данный договор, т.к. не являетесь его инициатором. Если хотите обговорить изменения - обсудите это в общем чате",
+        "error": "Bad Request",
+        "statusCode": 400
+      }
+    ]
+  })
+  @ApiNotFoundResponse({
+    example: {
+      "message": "Договор с этим идентификатором не найден",
+      "error": "Not Found",
+      "statusCode": 404
+    }
   })
   @Put('/update/:id')
   @UseGuards(AuthGuard, AgreementGuard)

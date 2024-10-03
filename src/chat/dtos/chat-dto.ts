@@ -40,6 +40,6 @@ export class ChatDto {
         this.image = new ImageDto(model.image);
         this.members = model.agreement.members.map((member: AgreementMember) => new AgreementMemberDto(member));
         this.agreement = new AgreementChatDto(model.agreement);
-        this.messages = model.messages;
+        // this.messages = model.messages;
     }
 }

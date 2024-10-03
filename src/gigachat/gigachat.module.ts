@@ -17,5 +17,6 @@ import { ImagesModule } from '../images/images.module';
     ImagesModule,
     TypeOrmModule.forFeature([GigaChatMessage, GigaChatDialog]),
   ],
+  exports: [GigachatService]
 })
 export class GigachatModule {}

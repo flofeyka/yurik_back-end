@@ -25,7 +25,7 @@ export class GigachatService {
     private readonly userService: UserService,
     private readonly httpService: HttpService,
     private readonly imagesService: ImagesService,
-  ) {}
+  ) { }
 
   async getDialogs(userId: number): Promise<DialogsDto[]> {
     const dialogsFound: GigaChatDialog[] = await this.dialogsRepository.find({
@@ -102,9 +102,6 @@ export class GigachatService {
     if (!dialogFound) {
       throw new BadRequestException('Диалог с этим id не был найден');
     }
-
-    const requestAccessToken = await this.getToken();
-
     const payload = {
       model: 'GigaChat',
       messages: [
@@ -122,21 +119,8 @@ export class GigachatService {
     };
 
     try {
-      const response = await this.httpService.axiosRef.post(
-        'https://gigachat.devices.sberbank.ru/api/v1/chat/completions',
-        JSON.stringify(payload),
-        {
-          headers: {
-            Authorization: `Bearer ${requestAccessToken.access_token}`,
-          },
-          httpsAgent: new Agent({
-            rejectUnauthorized: false,
-          }),
-          responseType: 'json',
-        },
-      );
 
-      const newMessage = response.data.choices[0].message;
+      const newMessage = await this.sendMessage(payload);
 
       const userMessage: GigaChatMessage = await this.messagesRepository.save({
         content: message,
@@ -157,6 +141,28 @@ export class GigachatService {
     } catch (e) {
       console.log(e);
     }
+  }
+
+  public async sendMessage(payload) {
+    const requestAccessToken = await this.getToken();
+    const response = await this.httpService.axiosRef.post(
+      'https://gigachat.devices.sberbank.ru/api/v1/chat/completions',
+      payload && JSON.stringify(payload),
+      {
+        headers: {
+          Authorization: `Bearer ${requestAccessToken.access_token}`,
+        },
+        httpsAgent: new Agent({
+          rejectUnauthorized: false,
+        }),
+        responseType: 'json',
+      },
+    ).catch((e) => {
+      console.log(e)
+      throw new BadRequestException("Не удалось отправить сообщение");
+    });
+
+    return response.data.choices[0].message;
   }
 
   async createNewDialog(

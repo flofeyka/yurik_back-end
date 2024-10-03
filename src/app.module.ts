@@ -26,6 +26,7 @@ import { PersonalData } from './user/entities/user.personal_data';
 import { UserModule } from './user/user.module';
 import { AgreementImage } from './agreement/entities/agreement-image.entity';
 import { StepImage } from './agreement/step/entities/step-image.entity';
+import { ChatMember } from './chat/entities/chat-member.entity';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { StepImage } from './agreement/step/entities/step-image.entity';
         Agreement,
         Chat,
         Message,
+        ChatMember,
         AgreementMember,
         AgreementStep,
         Lawyer,
@@ -57,7 +59,7 @@ import { StepImage } from './agreement/step/entities/step-image.entity';
         Image,
         PersonalData,
         AgreementImage,
-        StepImage
+        StepImage,
       ],
       synchronize: true,
       autoLoadEntities: true,
@@ -74,4 +76,4 @@ import { StepImage } from './agreement/step/entities/step-image.entity';
   exports: [AppService],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

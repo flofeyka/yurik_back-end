@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException
 } from '@nestjs/common';
@@ -17,6 +19,7 @@ import { MemberService } from './members/member.service';
 import { AgreementStep } from './step/entities/step.entity';
 import { ChatService } from 'src/chat/chat.service';
 import { Chat } from 'src/chat/entities/chat.entity';
+import { GigachatService } from 'src/gigachat/gigachat.service';
 
 @Injectable()
 export class AgreementService {
@@ -27,7 +30,8 @@ export class AgreementService {
     private readonly imagesService: ImagesService,
     @InjectRepository(AgreementImage) private readonly agreementImageRepository: Repository<AgreementImage>,
     private readonly memberService: MemberService,
-    private readonly chatService: ChatService
+    @Inject(forwardRef(() => ChatService)) private readonly chatService: ChatService,
+    private readonly gigachatService: GigachatService
   ) { }
 
   async createAgreement(
@@ -116,9 +120,26 @@ export class AgreementService {
       throw new BadRequestException("Вы не можете редактировать данный договор, т.к. не являетесь его инициатором. Обратитесь к инициатору в чате договора.")
     }
 
+    if (editDealDto.text) {
+      const message = await this.gigachatService.sendMessage({
+        model: "GigaChat",
+        messages: [
+          {
+            role: 'user',
+            content: `Представь, что ты юрист и составь договор по следующему описанию. Только направь мне ответ с нужными отступами и без какого-либо комментария. Просто Отступы.\n
+            ${editDealDto.text}
+            `
+          }
+        ]
+      });
+      
+      agreement.text = message.content;
+    }
+
     const agreementSaved: Agreement = await this.agreementRepository.save({
       ...agreement,
-      ...editDealDto
+      ...editDealDto,
+      text: agreement.text
     });
 
     return new AgreementDto(agreementSaved, userId);

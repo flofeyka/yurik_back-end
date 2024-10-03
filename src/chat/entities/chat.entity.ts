@@ -9,6 +9,7 @@ import {
 import { Message } from './chat.message.entity';
 import { UUID } from 'crypto';
 import { Image } from 'src/images/image.entity';
+import { ChatMember } from './chat-member.entity';
 
 @Entity({ name: 'chat' })
 export class Chat {
@@ -23,9 +24,15 @@ export class Chat {
   @JoinColumn()
   image: Image;
 
+  @OneToMany(() => ChatMember, (member: ChatMember) => member.member)
+  members: ChatMember[];
+
   @OneToMany(() => Message, (message: Message) => message.chat, {
-    cascade: true,
     nullable: true,
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+    cascade: true
   })
+  @JoinColumn()
   messages: Message[];
 }

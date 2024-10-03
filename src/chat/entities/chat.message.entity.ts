@@ -1,17 +1,18 @@
-import { User } from 'src/user/entities/user.entity';
 import {
-    Column,
-    Entity,
-    ManyToOne,
-    OneToOne,
-    PrimaryGeneratedColumn
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn
 } from 'typeorm';
+import { ChatMember } from './chat-member.entity';
 import { Chat } from './chat.entity';
+import { UUID } from 'crypto';
 
 @Entity('messages')
 export class Message {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: UUID;
 
   @Column()
   message: string;
@@ -19,6 +20,6 @@ export class Message {
   @ManyToOne(() => Chat, (chat: Chat) => chat.messages)
   chat: Chat;
 
-  @OneToOne(() => User)
-  user: User;
+  @ManyToOne(() => ChatMember, (member: ChatMember) => member.messages, {onDelete: "CASCADE"})
+  user: ChatMember;
 }

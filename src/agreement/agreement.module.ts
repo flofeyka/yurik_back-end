@@ -23,6 +23,7 @@ import { StepImage } from './step/entities/step-image.entity';
 import { AgreementStep } from './step/entities/step.entity';
 import { StepController } from './step/step.controller';
 import { StepService } from './step/step.service';
+import { GigachatModule } from 'src/gigachat/gigachat.module';
 
 @Module({
   imports: [
@@ -36,17 +37,16 @@ import { StepService } from './step/step.service';
       PersonalData,
       StepImage
     ]),
-    UserModule,
     SmsModule,
     HttpModule,
-    ImagesModule,
-    ChatModule,
-    MulterModule.register({
-      dest: './uploads/agreements',
-    }),
+    GigachatModule,
+    forwardRef(() => ImagesModule),
+    forwardRef(() => UserModule),
+    forwardRef(() => ChatModule),
     forwardRef(() => AppModule),
   ],
   controllers: [AgreementController, StepController, MemberController, LawyerController],
   providers: [AgreementService, MemberService, StepService, LawyerService],
+  exports: [MemberService]
 })
 export class AgreementModule {}

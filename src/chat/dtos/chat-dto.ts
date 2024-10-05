@@ -5,7 +5,8 @@ import { ImageDto } from "src/images/dtos/ImageDto";
 import { AgreementMember } from "src/agreement/members/member.entity";
 import { UUID } from "crypto";
 import { Agreement } from "src/agreement/entities/agreement.entity";
-import { Message } from "../entities/chat.message.entity";
+import { ChatMessage } from "../entities/chat.message.entity";
+import { ChatUser } from "../entities/chat.user";
 
 export class AgreementChatDto {
     @ApiProperty({ title: "Айди договора" })
@@ -27,19 +28,16 @@ export class ChatDto {
     @ApiProperty({ title: "Картинка.", example: "http://localhost:3000/api/images/picture/1aad9b7b-771a-4a37-823c-8de2dd4a8f02.jpg" })
     image: ImageDto;
 
-    @ApiProperty({title: "Участники договора", type: AgreementMember})
-    members: AgreementMemberDto[];
+    @ApiProperty({ title: "Участники договора", type: AgreementMember })
+    members: ChatUser[];
 
-    agreement: AgreementChatDto;
-
-    @ApiProperty({title: "Сообщения"})
-    messages: Message[]
+    @ApiProperty({ title: "Сообщения" })
+    messages: ChatMessage[]
 
     constructor(model: Chat) {
         this.id = model.id;
         this.image = new ImageDto(model.image);
-        this.members = model.agreement.members.map((member: AgreementMember) => new AgreementMemberDto(member));
-        this.agreement = new AgreementChatDto(model.agreement);
+        this.members = model.members;
         // this.messages = model.messages;
     }
 }

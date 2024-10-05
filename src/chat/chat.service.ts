@@ -5,113 +5,105 @@ import { Agreement } from 'src/agreement/entities/agreement.entity';
 import { AgreementMember } from 'src/agreement/members/member.entity';
 import { InsertResult, Repository } from 'typeorm';
 import { ChatDto } from './dtos/chat-dto';
-import { ChatMember } from './entities/chat-member.entity';
 import { Chat } from './entities/chat.entity';
-import { Message } from './entities/chat.message.entity';
+import { ChatMessage } from './entities/chat.message.entity';
+import { MessageDto } from './dtos/message-dto';
+import { User } from 'src/user/entities/user.entity';
+import { ChatUser } from './entities/chat.user';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class ChatService {
   constructor(
-    @InjectRepository(Message) private readonly messageRepository: Repository<Message>,
+    @InjectRepository(ChatMessage) private readonly messageRepository: Repository<ChatMessage>,
     @InjectRepository(Chat) private readonly chatRepository: Repository<Chat>,
-    @InjectRepository(ChatMember) private readonly chatMemberRepository: Repository<ChatMember>,
+    @InjectRepository(ChatUser) private readonly chatUserRepository: Repository<ChatUser>,
+    private readonly userService: UserService
   ) { }
 
-  async getChat(chatId: UUID): Promise<ChatDto> {
-    const chatFound: Chat = await this.chatRepository.findOne({
-      where: { id: chatId },
-      relations: {
-        agreement: {
-          members: {
-            user: true
-          }
-        }
-      },
-    });
+  public async getChat(chatId: UUID): Promise<ChatDto> {
+    const chatFound: Chat = await this.chatRepository.findOneBy({ id: chatId });
 
     return new ChatDto(chatFound);
   }
 
-  public async createChat(agreement: Agreement): Promise<Chat> {
-    const agreementMembers: AgreementMember[] = agreement.members;
-    const chatMembers: ChatMember[] = await Promise.all(agreementMembers.map(async (member: AgreementMember) => {
-      const memberCreated: InsertResult = await this.chatMemberRepository.createQueryBuilder().insert().into(ChatMember).values([{
-        member
-      }]).execute();
+  public async createChatUser(id: number): Promise<ChatUser> {
+    const foundUser: User = await this.userService.findUser(id);
+    const chatUserFound = await this.chatUserRepository.findOne({
+      where: { user: { id: foundUser.id } }, relations: {
+        chats: true
+      }
+    });
+    if (chatUserFound) {
+      return chatUserFound;
+    }
 
-      return await this.chatMemberRepository.findOne({ where: { id: memberCreated.identifiers[0].id } });
-    }))
-    const newChatInsert: InsertResult = await this.chatRepository.createQueryBuilder().insert().into(Chat).values([{
-      agreement,
-      members: chatMembers
+    const newChatUser = await this.chatUserRepository.createQueryBuilder().insert().into(ChatUser).values([{
+      user: foundUser
     }]).execute();
 
-    const chatFound: Chat = await this.chatRepository.findOne({ where: { id: newChatInsert.identifiers[0].id } });
-    // chatDto;
-    return chatFound;
+    return await this.chatUserRepository.findOneBy({ id: newChatUser.identifiers[0].id })
   }
 
-  async createMessage(chatId: UUID, userId: number, message: string) {
+
+  public async createChat(users: { id: number }[]): Promise<Chat> {
+    const members = await Promise.all(users.map(async (user: User) => await this.createChatUser(user.id)));
+    const newChat = await this.chatRepository.save({
+      members
+    })
+    return newChat;
+  }
+
+  async createMessage(chatId: UUID, userId: number, message: string): Promise<MessageDto> {
     const chat = await this.chatRepository.findOne({
       where: { id: chatId },
       relations: {
-        messages: {
-          user: {
-            member: {
-              user: true
-            }
-          }
-        },
-        agreement: {
-          members: true
-        }
+        messages: true
       },
     });
-    const member: ChatMember = await this.chatMemberRepository.findOne({where: {
-      member: {
-        user: {
-          id: userId
-        }
-      }
-    }, relations: {
-      member: {
-        user: true
-      }
-    }});
-    const messageInsert: InsertResult = await this.chatRepository.createQueryBuilder().insert().into(Message).values([
-      {
-        message: message,
-        chat: chat,
-        user: member
-      }
-    ]).execute();
-    return await this.messageRepository.findOne({ where: { id: messageInsert.identifiers[0].id }, relations: {
-      user: {
-        member: {
-          user: true
-        }
-      },
-    } });
+    console.log(chat);
+    const member = await this.chatUserRepository.findOneBy({ user: { id: userId } });
+    const newMessage = await this.messageRepository.save({
+      member,
+      chat,
+      message
+    });
+    console.log(newMessage);
+    // const messageInsert: InsertResult = await this.chatRepository.createQueryBuilder().insert().into(ChatMessage).values([
+    //   {
+    //     message: message,
+    //     chat: chat,
+
+    //   }
+    // ]).execute();
+    // const newMessage = await this.messageRepository.findOne({
+    //   where: { id: messageInsert.identifiers[0].id }, relations: {
+    //     chat: {
+    //       members: {
+    //         user: true
+    //       }
+    //     }
+    //   }
+    // });
+    // console.log(newMessage.chat);
+
+    return new MessageDto(newMessage);
   }
 
   async getChats(userId: number) {
     const chats = await this.chatRepository.find({
       where: {
-        agreement: {
-          members: {
-            user: {
-              id: userId,
-            },
-          },
-        },
+        members: {
+          user: {
+            id: userId
+          }
+        }
       },
       relations: {
-        agreement: {
-          members: {
-            user: true,
-          },
-        },
-      },
+        members: {
+          user: true
+        }
+      }
     });
 
     return chats;

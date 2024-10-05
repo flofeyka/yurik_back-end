@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RequestType } from 'types/types';
@@ -10,7 +10,7 @@ import { ChatDto } from './dtos/chat-dto';
 @ApiTags('Chats API')
 @Controller('chats')
 export class ChatController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(private readonly chatService: ChatService) { }
 
   @ApiOperation({ summary: 'Получение всех чатов пользователя' })
   @Get('/')
@@ -24,5 +24,14 @@ export class ChatController {
   @UseGuards(AuthGuard)
   async getChat(@Param('chatId') chatId: UUID): Promise<ChatDto> {
     return await this.chatService.getChat(chatId);
+  }
+
+  @ApiOperation({ summary: "Создание чатов с одним, либо с несколькими участниками" })
+  @Post('/')
+  @UseGuards(AuthGuard)
+  async createChat(@Body() {
+    users
+  }: { users: Array<{ id: number }> }, @Req() request: RequestType) {
+    return await this.chatService.createChat(users);
   }
 }

@@ -35,19 +35,20 @@ export class Agreement {
   @OneToMany(
     () => AgreementMember,
     (member: AgreementMember) => member.agreement,
-    { eager: true, onDelete: 'CASCADE'},
+    { eager: true, onDelete: 'CASCADE' },
   )
   @JoinColumn()
   public members: AgreementMember[];
 
-  @OneToMany(() => AgreementImage, (agreementImage: AgreementImage) => agreementImage.agreement, {onDelete: "CASCADE"})
+  @OneToMany(() => AgreementImage, (agreementImage: AgreementImage) => agreementImage.agreement, { onDelete: "CASCADE" })
   public images: AgreementImage[]
 
   @OneToOne(() => AgreementMember, { eager: true })
   @JoinColumn()
   public initiator: AgreementMember;
 
-  @OneToOne(() => Chat, (chat: Chat) => chat.agreement, { nullable: true })
+  @OneToOne(() => Chat, (chat: Chat) => chat, { nullable: true })
+  @JoinColumn()
   public chat: Chat;
 
   @Column({ default: 'Черновик' })

@@ -3,12 +3,16 @@ import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Image } from '../../images/image.entity';
 import { TelegramAccount } from './telegram-account.entity';
 import { PersonalData } from './user.personal_data';
+import { Chat } from 'src/chat/entities/chat.entity';
 
 @Entity()
 export class User {
@@ -17,7 +21,7 @@ export class User {
   public readonly id: number;
 
   @ApiProperty({ title: 'Аватар пользователя' })
-  @OneToOne(() => Image, { eager: true})
+  @OneToOne(() => Image, { eager: true })
   @JoinColumn()
   public image: Image;
 
@@ -58,6 +62,10 @@ export class User {
 
   @Column({ nullable: true })
   public readonly imageUrl: string | null;
+
+  @ManyToMany(() => Chat)
+  @JoinTable()
+  public readonly chats: Chat[]
 
   @OneToOne(
     () => PersonalData,

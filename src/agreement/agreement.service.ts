@@ -20,6 +20,8 @@ import { AgreementStep } from './step/entities/step.entity';
 import { ChatService } from 'src/chat/chat.service';
 import { Chat } from 'src/chat/entities/chat.entity';
 import { GigachatService } from 'src/gigachat/gigachat.service';
+import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class AgreementService {
@@ -31,7 +33,8 @@ export class AgreementService {
     @InjectRepository(AgreementImage) private readonly agreementImageRepository: Repository<AgreementImage>,
     private readonly memberService: MemberService,
     @Inject(forwardRef(() => ChatService)) private readonly chatService: ChatService,
-    private readonly gigachatService: GigachatService
+    private readonly gigachatService: GigachatService,
+    private readonly userService: UserService
   ) { }
 
   async createAgreement(
@@ -61,9 +64,10 @@ export class AgreementService {
       "Подтвердил"
     );
 
-    agreementFound.chat = await this.chatService.createChat(agreementFound);
     agreementFound.members = [initiatorAdded],
       agreementFound.initiator = initiatorAdded;
+    const user: User = await this.userService.findUser(userId);
+    agreementFound.chat = await this.chatService.createChat([user]);
     const memberUpdated = await this.agreementRepository.save(agreementFound);
 
     return new AgreementDto(memberUpdated, userId);
@@ -132,7 +136,7 @@ export class AgreementService {
           }
         ]
       });
-      
+
       agreement.text = message.content;
     }
 

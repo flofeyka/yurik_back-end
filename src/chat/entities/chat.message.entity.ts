@@ -1,3 +1,4 @@
+import { UUID } from 'crypto';
 import {
   Column,
   Entity,
@@ -5,12 +6,11 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn
 } from 'typeorm';
-import { ChatMember } from './chat-member.entity';
 import { Chat } from './chat.entity';
-import { UUID } from 'crypto';
+import { ChatUser } from './chat.user';
 
 @Entity('messages')
-export class Message {
+export class ChatMessage {
   @PrimaryGeneratedColumn('uuid')
   id: UUID;
 
@@ -18,8 +18,9 @@ export class Message {
   message: string;
 
   @ManyToOne(() => Chat, (chat: Chat) => chat.messages)
+  @JoinColumn()
   chat: Chat;
 
-  @ManyToOne(() => ChatMember, (member: ChatMember) => member.messages, {onDelete: "CASCADE"})
-  user: ChatMember;
+  @ManyToOne(() => ChatUser, (chatUser: ChatUser) => chatUser.messages)
+  member: ChatUser;
 }

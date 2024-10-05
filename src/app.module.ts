@@ -12,7 +12,7 @@ import { AuthModule } from './auth/auth.module';
 import { AuthToken } from './auth/entities/authToken.entity';
 import { ChatModule } from './chat/chat.module';
 import { Chat } from './chat/entities/chat.entity';
-import { Message } from './chat/entities/chat.message.entity';
+import { ChatMessage } from './chat/entities/chat.message.entity';
 import { GigaChatDialog } from './gigachat/entities/dialog.entity';
 import { GigaChatMessage } from './gigachat/entities/message.entity';
 import { GigachatModule } from './gigachat/gigachat.module';
@@ -26,7 +26,6 @@ import { PersonalData } from './user/entities/user.personal_data';
 import { UserModule } from './user/user.module';
 import { AgreementImage } from './agreement/entities/agreement-image.entity';
 import { StepImage } from './agreement/step/entities/step-image.entity';
-import { ChatMember } from './chat/entities/chat-member.entity';
 
 @Module({
   imports: [
@@ -47,8 +46,7 @@ import { ChatMember } from './chat/entities/chat-member.entity';
         AuthToken,
         Agreement,
         Chat,
-        Message,
-        ChatMember,
+        ChatMessage,
         AgreementMember,
         AgreementStep,
         Lawyer,

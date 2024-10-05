@@ -1,34 +1,41 @@
 import {
-  MessageBody,
   SubscribeMessage,
   WebSocketGateway,
-  WebSocketServer
+  WebSocketServer,
+  WsException
 } from '@nestjs/websockets';
 import { UUID } from 'crypto';
-import { Server } from 'http';
-import { ChatService } from './chat.service';
+import { Server, Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
-import { Socket } from 'socket.io';
+import { ChatService } from './chat.service';
 
 @WebSocketGateway({})
 export class ChatGateway {
   constructor(private readonly chatService: ChatService, private readonly authService: AuthService) { }
 
   @WebSocketServer() server: Server;
+  public clients: { id: number, clientId: string }[] = [];
 
   async handleConnection(client: Socket, ...args: any[]) {
-    const authHeader = client?.handshake?.headers.authorization.split(" ")[1];
-    console.log(authHeader);
     try {
+      const authHeader = client?.handshake?.headers.authorization.split(" ")[1];
       const candidat = await this.authService.findToken(authHeader);
       if (!candidat.isAuth) {
-        client.disconnect();
+        throw new WsException("Пользователь неавторизован");
       }
       client.handshake.auth.id = candidat.userData.id;
-    } catch(e) {
+      this.clients.push({
+        id: candidat.userData.id,
+        clientId: client.id
+      });
+    } catch (e) {
       console.log(e);
       client.disconnect();
     }
+  }
+
+  async handleDisconnect(client: Socket) {
+    this.clients = this.clients.filter((Client: { id: number; clientId: string }) => Client.clientId !== client.id);
   }
 
   @SubscribeMessage('chat_messages')
@@ -36,6 +43,11 @@ export class ChatGateway {
     id: UUID,
     message: string,
   }) {
-    await this.chatService.createMessage(payload.id, client.handshake.auth.id, payload.message);
+
+    const newMessage = await this.chatService.createMessage(payload.id, client.handshake.auth.id, payload.message);
+    console.log(this.clients);
+    for (let i of newMessage.chat.members) {
+      this.server.to(this.clients.find(client => client.id === i.id)?.clientId).emit('new_message', newMessage);
+    }
   }
 }

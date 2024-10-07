@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UUID } from 'crypto';
 import { Agreement } from 'src/agreement/entities/agreement.entity';
@@ -11,6 +11,7 @@ import { MessageDto } from './dtos/message-dto';
 import { User } from 'src/user/entities/user.entity';
 import { ChatUser } from './entities/chat.user';
 import { UserService } from 'src/user/user.service';
+import { ChatListDto } from './dtos/chat-list-dto';
 
 @Injectable()
 export class ChatService {
@@ -23,7 +24,9 @@ export class ChatService {
 
   public async getChat(chatId: UUID): Promise<ChatDto> {
     const chatFound: Chat = await this.chatRepository.findOneBy({ id: chatId });
-
+    if (!chatFound) {
+      throw new NotFoundException("Чат не найден");
+    }
     return new ChatDto(chatFound);
   }
 
@@ -31,7 +34,17 @@ export class ChatService {
     const foundUser: User = await this.userService.findUser(id);
     const chatUserFound = await this.chatUserRepository.findOne({
       where: { user: { id: foundUser.id } }, relations: {
-        chats: true
+        chats: {
+          members: {
+            user: true
+          },
+          messages: {
+            chat: true,
+            member: {
+              user: true
+            }
+          }
+        }
       }
     });
     if (chatUserFound) {
@@ -45,52 +58,80 @@ export class ChatService {
     return await this.chatUserRepository.findOneBy({ id: newChatUser.identifiers[0].id })
   }
 
-
-  public async createChat(users: { id: number }[]): Promise<Chat> {
+  public async addChat(users: { id: number }[]): Promise<Chat> {
     const members = await Promise.all(users.map(async (user: User) => await this.createChatUser(user.id)));
     const newChat = await this.chatRepository.save({
       members
-    })
+    });
+
     return newChat;
   }
 
+  async createChat(users: { id: number }[], userId: number): Promise<ChatDto> {
+    if (users.find(user => user.id === userId)) {
+      throw new BadRequestException("Нельзя создать чат с самим собой");
+    }
+    const newChat = await this.addChat([...users, { id: userId }])
+    return new ChatDto(newChat);
+  }
+
+  async addMember(chatId: UUID, memberId: number, userId: number): Promise<ChatDto> {
+    const chat: Chat = await this.chatRepository.findOne({
+      where: { id: chatId },
+      relations: {
+        members: true
+      },
+    });
+    if (!chat) {
+      throw new NotFoundException("Чат не найден");
+    }
+    if (!chat.members.find(member => member.user.id === userId)) {
+      throw new BadRequestException("Вы не являетесь участником чата, чтобы пригласить пользователя");
+    }
+    const member: ChatUser = await this.chatUserRepository.findOneBy({ user: { id: memberId } });
+    chat.members.push(member);
+    await this.chatRepository.save(chat);
+    return new ChatDto(chat);
+  }
+
+  async deleteMember(chatId: UUID, memberId: number, userId: number): Promise<ChatDto> {
+    const chat: Chat = await this.chatRepository.findOne({
+      where: { id: chatId },
+      relations: {
+        members: true
+      },
+    });
+    if (!chat) {
+      throw new NotFoundException("Чат не найден");
+    }
+    if (!chat.members.find((member: ChatUser) => member.user.id === userId)) {
+      throw new BadRequestException("Вы не являетесь участником чата, чтобы удалить пользователя");
+    }
+    const Member: ChatUser = await this.chatUserRepository.findOneBy({ user: { id: memberId } });
+    chat.members = chat.members.filter(member => member.id !== Member.id);
+    await this.chatRepository.save(chat);
+    return new ChatDto(chat);
+  }
+
   async createMessage(chatId: UUID, userId: number, message: string): Promise<MessageDto> {
-    const chat = await this.chatRepository.findOne({
+    const chat: Chat = await this.chatRepository.findOne({
       where: { id: chatId },
       relations: {
         messages: true
       },
     });
-    console.log(chat);
-    const member = await this.chatUserRepository.findOneBy({ user: { id: userId } });
-    const newMessage = await this.messageRepository.save({
+    const member: ChatUser = await this.chatUserRepository.findOneBy({ user: { id: userId } });
+    const newMessage: ChatMessage = await this.messageRepository.save({
       member,
       chat,
       message
     });
-    console.log(newMessage);
-    // const messageInsert: InsertResult = await this.chatRepository.createQueryBuilder().insert().into(ChatMessage).values([
-    //   {
-    //     message: message,
-    //     chat: chat,
 
-    //   }
-    // ]).execute();
-    // const newMessage = await this.messageRepository.findOne({
-    //   where: { id: messageInsert.identifiers[0].id }, relations: {
-    //     chat: {
-    //       members: {
-    //         user: true
-    //       }
-    //     }
-    //   }
-    // });
-    // console.log(newMessage.chat);
 
     return new MessageDto(newMessage);
   }
 
-  async getChats(userId: number) {
+  async getChats(userId: number): Promise<ChatListDto[]> {
     const chats = await this.chatRepository.find({
       where: {
         members: {
@@ -101,11 +142,16 @@ export class ChatService {
       },
       relations: {
         members: {
-          user: true
+          user: true,
+        },
+        messages: {
+          chat: true
         }
       }
     });
 
-    return chats;
+    console.log(chats[0]);
+
+    return chats.map((chat: Chat) => new ChatListDto(chat));
   }
 }

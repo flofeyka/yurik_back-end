@@ -14,6 +14,7 @@ import { User } from "src/user/entities/user.entity";
 import { AppService } from "src/app.service";
 import { LegalInformationDto } from "src/user/dtos/legal-information-dto";
 import { AgreementService } from "../agreement.service";
+import { ChatService } from "src/chat/chat.service";
 
 @Injectable()
 export class MemberService {
@@ -24,6 +25,7 @@ export class MemberService {
         @InjectRepository(User) private readonly userRepository: Repository<User>,
         private readonly appService: AppService,
         private readonly userService: UserService,
+        private readonly chatService: ChatService
     ) { }
 
 
@@ -73,7 +75,7 @@ export class MemberService {
         await this.agreementRepository.save(agreement);
 
         await this.appService.sendDealNotification(newMember.user.telegram_account.telegramID, initiator.user.telegram_account.telegramID, newMember.user.firstName, "initiator", agreement.id);
-
+        await this.chatService.addMember(agreement.chat.id, memberId, initiatorId);
         return {
             isInvited: true,
             message: 'Пользователь был успешно приглашен к договору',
@@ -103,7 +105,7 @@ export class MemberService {
         if (deleted.affected !== 1) {
             throw new BadGatewayException("Не удалось удалить участника.");
         }
-
+        await this.chatService.deleteMember(agreement.chat.id, memberId, userId);
         return {
             success: true,
             message: "Участник был успешно удален"

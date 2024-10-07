@@ -21,6 +21,9 @@ export class ChatMessage {
   @JoinColumn()
   chat: Chat;
 
-  @ManyToOne(() => ChatUser, (chatUser: ChatUser) => chatUser.messages)
+  @Column({ default: 'chat' })
+  type: 'chat';
+
+  @ManyToOne(() => ChatUser, (chatUser: ChatUser) => chatUser.messages, { eager: true })
   member: ChatUser;
 }

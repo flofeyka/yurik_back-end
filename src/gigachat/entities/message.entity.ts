@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { GigaChatDialog } from './dialog.entity';
+import { Chat } from 'src/chat/entities/chat.entity';
 
 @Entity({ name: 'gigachat_messages' })
 export class GigaChatMessage {
@@ -27,6 +28,10 @@ export class GigaChatMessage {
   @ApiProperty({ title: 'Роль', example: 'assistant' })
   @Column()
   role: 'user' | 'assistant';
+
+  @ApiProperty({ title: "Тип чата", example: "gigachat" })
+  @Column({ default: 'gigachat' })
+  type: 'gigachat';
 
   @ApiProperty({
     title: 'Ответ от ИИ/Вопрос от пользователя',

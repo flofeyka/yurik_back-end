@@ -67,7 +67,7 @@ export class AgreementService {
     agreementFound.members = [initiatorAdded],
       agreementFound.initiator = initiatorAdded;
     const user: User = await this.userService.findUser(userId);
-    agreementFound.chat = await this.chatService.createChat([user]);
+    agreementFound.chat = await this.chatService.addChat([user]);
     const memberUpdated = await this.agreementRepository.save(agreementFound);
 
     return new AgreementDto(memberUpdated, userId);
@@ -120,24 +120,57 @@ export class AgreementService {
       throw new BadRequestException("Вы не можете отредактировать этот договор, т.к. он уже был утвержден и подписан.")
     }
 
-    if (agreement.initiator.user.id !== userId) {
-      throw new BadRequestException("Вы не можете редактировать данный договор, т.к. не являетесь его инициатором. Обратитесь к инициатору в чате договора.")
-    }
+    // if (agreement.initiator.user.id !== userId) {
+    //   throw new BadRequestException("Вы не можете редактировать данный договор, т.к. не являетесь его инициатором. Обратитесь к инициатору в чате договора.")
+    // }
 
     if (editDealDto.text) {
       const message = await this.gigachatService.sendMessage({
-        model: "GigaChat",
+        model: "GigaChat-Pro",
         messages: [
           {
             role: 'user',
-            content: `Представь, что ты юрист и составь договор по следующему описанию. Только направь мне ответ с нужными отступами и без какого-либо комментария. Просто Отступы.\n
+            content: `Cоставь текст договора по следующему описанию.
+            Какие данные я могу предоставить ${agreement.members.map(member => {
+              return `Участник договора ${member.status}: ${member.user.lastName} ${member.user.firstName} ${member.user.middleName}, паспортные данные \n
+              Серия: ${member.user.personalData.serial}\n
+              Номер: ${member.user.personalData.number}\n
+              Дата рождения: ${member.user.BirthDate}\n
+              Адрес прописки: ${member.user.personalData.address}\n
+              Дата выдачи паспорта: ${member.user.personalData.passportDate}\n
+              Место выдачи: ${member.user.personalData.authority}\n
+              ИНН: ${member.user.personalData.TIN}\n
+              `
+            }).join(', ')}\n
+            Все этапы договора: ${agreement.steps.map(step => {
+              return `Этап: ${step.title}\n
+              Дата начала этапа: ${step.start}\n
+              Дата окончания этапа: ${step.end}\n
+              Ответственный за этап: ${step.user.user.lastName} ${step.user.user.firstName} ${step.user.user.middleName}, паспортные данные \n
+              Серия: ${step.user.user.personalData.serial}\n
+              Номер: ${step.user.user.personalData.number}\n
+              Дата рождения: ${step.user.user.BirthDate}\n
+              Адрес прописки: ${step.user.user.personalData.address}\n
+              Дата выдачи паспорта: ${step.user.user.personalData.passportDate}\n
+              Место выдачи: ${step.user.user.personalData.authority}\n
+              ИНН: ${step.user.user.personalData.TIN}\n
+              Статус ответственного за этап: ${step.user.status}\n
+              Является ли этап платежным: ${step.payment ? 'Да' : 'Нет'}\n
+              Описание: ${step.comment}\n
+              `
+            }).join(', ')}\n
+            Дата начала договора: ${agreement.steps[0].start}\n
+            Дата окончания договора: ${agreement.steps[agreement.steps.length - 1].end}\n
+            Только направь мне ответ в формате Markdown и без какого-либо комментария. Составь полный текст договора с подписями и данными сторон. Составляй без лишних разговоров, как есть. Сгенерируй Markdown-разметку c отступами.\n
             ${editDealDto.text}
             `
           }
         ]
       });
 
-      agreement.text = message.content;
+
+      agreement.text = message.content.replace(/\n/g, "<br/>");
+      agreement.text = agreement.text.replace('```', '');
     }
 
     const agreementSaved: Agreement = await this.agreementRepository.save({
@@ -304,6 +337,7 @@ export class AgreementService {
 
     agreement.status = "Отклонён";
     const agreementSaved: Agreement = await this.agreementRepository.save(agreement);
+    await this.chatService.deleteMember(agreement.chat.id, userId, agreement.initiator.user.id);
     return new AgreementDto(agreementSaved, userId);
   }
 

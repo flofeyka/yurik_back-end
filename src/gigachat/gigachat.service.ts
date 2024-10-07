@@ -3,9 +3,9 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UUID } from 'crypto';
 import { Agent } from 'https';
+import { Image } from 'src/images/image.entity';
 import { InsertResult, Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { ImageDto } from '../images/dtos/ImageDto';
 import { ImagesService } from '../images/images.service';
 import { User } from '../user/entities/user.entity';
 import { UserService } from '../user/user.service';
@@ -13,7 +13,6 @@ import { CreateDialogDto } from './dtos/create-dialog-dto';
 import { DialogsDto } from './dtos/dialogs-dto';
 import { GigaChatDialog } from './entities/dialog.entity';
 import { GigaChatMessage } from './entities/message.entity';
-import { Image } from 'src/images/image.entity';
 
 @Injectable()
 export class GigachatService {
@@ -103,7 +102,7 @@ export class GigachatService {
       throw new BadRequestException('Диалог с этим id не был найден');
     }
     const payload = {
-      model: 'GigaChat',
+      model: 'GigaChat-Pro',
       messages: [
         ...dialogFound.messages.map((message: GigaChatMessage) => {
           return {
@@ -125,7 +124,7 @@ export class GigachatService {
       const userMessage: GigaChatMessage = await this.messagesRepository.save({
         content: message,
         dialog: dialogFound,
-        role: 'user',
+        role: 'user'
       });
       const assistantMessage: GigaChatMessage =
         await this.messagesRepository.save({

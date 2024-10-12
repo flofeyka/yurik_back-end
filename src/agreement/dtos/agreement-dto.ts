@@ -129,7 +129,7 @@ export class AgreementDto {
   @ApiProperty({ title: "Дата конца", example: "2024-12-12" })
   public end: Date;
   @ApiProperty({ title: "Ссылка на PDF", example: "http://localhost:3000/api/pdf/1.pdf" })
-  public pdfLink: string;
+  public pdfLink: string | null;
 
   constructor(model: Agreement, userId: number) {
     this.id = model.id;
@@ -140,7 +140,7 @@ export class AgreementDto {
     this.images = model.images?.map((image: AgreementImage) => `${process.env.API_URL}/images/picture/${image.image.name}`);
     this.members = model.members?.map((member: AgreementMember) => new AgreementMemberDto(member));
     this.steps = model.steps?.map((step: AgreementStep) => new AgreementStepDto(step, userId));
-    this.pdfLink = new PdfDto(model.pdf).pdfLink;
+    this.pdfLink = new PdfDto(model.pdf).pdfLink || null;
     this.start = model.start;
     this.end = model.end;
   }

@@ -26,6 +26,7 @@ import { PersonalData } from './user/entities/user.personal_data';
 import { UserModule } from './user/user.module';
 import { AgreementImage } from './agreement/entities/agreement-image.entity';
 import { StepImage } from './agreement/step/entities/step-image.entity';
+import { PdfModule } from './pdf/pdf.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { StepImage } from './agreement/step/entities/step-image.entity';
     SmsModule,
     HttpModule,
     ImagesModule,
+    PdfModule,
   ],
   exports: [AppService],
   providers: [AppService],

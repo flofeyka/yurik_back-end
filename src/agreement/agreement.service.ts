@@ -22,6 +22,10 @@ import { Chat } from 'src/chat/entities/chat.entity';
 import { GigachatService } from 'src/gigachat/gigachat.service';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
+import * as mdToPdf from "md-to-pdf";
+import { HttpService } from '@nestjs/axios';
+import * as fs from 'fs';
+import { PdfService } from 'src/pdf/pdf.service';
 
 @Injectable()
 export class AgreementService {
@@ -34,7 +38,9 @@ export class AgreementService {
     private readonly memberService: MemberService,
     @Inject(forwardRef(() => ChatService)) private readonly chatService: ChatService,
     private readonly gigachatService: GigachatService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private readonly httpService: HttpService,
+    private readonly pdfService: PdfService
   ) { }
 
   async createAgreement(
@@ -126,7 +132,7 @@ export class AgreementService {
 
     if (editDealDto.text) {
       const message = await this.gigachatService.sendMessage({
-        model: "GigaChat-Pro",
+        model: "GigaChat",
         messages: [
           {
             role: 'user',
@@ -142,7 +148,7 @@ export class AgreementService {
               ИНН: ${member.user.personalData.TIN}\n
               `
             }).join(', ')}\n
-            Все этапы договора: ${agreement.steps.map(step => {
+                        Все этапы договора: ${agreement.steps.map(step => {
               return `Этап: ${step.title}\n
               Дата начала этапа: ${step.start}\n
               Дата окончания этапа: ${step.end}\n
@@ -159,8 +165,8 @@ export class AgreementService {
               Описание: ${step.comment}\n
               `
             }).join(', ')}\n
-            Дата начала договора: ${agreement.steps[0].start}\n
-            Дата окончания договора: ${agreement.steps[agreement.steps.length - 1].end}\n
+            Дата начала договора: ${agreement.start}\n
+            Дата окончания договора: ${agreement.end}\n
             Только направь мне ответ в формате Markdown и без какого-либо комментария. Составь полный текст договора с подписями и данными сторон. Составляй без лишних разговоров, как есть. Сгенерируй Markdown-разметку c отступами.\n
             ${editDealDto.text}
             `
@@ -168,10 +174,28 @@ export class AgreementService {
         ]
       });
 
+      const checkout = await this.gigachatService.sendMessage({
+        model: "GigaChat",
+        messages: [
+          {
+            role: 'assistant',
+            content: message.content
+          },
+          {
+            role: 'user',
+            content: "Допиши договор полностью. Составляй без лишних разговоров, как есть. Сгенерируй Markdown-разметку c отступами.\n"
+          }
+        ]
+      })
 
-      agreement.text = message.content.replace(/\n/g, "<br/>");
+      const user = await this.userService.findUser(userId);
+      agreement.text = checkout.content.replace(/\n/g, "<br/>");
       agreement.text = agreement.text.replace('```', '');
+      const pdfCreated = await this.pdfService.convertMarkdownToPdf(agreement.text, user);
+      agreement.pdf = pdfCreated;
     }
+
+
 
     const agreementSaved: Agreement = await this.agreementRepository.save({
       ...agreement,

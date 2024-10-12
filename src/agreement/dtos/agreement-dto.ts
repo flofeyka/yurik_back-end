@@ -7,6 +7,7 @@ import { AgreementStep } from "../step/entities/step.entity";
 import { StepImage } from "../step/entities/step-image.entity";
 import { ApiProperty } from "@nestjs/swagger";
 import { ImageDto } from "src/images/dtos/ImageDto";
+import { PdfDto } from "src/pdf/pdf-dto";
 
 export class AgreementMemberDto {
   @ApiProperty({ title: "ID участника договора", example: 12 })
@@ -127,6 +128,8 @@ export class AgreementDto {
   public start: Date;
   @ApiProperty({ title: "Дата конца", example: "2024-12-12" })
   public end: Date;
+  @ApiProperty({ title: "Ссылка на PDF", example: "http://localhost:3000/api/pdf/1.pdf" })
+  public pdfLink: string;
 
   constructor(model: Agreement, userId: number) {
     this.id = model.id;
@@ -137,6 +140,7 @@ export class AgreementDto {
     this.images = model.images?.map((image: AgreementImage) => `${process.env.API_URL}/images/picture/${image.image.name}`);
     this.members = model.members?.map((member: AgreementMember) => new AgreementMemberDto(member));
     this.steps = model.steps?.map((step: AgreementStep) => new AgreementStepDto(step, userId));
+    this.pdfLink = new PdfDto(model.pdf).pdfLink;
     this.start = model.start;
     this.end = model.end;
   }

@@ -24,6 +24,7 @@ import { AgreementStep } from './step/entities/step.entity';
 import { StepController } from './step/step.controller';
 import { StepService } from './step/step.service';
 import { GigachatModule } from 'src/gigachat/gigachat.module';
+import { PdfModule } from 'src/pdf/pdf.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { GigachatModule } from 'src/gigachat/gigachat.module';
     forwardRef(() => UserModule),
     forwardRef(() => ChatModule),
     forwardRef(() => AppModule),
+    PdfModule
   ],
   controllers: [AgreementController, StepController, MemberController, LawyerController],
   providers: [AgreementService, MemberService, StepService, LawyerService],

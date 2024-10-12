@@ -12,6 +12,7 @@ import { Lawyer } from '../lawyer/lawyer.entity';
 import { AgreementMember } from '../members/member.entity';
 import { AgreementStep } from '../step/entities/step.entity';
 import { AgreementImage } from './agreement-image.entity';
+import { Pdf } from 'src/pdf/pdf.entity';
 
 export interface Step {
   title: string;
@@ -46,6 +47,10 @@ export class Agreement {
   @OneToOne(() => AgreementMember, { eager: true })
   @JoinColumn()
   public initiator: AgreementMember;
+
+  @OneToOne(() => Pdf)
+  @JoinColumn()
+  public pdf: Pdf;
 
   @OneToOne(() => Chat, (chat: Chat) => chat, { nullable: true })
   @JoinColumn()

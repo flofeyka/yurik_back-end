@@ -30,7 +30,6 @@ export class MemberController {
             request.user.id,
             memberId,
             inviteDto.status,
-            inviteDto.legalInformation,
             request.agreement
         );
     }

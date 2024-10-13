@@ -13,7 +13,7 @@ export class Lawyer {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => User, { eager: true })
+  @OneToOne(() => User, { eager: true, onUpdate: 'CASCADE' })
   @JoinColumn()
   user: User;
 

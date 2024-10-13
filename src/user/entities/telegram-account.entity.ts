@@ -22,7 +22,7 @@ export class TelegramAccount {
   @ApiProperty({
     title: 'Пользовательские данные(Если основной аккаунт зарегистрирован)',
   })
-  @OneToOne(() => User, (user: User) => user.telegram_account)
+  @OneToOne(() => User, (user: User) => user.telegram_account, {onUpdate: 'CASCADE'})
   @JoinColumn()
   public user: User;
 

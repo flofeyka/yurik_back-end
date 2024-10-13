@@ -9,7 +9,7 @@ export class ChatUser {
     @PrimaryGeneratedColumn("uuid")
     public id: UUID;
 
-    @OneToOne(() => User, { eager: true })
+    @OneToOne(() => User, { eager: true, onUpdate: "CASCADE" })
     @JoinColumn()
     public user: User
 

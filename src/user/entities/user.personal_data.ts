@@ -14,7 +14,7 @@ export class PersonalData {
   @PrimaryGeneratedColumn('uuid')
   public readonly id: number;
 
-  @OneToOne(() => User, (user: User) => user.personalData)
+  @OneToOne(() => User, (user: User) => user.personalData, {onUpdate: "CASCADE", onDelete: "CASCADE"})
   @JoinColumn()
   public readonly user: User;
 

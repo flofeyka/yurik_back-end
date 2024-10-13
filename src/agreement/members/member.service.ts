@@ -33,7 +33,6 @@ export class MemberService {
         initiatorId: number,
         memberId: number,
         status: 'Заказчик' | 'Подрядчик',
-        personalData: LegalInformationDto,
         agreement: Agreement,
     ): Promise<{ isInvited: boolean; message: string; agreement: AgreementDto }> {
         if (agreement.members.length > 1) {

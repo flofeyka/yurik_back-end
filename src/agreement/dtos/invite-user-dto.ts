@@ -6,8 +6,4 @@ export class InviteUserDto {
   @ApiProperty({ title: 'Статус клиента в договоре', example: 'Заказчик' })
   @IsString()
   status: 'Заказчик' | 'Подрядчик';
-
-  @ApiProperty({ title: 'Персональные данные участника договора', example: LegalInformationDto})
-  @IsObject()
-  readonly legalInformation: LegalInformationDto;
 }

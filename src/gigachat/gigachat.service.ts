@@ -102,7 +102,7 @@ export class GigachatService {
       throw new BadRequestException('Диалог с этим id не был найден');
     }
     const payload = {
-      model: 'GigaChat-Pro',
+      model: 'GigaChat',
       messages: [
         ...dialogFound.messages.map((message: GigaChatMessage) => {
           return {
@@ -182,7 +182,9 @@ export class GigachatService {
           image,
         },
       ])
-      .execute();
+      .execute().catch((e: Error) => {
+        throw new BadRequestException("Вы не можете сделать картинку ")
+      }) ;
 
     const dialog: GigaChatDialog = await this.dialogsRepository.findOne({
       where: { id: newDialog.identifiers[0].id },

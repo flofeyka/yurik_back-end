@@ -21,7 +21,7 @@ export class AuthToken {
   @PrimaryGeneratedColumn()
   public readonly id: number;
 
-  @OneToOne(() => User)
+  @OneToOne(() => User, {onUpdate: "CASCADE"})
   @JoinColumn()
   public readonly user: User;
 

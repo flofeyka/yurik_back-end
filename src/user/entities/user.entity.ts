@@ -21,7 +21,7 @@ export class User {
   public readonly id: number;
 
   @ApiProperty({ title: 'Аватар пользователя' })
-  @OneToOne(() => Image, { eager: true })
+  @OneToOne(() => Image, { eager: true, onDelete: 'SET NULL' })
   @JoinColumn()
   public image: Image;
 
@@ -59,9 +59,6 @@ export class User {
   @Column({ nullable: true })
   @ApiProperty({ title: 'Электронная почта', example: 'email@admin.ru' })
   public readonly email: string;
-
-  @Column({ nullable: true })
-  public readonly imageUrl: string | null;
 
   @ManyToMany(() => Chat)
   @JoinTable()

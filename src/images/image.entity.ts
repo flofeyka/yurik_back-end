@@ -15,7 +15,7 @@ export class Image {
   @Column({ unique: true, nullable: false })
   name: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, {onUpdate: "CASCADE"})
   @JoinColumn()
   user: User;
 

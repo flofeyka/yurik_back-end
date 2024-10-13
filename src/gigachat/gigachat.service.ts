@@ -161,7 +161,7 @@ export class GigachatService {
       throw new BadRequestException("Не удалось отправить сообщение");
     });
 
-    return response.data.choices[0].message;
+    return {...response.data.choices[0].message, type: "Gigachat"};
   }
 
   async createNewDialog(

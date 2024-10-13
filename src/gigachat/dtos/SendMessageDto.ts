@@ -11,6 +11,7 @@ export class SendMessageDto {
   @IsString()
   message: string;
 
+  
   @ApiProperty({
     title: 'Айди чата',
     example: '3b94ab61-6174-4aa8-8e2f-ed008358ff92',

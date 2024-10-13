@@ -29,10 +29,6 @@ export class GigaChatMessage {
   @Column()
   role: 'user' | 'assistant';
 
-  @ApiProperty({ title: "Тип чата", example: "gigachat" })
-  @Column({ default: 'gigachat' })
-  type: 'gigachat';
-
   @ApiProperty({
     title: 'Ответ от ИИ/Вопрос от пользователя',
     example: 'Как дела?',

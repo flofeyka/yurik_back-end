@@ -140,7 +140,7 @@ export class AgreementDto {
     this.images = model.images?.map((image: AgreementImage) => `${process.env.API_URL}/images/picture/${image.image.name}`);
     this.members = model.members?.map((member: AgreementMember) => new AgreementMemberDto(member));
     this.steps = model.steps?.map((step: AgreementStep) => new AgreementStepDto(step, userId));
-    this.pdfLink = new PdfDto(model.pdf).pdfLink || null;
+    this.pdfLink = model.pdf ? new PdfDto(model.pdf).pdfLink : null;
     this.start = model.start;
     this.end = model.end;
   }

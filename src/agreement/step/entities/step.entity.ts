@@ -11,19 +11,19 @@ import { AgreementMember } from '../../members/member.entity';
 import { StepImage } from './step-image.entity';
 import { UUID } from 'crypto';
 
-@Entity()
+@Entity({name: "agreement_steps"})
 export class AgreementStep {
   @PrimaryGeneratedColumn('uuid')
   id: UUID;
 
-  @ManyToOne(() => Agreement, (agreement: Agreement) => agreement.steps, {onDelete: "CASCADE"})
-  @JoinColumn()
+  @ManyToOne(() => Agreement, (agreement: Agreement) => agreement.steps)
   agreement: Agreement;
 
   @Column()
   title: string;
 
-  @OneToMany(() => StepImage, (image: StepImage) => image.step, { eager: true, onDelete: "CASCADE" })
+  @OneToMany(() => StepImage, (image: StepImage) => image.step, { cascade: true, eager: true, onDelete: "SET NULL", onUpdate: "CASCADE" })
+  @JoinColumn()
   images: StepImage[];
 
   @ManyToOne(
@@ -41,6 +41,9 @@ export class AgreementStep {
     price: number;
     paymentLink: string;
   }
+
+  @Column()
+  public order: number;
 
   @Column({ nullable: true })
   comment: string | null;

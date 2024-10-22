@@ -115,8 +115,8 @@ export class StepController {
     @ApiResponse({
         status: HttpStatus.OK, type: AgreementStepDto
     })
-    @Post("/take/:id")
-    @UseGuards(AuthGuard, AgreementGuard, StepGuard)
+    @Post("/:agreementId/take/:stepId")
+    @UseGuards(AuthGuard, StepGuard, AgreementGuard)
     async takeStep(@Req() request: RequestType) {
         return await this.stepService.takeStep(request.step, request.agreement);
     }
@@ -140,9 +140,4 @@ export class StepController {
     ): Promise<AgreementStepDto> {
         return await this.stepService.addStepImages(request.step, imageDto.images, request.user.id);
     }
-
-
-
-
-
 }

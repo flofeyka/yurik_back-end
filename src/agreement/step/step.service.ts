@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { InjectRepository } from "@nestjs/typeorm";
 import { Image } from "src/images/image.entity";
 import { ImagesService } from "src/images/images.service";
-import { DeleteResult, InsertResult, Repository } from "typeorm";
+import { DeleteResult, InsertResult, Repository, UpdateResult } from "typeorm";
 import { AgreementDto, AgreementStepDto } from "../dtos/agreement-dto";
 import { Step, StepDto } from "../dtos/edit-steps-dto";
 import { Agreement } from "../entities/agreement.entity";
@@ -69,7 +69,7 @@ export class StepService {
         if(stepsDto.steps.length !== agreement.steps.length) {
             throw new BadRequestException('Количество этапов в запросе не совпадает с количеством этапов в договоре.');
         }
-        const stepsFound: AgreementStep[] = await Promise.all(stepsDto.steps.map(async (step: {id: UUID}) => {
+        const stepsFound: AgreementStep[] = await Promise.all(stepsDto.steps.map(async (step: {id: UUID}, i: number) => {
             const stepFound: AgreementStep = await this.findStep(step.id);
             if(!stepFound) {
                 throw new BadRequestException(`Этап с id ${step.id} не найден.`);
@@ -77,12 +77,15 @@ export class StepService {
             if(!agreement.steps.find((agreementStep: AgreementStep) => agreementStep.id === stepFound.id )) {
                 throw new BadRequestException(`Этап с id ${step.id} не найден.`);
             }
-
+            stepFound.order = i;
+            await this.stepRepository.save(stepFound);
             return stepFound;
         }));
 
+        console.log(stepsFound);
         agreement.steps = stepsFound;
-        const saved = await this.agreementRepository.save(agreement);
+
+        const saved: Agreement = await this.agreementRepository.save(agreement);
         return new AgreementDto(saved, userId);
     }
 
@@ -95,7 +98,7 @@ export class StepService {
         }
 
         step.status = "В процессе";
-        const saved = await this.stepRepository.save(step);
+        const saved: AgreementStep = await this.stepRepository.save(step);
         return new AgreementStepDto(saved, step.user.user.id);
     }
 
@@ -105,7 +108,7 @@ export class StepService {
         }
 
         step.status = "Отклонён";
-        const saved = await this.stepRepository.save(step);
+        const saved: AgreementStep = await this.stepRepository.save(step);
         return new AgreementStepDto(saved, step.user.user.id);
 
     }
@@ -120,18 +123,21 @@ export class StepService {
         return new AgreementStepDto(saved, userId);
     }
 
-    async deleteStep(agreement: Agreement, stepId: UUID) {
+    async deleteStep(agreement: Agreement, stepId: UUID): Promise<{
+        success: boolean;
+        message: string;
+    }> {
         if (agreement.status !== "Черновик") {
             throw new BadRequestException("Нельзя удалить этап, так как договор не является черновиком");
         }
 
 
         const step: AgreementStep = await this.findStep(stepId);
-        if (agreement.steps.find((step: AgreementStep) => step.id !== stepId)) {
+        if (!agreement.steps.find((step: AgreementStep) => step.id === stepId)) {
             throw new BadRequestException("Нельзя удалить этап, так как он не принадлежит данному договору");
         }
-        const deleteResust: DeleteResult = await this.stepRepository.delete(step);
-        if (deleteResust.affected !== 1) {
+        const deleteResult: DeleteResult = await this.stepRepository.delete({id: step.id });
+        if (deleteResult.affected !== 1) {
             throw new BadRequestException("Не удалось удалить этап");
         }
 
@@ -182,9 +188,10 @@ export class StepService {
         const stepCreated: InsertResult = await this.memberRepository.createQueryBuilder().insert().into(AgreementStep).values([{
             ...step,
             user: member,
+            order: agreement.steps.length + 1
         }]).execute();
 
-        const stepFound = await this.stepRepository.findOne({
+        const stepFound: AgreementStep = await this.stepRepository.findOne({
             where: { id: stepCreated.identifiers[0].id },
             relations: {
                 user: {
@@ -198,8 +205,8 @@ export class StepService {
         return new AgreementStepDto(stepFound, step.userId);
     }
 
-    async findStep(id: UUID) {
-        const step = await this.stepRepository.findOne({
+    async findStep(id: UUID): Promise<AgreementStep> {
+        const step: AgreementStep = await this.stepRepository.findOne({
             where: { id },
             relations: {
                 user: {

@@ -67,10 +67,9 @@ export class Agreement {
     | 'Завершён'
 
   @OneToMany(() => AgreementStep, (step: AgreementStep) => step.agreement, {
-    eager: true,
-    onDelete: "CASCADE",
-    cascade: true
+    eager: true
   })
+  @JoinColumn()
   public steps: AgreementStep[];
 
   @ManyToOne(() => Lawyer, (lawyer: Lawyer) => lawyer.agreements, {

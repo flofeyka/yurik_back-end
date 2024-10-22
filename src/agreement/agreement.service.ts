@@ -26,6 +26,7 @@ import * as mdToPdf from "md-to-pdf";
 import { HttpService } from '@nestjs/axios';
 import * as fs from 'fs';
 import { PdfService } from 'src/pdf/pdf.service';
+import { Image } from "../images/image.entity";
 
 @Injectable()
 export class AgreementService {
@@ -374,7 +375,7 @@ export class AgreementService {
         if (agreement.images.find(i => image === i.image.name)) {
           throw new BadRequestException("Фотография уже была добавлена.");
         }
-        const imageFound =
+        const imageFound: Image =
           await this.imagesService.getImageByName(image);
         if (!imageFound) {
           throw new NotFoundException(
@@ -413,7 +414,8 @@ export class AgreementService {
           images: {
             image: true
           }
-        }
+        },
+        chat: true
       }
     });
 

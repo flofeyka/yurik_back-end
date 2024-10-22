@@ -16,7 +16,7 @@ export class AgreementGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: RequestType = context.switchToHttp().getRequest();
 
-    const id = request.params.id || request.body.id || request.query.id;
+    const id = request.body.stepId || request.params.agreementId ||  request.params.id || request.body.id || request.query.id;
 
     const agreementFound: Agreement | null =
       await this.agreementService.findAgreement(Number(id));

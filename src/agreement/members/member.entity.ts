@@ -11,7 +11,7 @@ import {
 import { Agreement } from '../entities/agreement.entity';
 import { PersonalData } from 'src/user/entities/user.personal_data';
 
-@Entity({ name: 'members' })
+@Entity({ name: 'agreement_members' })
 export class AgreementMember {
   @PrimaryGeneratedColumn('uuid')
   id: UUID;

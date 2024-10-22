@@ -8,7 +8,10 @@ export class AgreementValidityGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         const { agreement } = request;
 
-        if(agreement.text.length < 100) {
+        agreement.steps = agreement.steps.sort((a: AgreementStep, b: AgreementStep) => a.order - b.order);
+        console.log(agreement.steps);
+
+        if(!agreement.text || agreement.text.length < 100) {
             throw new BadRequestException("Текст договора должен быть больше 100 символов");
         }
 
@@ -26,7 +29,7 @@ export class AgreementValidityGuard implements CanActivate {
             throw new BadRequestException('Дата начала договора не может быть позже даты конца');
         }
 
-        const ONE_DAY = 24 * 60 * 60 * 1000;
+        const ONE_DAY: number = 24 * 60 * 60 * 1000;
 
         if (new Date(Date.now() - ONE_DAY) > new Date(agreement.start)) {
             throw new BadRequestException('Дата начала договора не может быть раньше текущей даты');
@@ -42,17 +45,21 @@ export class AgreementValidityGuard implements CanActivate {
 
         for (let i of agreement.steps) {
             if (new Date(i.start) > new Date(i.end)) {
-                throw new BadRequestException('Дата начала этапа не может быть позже даты конца');
+                throw new BadRequestException(`Ошибка в этапе ${i.title}: Дата начала этапа не может быть позже даты конца`);
             }
         }
-
-        for (let i = 0; i = agreement.steps.length - 1; i++) {
-            if (i + 1 < agreement.steps.length) {
+        console.log(agreement.steps.length);
+        for (let i: number = 0; i < agreement.steps.length - 1; i++) {
+            if (i + 1 <= agreement.steps.length) {
+                console.log(new Date(agreement.steps[i].end));
+                console.log(new Date(agreement.steps[i + 1].start));
                 if (new Date(agreement.steps[i].end) > new Date(agreement.steps[i + 1].start)) {
-                    throw new BadRequestException('Дата конца этапа не может быть позже даты начала следующего этапа');
+                    throw new BadRequestException(`Ошибка в этапе ${agreement.steps[i].title} и ${agreement.steps[i+1].title}: Дата конца этапа не может быть позже даты начала следующего этапа`);
                 }
             }
         }
+
+        console.log(agreement)
 
 
         if (agreement.members.length < 2) {

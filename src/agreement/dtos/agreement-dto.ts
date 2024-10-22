@@ -139,7 +139,7 @@ export class AgreementDto {
     this.status = model.status;
     this.images = model.images?.map((image: AgreementImage) => `${process.env.API_URL}/images/picture/${image.image.name}`);
     this.members = model.members?.map((member: AgreementMember) => new AgreementMemberDto(member));
-    this.steps = model.steps?.map((step: AgreementStep) => new AgreementStepDto(step, userId));
+    this.steps = model.steps?.sort((a,b) => a.order - b.order).map((step: AgreementStep) => new AgreementStepDto(step, userId));
     this.pdfLink = model.pdf ? new PdfDto(model.pdf).pdfLink : null;
     this.start = model.start;
     this.end = model.end;

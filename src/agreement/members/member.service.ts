@@ -35,12 +35,15 @@ export class MemberService {
         status: 'Заказчик' | 'Подрядчик',
         agreement: Agreement,
     ): Promise<{ isInvited: boolean; message: string; agreement: AgreementDto }> {
+        if (initiatorId === memberId) {
+            throw new BadRequestException('Вы не можете добавить себя в договор.');
+        }
         if (agreement.members.length > 1) {
             throw new BadRequestException('Договор уже перенасыщен.');
         }
 
         if (agreement.members.find((member: AgreementMember) => member.status === status)) {
-            throw new BadRequestException(`Статус ${status} уже есть в договоре. Пожалуйста, выберете новый статус`);
+            throw new BadRequestException(`${status} уже есть в договоре. Пожалуйста, выберете новый статус`);
         }
         if (agreement.status === 'В работе') {
             throw new BadRequestException(
@@ -120,6 +123,13 @@ export class MemberService {
         inviteStatus: "Приглашен" | "Подтвердил" | "Отклонил" = "Приглашен"
     ): Promise<AgreementMember> {
         const user: User = await this.userService.findUser(member.userId);
+        const isMemberAlreadyInAgreement: AgreementMember | undefined = agreement.members.find(
+            (memberItem: AgreementMember) => memberItem.user.id === user.id
+        );
+
+        if(isMemberAlreadyInAgreement) {
+            throw new BadRequestException("Участник уже состоит в договоре");
+        }
 
         const memberCreated: InsertResult = await this.memberRepository
             .createQueryBuilder()

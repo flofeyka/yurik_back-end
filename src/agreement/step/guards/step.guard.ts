@@ -9,7 +9,7 @@ export class StepGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         try {
             const request = context.switchToHttp().getRequest();
-            const stepId = request.params.id || request.body.id || request.query.id;
+            const stepId = request.body.stepId || request.params.stepId || request.params.id || request.body.id || request.query.id;
 
             const step = await this.stepService.findStep(stepId);
             if(step.user.user.id !== request.user.id) {

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, HttpStatus, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
 import { ApiBadRequestResponse, ApiNotFoundResponse, ApiOperation, ApiProperty, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { UUID } from "crypto";
 import { AuthGuard } from "src/auth/auth.guard";
@@ -16,6 +16,13 @@ import { StepService } from "./step.service";
 @Controller("/agreement/step")
 export class StepController {
     constructor(private readonly stepService: StepService) { }
+
+    @Get("/:agreementId/:stepId")
+    @ApiResponse({ status: HttpStatus.OK, type: AgreementStepDto })
+    @UseGuards(AuthGuard, AgreementGuard)
+    async getStep(@Req() request: RequestType, @Param("stepId") stepId: UUID): Promise<AgreementStepDto> {
+        return await this.stepService.getStep(stepId, request.user.id);
+    }
 
     @Post('/:id/add/')
     @ApiResponse({ status: HttpStatus.OK, type: AgreementStepDto })
@@ -42,7 +49,7 @@ export class StepController {
     @ApiProperty({ title: "Завершение этапа " })
     @ApiResponse({ status: HttpStatus.OK, type: AgreementStepDto })
     @UseGuards(AuthGuard, StepGuard)
-    @Put("/:id/complete")
+    @Put("/:stepId/complete")
     async completeStep(
         @Req() request: RequestType
     ): Promise<AgreementStepDto> {
@@ -120,6 +127,7 @@ export class StepController {
     async takeStep(@Req() request: RequestType) {
         return await this.stepService.takeStep(request.step, request.agreement);
     }
+
 
     @ApiProperty({ title: "Добавление фотографий к шагу " })
     @ApiResponse({

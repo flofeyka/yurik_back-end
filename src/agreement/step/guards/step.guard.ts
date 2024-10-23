@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Observable } from "rxjs";
 import { StepService } from "../step.service";
 
@@ -13,7 +13,7 @@ export class StepGuard implements CanActivate {
 
             const step = await this.stepService.findStep(stepId);
             if(step.user.user.id !== request.user.id) {
-                throw new UnauthorizedException("Вы не можете совершить это действие, так как не являетесь ответственным за этот шаг.")
+                throw new BadRequestException("Вы не можете совершить это действие, так как не являетесь ответственным за этот шаг.")
             }
             request.step = step;
             return true;

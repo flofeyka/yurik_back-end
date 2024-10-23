@@ -164,21 +164,20 @@ export class StepService {
         const member: AgreementMember = await this.memberRepository.findOne({
             where: {
                 agreement: {
-                    id: agreement.id,
-                    members: {
-                        user: {
-                            id: step.userId
-                        }
-                    }
+                    id: agreement.id
                 },
+                user: {
+                    id: step.userId
+                }
             },
             relations: {
-                user: true,
                 agreement: true,
+                user: true
             },
         });
-
-        if (!member) {
+        console.log(member);
+        console.log(member.agreement.id);
+        if (!member || member.agreement.id !== agreement.id) {
             throw new NotFoundException("Пользователь не был найден в списке участников договора.");
         }
 
@@ -198,9 +197,22 @@ export class StepService {
             },
         });
 
-        if (step.images.length > 0) {
+        if (step.images && step.images.length > 0) {
             const images: StepImage[] = await Promise.all(step.images.map(async (image: string) => {
                 const imageFound: Image = await this.imagesService.getImageByName(image);
+                if (!imageFound) {
+                    throw new BadRequestException("Фотография не была найдена в базе данных");
+                }
+                const stepFound = await this.stepImageRepository.findOne({
+                    where: {
+                        image: {
+                            name: imageFound.name
+                        }
+                    }
+                });
+                if(stepFound) {
+                    throw new BadRequestException("Одна и та же фотография не может быть привязана сразу к нескольким этапам.")
+                }
                 const imageStepCreated = await this.stepImageRepository.save({
                     image: imageFound,
                     step: stepFound

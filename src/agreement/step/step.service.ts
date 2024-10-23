@@ -13,6 +13,7 @@ import { StepImage } from "./entities/step-image.entity";
 import { AgreementStep } from "./entities/step.entity";
 import { UUID } from "crypto";
 import { ChangeOrder } from "./dtos/change-order-dto";
+import { ImageDto } from "src/images/dtos/ImageDto";
 
 @Injectable()
 export class StepService {
@@ -24,42 +25,8 @@ export class StepService {
         private readonly memberService: MemberService,
         private readonly imagesService: ImagesService,
     ) { }
-    async addStepImages(step: AgreementStep, images: string[], userId: number): Promise<AgreementStepDto> {
-        if (images.length + step.images.length > 10) {
-            throw new BadRequestException('В этапе не может содержаться больше 10 фотографий');
-        }
-        const imagesFound: StepImage[] = await Promise.all(
-            images.map(async (image: string) => {
-                if (step.images.find((stepImage: StepImage) => stepImage.image.name === image)) {
-                    throw new BadRequestException('Фотография уже была добавлена в этап');
-                }
-                const imageFound: Image =
-                    await this.imagesService.getImageByName(image);
-                if (!imageFound) {
-                    throw new NotFoundException(
-                        `Фотография с названием ${image} не существует`,
-                    );
-                }
 
-                const stepImage: InsertResult = await this.stepImageRepository.createQueryBuilder().insert().into(StepImage).values({
-                    image: imageFound,
-                    step: step,
-                }).execute();
-
-                return await this.stepImageRepository.findOne({
-                    where: { id: stepImage.identifiers[0].id }, relations: {
-                        image: true
-                    }
-                });
-            }),
-        );
-        step.images = [...step?.images, ...imagesFound];
-        const stepSaved = await this.stepRepository.save(step);
-
-        return new AgreementStepDto(stepSaved, userId);
-    }
-
-    async getStep(stepId: UUID, userId: number): Promise<AgreementStepDto> {
+    async getStep(agreement: Agreement, stepId: UUID, userId: number): Promise<AgreementStepDto> {
         const step: AgreementStep = await this.stepRepository.findOne({
             where: { id: stepId },
             relations: {
@@ -68,28 +35,28 @@ export class StepService {
                 }
             }
         });
-        if (!step) {
+        if (!step || !agreement.steps.find((step: AgreementStep) => step.id === stepId)) {
             throw new NotFoundException(`Этап с id ${stepId} не найден`);
         }
         return new AgreementStepDto(step, userId);
     }
 
     async changeStepsOrder(agreement: Agreement, stepsDto: ChangeOrder, userId: number): Promise<AgreementDto> {
-        if(agreement.status !== "Черновик") {
+        if (agreement.status !== "Черновик") {
             throw new BadRequestException('Вы не можете изменить порядок этапов, так как договор был подписан.');
         }
-        if(agreement.initiator.user.id !== userId) {
+        if (agreement.initiator.user.id !== userId) {
             throw new BadRequestException('Вы не можете изменить порядок этапов в договоре, так как не являетесь его инициатором.');
         }
-        if(stepsDto.steps.length !== agreement.steps.length) {
+        if (stepsDto.steps.length !== agreement.steps.length) {
             throw new BadRequestException('Количество этапов в запросе не совпадает с количеством этапов в договоре.');
         }
-        const stepsFound: AgreementStep[] = await Promise.all(stepsDto.steps.map(async (step: {id: UUID}, i: number) => {
+        const stepsFound: AgreementStep[] = await Promise.all(stepsDto.steps.map(async (step: { id: UUID }, i: number) => {
             const stepFound: AgreementStep = await this.findStep(step.id);
-            if(!stepFound) {
+            if (!stepFound) {
                 throw new BadRequestException(`Этап с id ${step.id} не найден.`);
             }
-            if(!agreement.steps.find((agreementStep: AgreementStep) => agreementStep.id === stepFound.id )) {
+            if (!agreement.steps.find((agreementStep: AgreementStep) => agreementStep.id === stepFound.id)) {
                 throw new BadRequestException(`Этап с id ${step.id} не найден.`);
             }
             stepFound.order = i;
@@ -151,7 +118,7 @@ export class StepService {
         if (!agreement.steps.find((step: AgreementStep) => step.id === stepId)) {
             throw new BadRequestException("Нельзя удалить этап, так как он не принадлежит данному договору");
         }
-        const deleteResult: DeleteResult = await this.stepRepository.delete({id: step.id });
+        const deleteResult: DeleteResult = await this.stepRepository.delete({ id: step.id });
         if (deleteResult.affected !== 1) {
             throw new BadRequestException("Не удалось удалить этап");
         }
@@ -172,8 +139,23 @@ export class StepService {
         const stepSaved = await this.stepRepository.save({
             ...step,
             ...editStepDto,
+            images: [...step.images],
             user: member
         });
+
+        if (editStepDto.images.length > 0) {
+            stepSaved.images.push(...await Promise.all(editStepDto.images.map(async (image: string) => {
+                const imageSaved: Image = await this.imagesService.getImageByName(image);
+                const stepImageAdded: StepImage = await this.stepImageRepository.save({
+                    image: imageSaved,
+                    step: stepSaved
+                });
+
+                return stepImageAdded;
+            })));
+
+            this.stepRepository.save(stepSaved);
+        }
 
         return new AgreementStepDto(stepSaved, userId);
     }
@@ -202,6 +184,7 @@ export class StepService {
 
         const stepCreated: InsertResult = await this.memberRepository.createQueryBuilder().insert().into(AgreementStep).values([{
             ...step,
+            images: [],
             user: member,
             order: agreement.steps.length + 1
         }]).execute();
@@ -214,6 +197,20 @@ export class StepService {
                 },
             },
         });
+
+        if (step.images.length > 0) {
+            const images: StepImage[] = await Promise.all(step.images.map(async (image: string) => {
+                const imageFound: Image = await this.imagesService.getImageByName(image);
+                const imageStepCreated = await this.stepImageRepository.save({
+                    image: imageFound,
+                    step: stepFound
+                });
+
+                return imageStepCreated;
+            }));
+            stepFound.images = images;
+            await this.stepRepository.save(stepFound);
+        }
 
         agreement.steps.push(stepFound);
         await this.agreementRepository.save(agreement);

@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDateString, IsNumber, IsObject, IsString } from "class-validator";
+import { IsArray, IsDateString, IsNumber, IsObject, IsString } from "class-validator";
+import { ImagesDto } from "src/agreement/dtos/images-dto";
 
 export class EditStepDto {
     @ApiProperty({ title: "Заголовок шага", example: "Закупка материалов" })
@@ -28,6 +29,12 @@ export class EditStepDto {
     public readonly payment: {
         price: number;
     } | undefined;
+
+    @ApiProperty({
+        title: "Картинки", type: ImagesDto
+    })
+    @IsArray()
+    public readonly images: string[];
 
     @ApiProperty({ title: "Дата окончания", example: "14-12-2025" })
     @IsDateString()

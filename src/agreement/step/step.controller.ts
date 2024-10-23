@@ -21,7 +21,7 @@ export class StepController {
     @ApiResponse({ status: HttpStatus.OK, type: AgreementStepDto })
     @UseGuards(AuthGuard, AgreementGuard)
     async getStep(@Req() request: RequestType, @Param("stepId") stepId: UUID): Promise<AgreementStepDto> {
-        return await this.stepService.getStep(stepId, request.user.id);
+        return await this.stepService.getStep(request.agreement, stepId, request.user.id);
     }
 
     @Post('/:id/add/')
@@ -126,26 +126,5 @@ export class StepController {
     @UseGuards(AuthGuard, StepGuard, AgreementGuard)
     async takeStep(@Req() request: RequestType) {
         return await this.stepService.takeStep(request.step, request.agreement);
-    }
-
-
-    @ApiProperty({ title: "Добавление фотографий к шагу " })
-    @ApiResponse({
-        status: HttpStatus.OK, type: AgreementStepDto
-    })
-    @ApiNotFoundResponse({
-        example: {
-            "message": "Фотография с названием 6677b140-981d-42c9-995c-759bbc924568.jpg не существует",
-            "error": "Not Found",
-            "statusCode": 404
-        }
-    })
-    @Post('/addPhotos/:id')
-    @UseGuards(AuthGuard, StepGuard)
-    async addStepPhotos(
-        @Body() imageDto: ImagesDto,
-        @Req() request: RequestType
-    ): Promise<AgreementStepDto> {
-        return await this.stepService.addStepImages(request.step, imageDto.images, request.user.id);
     }
 }

@@ -49,15 +49,13 @@ export class AgreementStepDto {
   @ApiProperty({ title: "Статус шага", example: "Готов" })
   public status: "Готов" | "Отклонён" | "В процессе" | "Ожидает";
   @ApiProperty({
-    title: "Картинки шага", example: {
-      "images": [
+    title: "Картинки шага", example: [
         "http://localhost:3000/api/images/picture/1aad9b7b-771a-4a37-823c-8de2dd4a8f02.jpg",
         "http://localhost:3000/api/images/picture/356d2593-16f7-4242-9e12-e30e954812ac.jpg",
         "http://localhost:3000/api/images/picture/f090d598-a785-4a95-b3c5-3b2504d897df.jpg",
         "http://localhost:3000/api/images/picture/d458e39b-9721-4f22-95fe-067d1597a817.jpg",
         "http://localhost:3000/api/images/picture/6677b140-981d-42c9-995c-759bbc924568.jpg"
       ]
-    }
   })
   public images: string[];
   @ApiProperty({

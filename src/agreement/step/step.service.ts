@@ -59,6 +59,21 @@ export class StepService {
         return new AgreementStepDto(stepSaved, userId);
     }
 
+    async getStep(stepId: UUID, userId: number): Promise<AgreementStepDto> {
+        const step: AgreementStep = await this.stepRepository.findOne({
+            where: { id: stepId },
+            relations: {
+                images: {
+                    image: true
+                }
+            }
+        });
+        if (!step) {
+            throw new NotFoundException(`Этап с id ${stepId} не найден`);
+        }
+        return new AgreementStepDto(step, userId);
+    }
+
     async changeStepsOrder(agreement: Agreement, stepsDto: ChangeOrder, userId: number): Promise<AgreementDto> {
         if(agreement.status !== "Черновик") {
             throw new BadRequestException('Вы не можете изменить порядок этапов, так как договор был подписан.');

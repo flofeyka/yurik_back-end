@@ -31,7 +31,7 @@ export class EditStepDto {
     } | undefined;
 
     @ApiProperty({
-        title: "Картинки", type: ImagesDto
+        title: "Картинки", example: ImagesDto
     })
     @IsArray()
     public readonly images: string[];

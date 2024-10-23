@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsDateString, IsNumber, IsObject, IsString, IsUUID } from 'class-validator';
 import { UUID } from 'crypto';
+import { ImagesDto } from './images-dto';
 
 class paymentStep {
   @IsNumber()
@@ -33,6 +34,12 @@ export class Step {
   })
   @IsString()
   comment: string | null;
+
+  @ApiProperty({
+    title: "Фотографии шага", example: ImagesDto
+  })
+  @IsArray()
+  images: string[];
 
   @ApiProperty({
     title: "Дата начала выполнения шага", example: '12-12-2023'

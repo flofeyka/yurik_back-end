@@ -143,18 +143,23 @@ export class StepService {
             user: member
         });
 
-        if (editStepDto.images.length > 0) {
-            stepSaved.images.push(...await Promise.all(editStepDto.images.map(async (image: string) => {
+        if (editStepDto?.images && editStepDto.images.length > 0) {
+            const imagesAdded = await Promise.allSettled(editStepDto.images.map(async (image: string) => {
                 const imageSaved: Image = await this.imagesService.getImageByName(image);
                 const stepImageAdded: StepImage = await this.stepImageRepository.save({
                     image: imageSaved,
                     step: stepSaved
                 });
-
                 return stepImageAdded;
-            })));
+            }));
+        
+            const successfulImages: StepImage[] = imagesAdded
+                .filter((result): result is PromiseFulfilledResult<StepImage> => result.status === 'fulfilled')
+                .map(result => result.value);
+        
+            stepSaved.images.push(...successfulImages);
 
-            this.stepRepository.save(stepSaved);
+            await this.stepRepository.save(stepSaved);
         }
 
         return new AgreementStepDto(stepSaved, userId);
@@ -210,7 +215,7 @@ export class StepService {
                         }
                     }
                 });
-                if(stepFound) {
+                if (stepFound) {
                     throw new BadRequestException("Одна и та же фотография не может быть привязана сразу к нескольким этапам.")
                 }
                 const imageStepCreated = await this.stepImageRepository.save({

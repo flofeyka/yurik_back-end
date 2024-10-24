@@ -152,11 +152,11 @@ export class StepService {
                 });
                 return stepImageAdded;
             }));
-        
+
             const successfulImages: StepImage[] = imagesAdded
                 .filter((result): result is PromiseFulfilledResult<StepImage> => result.status === 'fulfilled')
                 .map(result => result.value);
-        
+
             stepSaved.images.push(...successfulImages);
 
             await this.stepRepository.save(stepSaved);
@@ -202,30 +202,22 @@ export class StepService {
             },
         });
 
-        if (step.images && step.images.length > 0) {
-            const images: StepImage[] = await Promise.all(step.images.map(async (image: string) => {
-                const imageFound: Image = await this.imagesService.getImageByName(image);
-                if (!imageFound) {
-                    throw new BadRequestException("Фотография не была найдена в базе данных");
-                }
-                const stepFound = await this.stepImageRepository.findOne({
-                    where: {
-                        image: {
-                            name: imageFound.name
-                        }
-                    }
-                });
-                if (stepFound) {
-                    throw new BadRequestException("Одна и та же фотография не может быть привязана сразу к нескольким этапам.")
-                }
-                const imageStepCreated = await this.stepImageRepository.save({
-                    image: imageFound,
+        if (step.images?.length > 0) {
+            const imagesAdded = await Promise.allSettled(step.images.map(async (image: string) => {
+                const imageSaved: Image = await this.imagesService.getImageByName(image);
+                const stepImageAdded: StepImage = await this.stepImageRepository.save({
+                    image: imageSaved,
                     step: stepFound
                 });
-
-                return imageStepCreated;
+                return stepImageAdded;
             }));
-            stepFound.images = images;
+
+            const successfulImages: StepImage[] = imagesAdded
+                .filter((result): result is PromiseFulfilledResult<StepImage> => result.status === 'fulfilled')
+                .map(result => result.value);
+
+            stepFound.images.push(...successfulImages);
+
             await this.stepRepository.save(stepFound);
         }
 

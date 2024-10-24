@@ -39,7 +39,7 @@ export class Step {
     title: "Фотографии шага", example: ImagesDto
   })
   @IsArray()
-  images: string[];
+  images: string[] = [];
 
   @ApiProperty({
     title: "Дата начала выполнения шага", example: '12-12-2023'

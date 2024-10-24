@@ -9,7 +9,6 @@ export class AgreementValidityGuard implements CanActivate {
         const { agreement } = request;
 
         agreement.steps = agreement.steps.sort((a: AgreementStep, b: AgreementStep) => a.order - b.order);
-        console.log(agreement.steps);
 
         if(!agreement.text || agreement.text.length < 100) {
             throw new BadRequestException("Текст договора должен быть больше 100 символов");
@@ -48,18 +47,14 @@ export class AgreementValidityGuard implements CanActivate {
                 throw new BadRequestException(`Ошибка в этапе ${i.title}: Дата начала этапа не может быть позже даты конца`);
             }
         }
-        console.log(agreement.steps.length);
         for (let i: number = 0; i < agreement.steps.length - 1; i++) {
             if (i + 1 <= agreement.steps.length) {
-                console.log(new Date(agreement.steps[i].end));
-                console.log(new Date(agreement.steps[i + 1].start));
                 if (new Date(agreement.steps[i].end) > new Date(agreement.steps[i + 1].start)) {
                     throw new BadRequestException(`Ошибка в этапе ${agreement.steps[i].title} и ${agreement.steps[i+1].title}: Дата конца этапа не может быть позже даты начала следующего этапа`);
                 }
             }
         }
 
-        console.log(agreement)
 
 
         if (agreement.members.length < 2) {

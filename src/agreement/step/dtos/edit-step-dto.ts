@@ -28,7 +28,9 @@ export class EditStepDto {
     @IsObject()
     public readonly payment: {
         price: number;
-    } | undefined;
+    } = {
+        price: 0
+    }
 
     @ApiProperty({
         title: "Картинки", example: ImagesDto

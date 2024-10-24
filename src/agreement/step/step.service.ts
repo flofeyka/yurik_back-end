@@ -1,19 +1,18 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { UUID } from "crypto";
 import { Image } from "src/images/image.entity";
 import { ImagesService } from "src/images/images.service";
-import { DeleteResult, InsertResult, Repository, UpdateResult } from "typeorm";
+import { DeleteResult, InsertResult, Repository } from "typeorm";
 import { AgreementDto, AgreementStepDto } from "../dtos/agreement-dto";
-import { Step, StepDto } from "../dtos/edit-steps-dto";
+import { Step } from "../dtos/edit-steps-dto";
 import { Agreement } from "../entities/agreement.entity";
 import { AgreementMember } from "../members/member.entity";
 import { MemberService } from "../members/member.service";
+import { ChangeOrder } from "./dtos/change-order-dto";
 import { EditStepDto } from "./dtos/edit-step-dto";
 import { StepImage } from "./entities/step-image.entity";
 import { AgreementStep } from "./entities/step.entity";
-import { UUID } from "crypto";
-import { ChangeOrder } from "./dtos/change-order-dto";
-import { ImageDto } from "src/images/dtos/ImageDto";
 
 @Injectable()
 export class StepService {
@@ -64,7 +63,6 @@ export class StepService {
             return stepFound;
         }));
 
-        console.log(stepsFound);
         agreement.steps = stepsFound;
 
         const saved: Agreement = await this.agreementRepository.save(agreement);
@@ -140,6 +138,7 @@ export class StepService {
             ...step,
             ...editStepDto,
             images: [...step.images],
+            payment: editStepDto.payment.price > 0 ? editStepDto.payment : null,
             user: member
         });
 
@@ -180,8 +179,6 @@ export class StepService {
                 user: true
             },
         });
-        console.log(member);
-        console.log(member.agreement.id);
         if (!member || member.agreement.id !== agreement.id) {
             throw new NotFoundException("Пользователь не был найден в списке участников договора.");
         }
@@ -190,7 +187,13 @@ export class StepService {
             ...step,
             images: [],
             user: member,
-            order: agreement.steps.length + 1
+            payment: step.payment.price > 0 ? step.payment : null,
+            order: agreement.steps.reduce(function (prev, current) {
+                if (current.order > prev.order) {
+                    return current;
+                }
+                return prev;
+            }).order + 1
         }]).execute();
 
         const stepFound: AgreementStep = await this.stepRepository.findOne({

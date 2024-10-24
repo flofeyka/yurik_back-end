@@ -150,7 +150,6 @@ export class ChatService {
       }
     });
 
-    console.log(chats[0]);
 
     return chats.map((chat: Chat) => new ChatListDto(chat));
   }

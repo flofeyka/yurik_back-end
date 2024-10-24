@@ -21,7 +21,6 @@ export class AgreementGuard implements CanActivate {
     const agreementFound: Agreement | null =
       await this.agreementService.findAgreement(Number(id));
 
-      console.log(agreementFound);
     if (!agreementFound) {
       throw new BadRequestException(`Договор с данным id ${id} не был найден`);
     }

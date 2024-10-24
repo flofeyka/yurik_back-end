@@ -45,7 +45,6 @@ export class ChatGateway {
   }) {
 
     const newMessage = await this.chatService.createMessage(payload.id, client.handshake.auth.id, payload.message);
-    console.log(this.clients);
     for (let i of newMessage.chat.members) {
       this.server.to(this.clients.find(client => client.id === i.id)?.clientId).emit('new_message', newMessage);
     }

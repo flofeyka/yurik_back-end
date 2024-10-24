@@ -188,12 +188,12 @@ export class StepService {
             images: [],
             user: member,
             payment: step.payment.price > 0 ? step.payment : null,
-            order: agreement.steps.reduce(function (prev, current) {
+            order: agreement.steps.length > 1 ? agreement.steps.reduce(function (prev, current) {
                 if (current.order > prev.order) {
                     return current;
                 }
                 return prev;
-            }).order + 1
+            }).order + 1 : agreement.steps.length + 1
         }]).execute();
 
         const stepFound: AgreementStep = await this.stepRepository.findOne({

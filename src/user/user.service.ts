@@ -22,15 +22,11 @@ export class UserService {
   };
 
   async createUser(userDto: CreateUserDto, telegramAccount: TelegramAccount): Promise<User> {
-    const createdUser: InsertResult = await this.usersRepository.createQueryBuilder().insert().into(User).values([{
-      ...userDto,
-      telegram_account: telegramAccount
-    }]).execute();
-    return await this.usersRepository.findOne({
-      where: { id: createdUser.identifiers[0].id }, relations: {
-        telegram_account: true
-      }
-    });
+    const user: User = new User();
+    user.lastName = userDto.lastName;
+    user.firstName = userDto.firstName;
+    user.telegram_account = telegramAccount;
+    return await this.usersRepository.save(user);
   }
 
   async editUser(userId: number, userDto: EditUserDto): Promise<UserDto> {
@@ -61,8 +57,8 @@ export class UserService {
       });
       userFound.personalData = personalDataCreated;
     } else {
-      const newPersonalData = await this.personalDataRepository.createQueryBuilder().insert().into(PersonalData).values({ user: userFound, ...userDto }).execute();
-      const personalDataFound = await this.personalDataRepository.findOne({ where: { id: newPersonalData.identifiers[0].id } });
+      const newPersonalData: InsertResult = await this.personalDataRepository.createQueryBuilder().insert().into(PersonalData).values({ user: userFound, ...userDto }).execute();
+      const personalDataFound: PersonalData = await this.personalDataRepository.findOne({ where: { id: newPersonalData.identifiers[0].id } });
       userFound.personalData = personalDataFound;
     }
     const updated: User = await this.usersRepository.save({ ...userFound, ...userDto, image: userFound.image });

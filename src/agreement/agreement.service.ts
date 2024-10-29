@@ -189,9 +189,11 @@ export class AgreementService {
         ]
       })
 
+      console.log(checkout);
       const user = await this.userService.findUser(userId);
       agreement.text = checkout.content.replace(/\n/g, "<br/>");
       agreement.text = agreement.text.replace('```', '');
+      console.log(agreement.text);
       const pdfCreated = await this.pdfService.convertMarkdownToPdf(agreement.text, user);
       agreement.pdf = pdfCreated;
     }

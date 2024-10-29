@@ -5,18 +5,18 @@ import { AxiosResponse } from "axios";
 
 @Injectable()
 export class AppService {
-    constructor(private readonly httpService: HttpService) {}
+    constructor(private readonly httpService: HttpService) { }
 
     async sendNotification(message: string, telegramID: number): Promise<boolean> {
         try {
-            if(telegramID) {
+            if (telegramID) {
                 const response: AxiosResponse = await this.httpService.axiosRef.post("https://rafailvv.online/send/message", {
                     user_id: telegramID,
                     message_text: `Вам пришло новое уведомление:\n${message}`
                 })
                 return response.data;
             }
-        } catch(e) {
+        } catch (e) {
             return false;
         }
     }
@@ -28,27 +28,37 @@ export class AppService {
             });
 
 
-            if(response.status === 200) {
+            if (response.status === 200) {
                 return true;
             }
-        } catch(e) {
+        } catch (e) {
             console.log(e);
             return false;
         }
     }
-    
+
     getRandomCodeValue(min: number = 100000, max: number = 999999): Number {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     decryptText(text: string): string {
-        const {ENCRYPT_TELEGRAM_ID_KEY, ENCRYPT_TELEGRAM_ID_IV} = process.env;
-        const key: Buffer = Buffer.from(ENCRYPT_TELEGRAM_ID_KEY, "hex")
-        const iv: Buffer = Buffer.from(ENCRYPT_TELEGRAM_ID_IV, "hex")
+        const { ENCRYPT_TELEGRAM_ID_KEY, ENCRYPT_TELEGRAM_ID_IV } = process.env;
+        const key: Buffer = Buffer.from(ENCRYPT_TELEGRAM_ID_KEY, "hex");
+        const iv: Buffer = Buffer.from(ENCRYPT_TELEGRAM_ID_IV, "hex");
         const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
         let decrypted = decipher.update(text, "base64", "utf8");
         decrypted += decipher.final("utf8");
 
         return decrypted;
+    }
+
+    encryptText(text: string): string {
+        const { ENCRYPT_TELEGRAM_ID_KEY, ENCRYPT_TELEGRAM_ID_IV } = process.env;
+        const key = Buffer.from(ENCRYPT_TELEGRAM_ID_KEY, "hex");
+        const iv = Buffer.from(ENCRYPT_TELEGRAM_ID_IV, "hex");
+        const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
+        let encrypted = cipher.update(text, "utf8", "base64");
+        encrypted += cipher.final("base64");
+        return encrypted;
     }
 }

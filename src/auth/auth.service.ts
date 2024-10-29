@@ -40,23 +40,19 @@ export class AuthService {
     );
     const telegramAccountFound: TelegramAccount =
       await this.telegramAccountsRepository.findOne({
-        where: { telegramID: decryptedTelegramID },
+        where: { telegramID: decryptedTelegramID }, relations: {
+          user: true
+        }
       });
     if (!telegramAccountFound) {
       throw new BadGatewayException(
         'Пожалуйста, зарегистрируйте Telegram-аккаунт, прежде чем продолжить.',
       );
     }
-
-    const existingUser: User | undefined = await this.usersRepository.findOne({
-      where: [
-        { telegram_account: telegramAccountFound }
-      ]
-    });
-
-    if (existingUser) {
-      throw new BadRequestException("Телеграм аккаунт уже зарегистрирован.");
+    if(telegramAccountFound.user) {
+      throw new BadRequestException("Телеграм-аккаунт уже зарегистрирован");
     }
+
 
     const newUser: User = await this.userService.createUser(
       userDto,

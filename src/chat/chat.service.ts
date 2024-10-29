@@ -23,7 +23,9 @@ export class ChatService {
   ) { }
 
   public async getChat(chatId: UUID): Promise<ChatDto> {
-    const chatFound: Chat = await this.chatRepository.findOneBy({ id: chatId });
+    const chatFound: Chat = await this.chatRepository.findOne( {where:{ id: chatId}, relations: {
+      messages: true
+    } });
     if (!chatFound) {
       throw new NotFoundException("Чат не найден");
     }
@@ -67,8 +69,8 @@ export class ChatService {
     return newChat;
   }
 
-  async createChat(users: { id: number }[], userId: number): Promise<ChatDto> {
-    if (users.find(user => user.id === userId)) {
+  async createChat(users: { id: number }[] = [], userId: number): Promise<ChatDto> {
+    if (users?.find(user => user.id === userId)) {
       throw new BadRequestException("Нельзя создать чат с самим собой");
     }
     const newChat = await this.addChat([...users, { id: userId }])

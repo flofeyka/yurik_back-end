@@ -30,7 +30,7 @@ export class User {
   public firstName: string;
 
   @ApiProperty({ title: 'Фамилия. Обязательное поле', example: 'Максбетов' })
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   public lastName: string;
 
   @ApiProperty({ title: 'Отчество. Обязательное поле', example: 'Тагирович' })

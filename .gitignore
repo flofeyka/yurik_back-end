@@ -5,6 +5,8 @@
 
 /uploads
 
+crypt.js
+
 # Logs
 logs
 *.log

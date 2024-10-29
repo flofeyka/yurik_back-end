@@ -27,15 +27,15 @@ export class User {
 
   @ApiProperty({ title: 'Имя. Обязательное поле', example: 'Максим' })
   @Column({ nullable: true })
-  public readonly firstName: string;
+  public firstName: string;
 
   @ApiProperty({ title: 'Фамилия. Обязательное поле', example: 'Максбетов' })
   @Column({ nullable: false })
-  public readonly lastName: string;
+  public lastName: string;
 
   @ApiProperty({ title: 'Отчество. Обязательное поле', example: 'Тагирович' })
   @Column({ nullable: true })
-  public readonly middleName: string;
+  public middleName: string;
 
   @ApiProperty({
     title: 'Номер телефона. Обязательное поле',
@@ -50,7 +50,7 @@ export class User {
     (telegram_account: TelegramAccount) => telegram_account.user,
     { eager: true },
   )
-  public readonly telegram_account: TelegramAccount;
+  public telegram_account: TelegramAccount;
 
   @Column({ nullable: true, type: 'date' })
   @ApiProperty({ title: 'Дата рождения', example: '2023-03-22' })

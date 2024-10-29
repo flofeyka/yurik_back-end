@@ -36,7 +36,7 @@ export class UserController {
   })
   @HttpCode(HttpStatus.CREATED)
   @Post('/telegram/add/:telegram_id')
-  async addTelegramAccount(@Param('telegram_id') telegramID: number) {
+  async addTelegramAccount(@Param('telegram_id') telegramID: number): Promise<boolean> {
     return this.userService.addTelegramAccount(telegramID);
   }
 

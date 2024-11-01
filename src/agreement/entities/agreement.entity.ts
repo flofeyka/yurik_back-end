@@ -36,12 +36,12 @@ export class Agreement {
   @OneToMany(
     () => AgreementMember,
     (member: AgreementMember) => member.agreement,
-    { eager: true, onDelete: 'CASCADE' },
+    { eager: true, onDelete: 'SET NULL' },
   )
   @JoinColumn()
   public members: AgreementMember[];
 
-  @OneToMany(() => AgreementImage, (agreementImage: AgreementImage) => agreementImage.agreement, { onDelete: "CASCADE" })
+  @OneToMany(() => AgreementImage, (agreementImage: AgreementImage) => agreementImage.agreement, { onDelete: "SET NULL" })
   public images: AgreementImage[]
 
   @OneToOne(() => AgreementMember, { eager: true })
@@ -67,7 +67,8 @@ export class Agreement {
     | 'Завершён'
 
   @OneToMany(() => AgreementStep, (step: AgreementStep) => step.agreement, {
-    eager: true
+    eager: true,
+    onDelete: "SET NULL"
   })
   @JoinColumn()
   public steps: AgreementStep[];
@@ -75,7 +76,7 @@ export class Agreement {
   @ManyToOne(() => Lawyer, (lawyer: Lawyer) => lawyer.agreements, {
     nullable: true,
     eager: true,
-    onDelete: "CASCADE"
+    onDelete: "SET NULL"
   })
   public lawyer: Lawyer;
 

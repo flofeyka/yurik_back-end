@@ -187,7 +187,7 @@ export class StepService {
             ...step,
             images: [],
             user: member,
-            payment: step.payment.price > 0 ? step.payment : null,
+            payment: step.payment?.price > 0 ? step.payment : null,
             order: agreement.steps.length > 1 ? agreement.steps.reduce(function (prev, current) {
                 if (current.order > prev.order) {
                     return current;

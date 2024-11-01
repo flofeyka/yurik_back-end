@@ -16,7 +16,7 @@ export class AgreementStep {
   @PrimaryGeneratedColumn('uuid')
   id: UUID;
 
-  @ManyToOne(() => Agreement, (agreement: Agreement) => agreement.steps)
+  @ManyToOne(() => Agreement, (agreement: Agreement) => agreement.steps, {onDelete: "CASCADE"})
   agreement: Agreement;
 
   @Column()

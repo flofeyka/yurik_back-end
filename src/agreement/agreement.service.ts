@@ -6,7 +6,13 @@ import {
   NotFoundException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ChatService } from 'src/chat/chat.service';
+import { GigachatService } from 'src/gigachat/gigachat.service';
+import { PdfService } from 'src/pdf/pdf.service';
+import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
 import { DeleteResult, InsertResult, Repository } from 'typeorm';
+import { Image } from "../images/image.entity";
 import { ImagesService } from '../images/images.service';
 import { AgreementDto } from './dtos/agreement-dto';
 import { AgreementsListDto } from './dtos/agreements-list-dto';
@@ -17,16 +23,6 @@ import { Agreement } from './entities/agreement.entity';
 import { AgreementMember } from './members/member.entity';
 import { MemberService } from './members/member.service';
 import { AgreementStep } from './step/entities/step.entity';
-import { ChatService } from 'src/chat/chat.service';
-import { Chat } from 'src/chat/entities/chat.entity';
-import { GigachatService } from 'src/gigachat/gigachat.service';
-import { User } from 'src/user/entities/user.entity';
-import { UserService } from 'src/user/user.service';
-import * as mdToPdf from "md-to-pdf";
-import { HttpService } from '@nestjs/axios';
-import * as fs from 'fs';
-import { PdfService } from 'src/pdf/pdf.service';
-import { Image } from "../images/image.entity";
 
 @Injectable()
 export class AgreementService {
@@ -40,7 +36,6 @@ export class AgreementService {
     @Inject(forwardRef(() => ChatService)) private readonly chatService: ChatService,
     private readonly gigachatService: GigachatService,
     private readonly userService: UserService,
-    private readonly httpService: HttpService,
     private readonly pdfService: PdfService
   ) { }
 
@@ -127,9 +122,9 @@ export class AgreementService {
       throw new BadRequestException("Вы не можете отредактировать этот договор, т.к. он уже был утвержден и подписан.")
     }
 
-    // if (agreement.initiator.user.id !== userId) {
-    //   throw new BadRequestException("Вы не можете редактировать данный договор, т.к. не являетесь его инициатором. Обратитесь к инициатору в чате договора.")
-    // }
+    if (agreement.initiator.user.id !== userId) {
+      throw new BadRequestException("Вы не можете редактировать данный договор, т.к. не являетесь его инициатором. Обратитесь к инициатору в чате договора.")
+    }
 
     if (editDealDto.text) {
       const message = await this.gigachatService.sendMessage({

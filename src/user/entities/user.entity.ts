@@ -64,6 +64,9 @@ export class User {
   @JoinTable()
   public readonly chats: Chat[]
 
+  @Column({default: false})
+  public isAdmin: boolean;
+
   @OneToOne(
     () => PersonalData,
     (personalData: PersonalData) => personalData.user,

@@ -3,13 +3,14 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "../user/entities/user.entity";
 import { InsertResult, Repository } from "typeorm";
 import { JwtService } from "@nestjs/jwt";
-import { AuthToken, AuthTokenPayload } from "./entities/authToken.entity";
+import { AuthToken } from "./entities/authToken.entity";
 import { UserService } from "src/user/user.service";
 import { CreateUserDto } from "src/user/dtos/create-user-dto";
 import { LoginDto } from "./dtos/login-dto";
 import { UserDto } from "src/user/dtos/user-dto";
 import { TelegramAccount } from "src/user/entities/telegram-account.entity";
 import { AppService } from "../app.service";
+import { AuthTokenPayload } from "types/types";
 
 export interface tokenAndUserType {
   token: string;
@@ -109,6 +110,7 @@ export class AuthService {
       id: user.id,
       telegramID: user.telegram_account.telegramID,
       lastName: user.lastName,
+      isAdmin: user.isAdmin
     };
 
     const token: string = this.jwtService.sign(payload);

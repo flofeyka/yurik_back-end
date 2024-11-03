@@ -27,6 +27,8 @@ export class AgreementsListDto {
       paymentLink: string | undefined
     }
   }[];
+
+  stage: number;
   start: Date;
   end: Date;
 
@@ -53,6 +55,7 @@ export class AgreementsListDto {
         } : null
       };
     });
+    this.stage = model.stage;
     this.start = model.start;
     this.end = model.end;
   }

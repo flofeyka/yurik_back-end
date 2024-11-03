@@ -23,6 +23,13 @@ export class EditAgreementDto {
   })
   public readonly start: string;
 
+  @IsNumber()
+  @ApiProperty({
+    title: "Стадия договора",
+    example: 1
+  })
+  public readonly stage: number;
+
   @IsDateString()
   @ApiProperty({ title: 'Дата конца действия договора', example: '2024-12-12' })
   public readonly end: string;

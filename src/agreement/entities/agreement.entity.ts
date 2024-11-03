@@ -79,9 +79,13 @@ export class Agreement {
     onDelete: "SET NULL"
   })
   public lawyer: Lawyer;
+  
+  @Column({ nullable: true })
+  public stage: number;
 
   @Column({ nullable: true })
   public start: Date;
+
 
   @Column({ nullable: true })
   public end: Date;

@@ -9,6 +9,7 @@ import { TelegramAccount } from "./entities/telegram-account.entity";
 import { ImagesService } from "../images/images.service";
 import { PersonalData } from "./entities/user.personal_data";
 import { Image } from "src/images/image.entity";
+import { ProfileDto } from "./dtos/profile-dto";
 
 @Injectable()
 export class UserService {
@@ -69,7 +70,12 @@ export class UserService {
     throw new BadGatewayException("Не удалось обновить данные");
   }
 
-  async findUser(userId: number): Promise<User> {
+  async getProfileById(userId: number): Promise<ProfileDto> {
+    const userFound: User = await this.findUser(userId);
+    return new ProfileDto(userFound);
+  }
+
+  public async findUser(userId: number): Promise<User> {
     const foundUser: User = await this.usersRepository.findOne({
       where: { id: userId }, relations: {
         telegram_account: true,

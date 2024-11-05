@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -11,12 +13,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { EditUserDto } from './dtos/edit-user-dto';
 import { RequestType } from '../../types/types';
 import { TelegramAccount } from './entities/telegram-account.entity';
 import { ImagesService } from '../images/images.service';
+import { UserDto } from './dtos/user-dto';
 
 @ApiTags('Users API')
 @Controller('users')
@@ -38,6 +41,14 @@ export class UserController {
   @Post('/telegram/add/:telegram_id')
   async addTelegramAccount(@Param('telegram_id') telegramID: number): Promise<boolean> {
     return this.userService.addTelegramAccount(telegramID);
+  }
+
+  @ApiOperation({ summary: "Получение пользователя по id" })
+  @ApiOkResponse({ type: UserDto })
+  @ApiNotFoundResponse({ example: new NotFoundException("Пользователь с данным id 1 не был найден в системе")})
+  @Get("/:id")
+  getUserById(@Param("id") id: number) {
+    return this.userService.getProfileById(id);
   }
 
   @ApiOperation({ summary: 'Изменение и добавление пользовательских данных.' })

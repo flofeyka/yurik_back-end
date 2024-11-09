@@ -22,6 +22,8 @@ export class AgreementMemberDto {
   public middleName: string;
   @ApiProperty({ title: "Почта участника договора", example: "ivan@mail.ru" })
   public email: string;
+  @ApiProperty({ title: "Telegram ID участника ", example: 123123})
+  public telegramID: number;
   @ApiProperty({ title: "Статус участника договора", example: "Заказчик" })
   public status: "Заказчик" | "Подрядчик" | "Юрист";
   @ApiProperty({ title: "Статус приглашения", example: "Подтвердил" })
@@ -34,6 +36,7 @@ export class AgreementMemberDto {
     this.middleName = model.user.middleName;
     this.image = model.user.image ? new ImageDto(model.user.image).imgUrl : null;
     this.email = model.user.email;
+    this.telegramID = model.user.telegram_account.telegramID;
     this.status = model.status;
     this.inviteStatus = model.inviteStatus;
   }

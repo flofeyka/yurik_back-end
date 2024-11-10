@@ -1,15 +1,15 @@
-import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module';
+import { ValidationPipe } from "@nestjs/common";
+import { NestFactory } from "@nestjs/core";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { AppModule } from "./app.module";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix("/api")
+  app.setGlobalPrefix("/api");
   app.enableCors({
     origin: true,
     credentials: true
-  })
+  });
 
   const config = new DocumentBuilder()
     .setTitle("Yurik API Documentation")
@@ -20,7 +20,11 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("/api/docs", app, document);
 
-  app.useGlobalPipes(new ValidationPipe({ skipUndefinedProperties: true, forbidNonWhitelisted: true, whitelist: true }));
+  app.useGlobalPipes(new ValidationPipe({
+    skipUndefinedProperties: true,
+    forbidNonWhitelisted: true,
+    whitelist: true
+  }));
   await app.listen(3000);
 }
 

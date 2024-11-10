@@ -33,6 +33,9 @@ export class Agreement {
   @Column({ nullable: true })
   public text: string;
 
+  @Column({default: false})
+  public is_edited: boolean;
+
   @OneToMany(
     () => AgreementMember,
     (member: AgreementMember) => member.agreement,

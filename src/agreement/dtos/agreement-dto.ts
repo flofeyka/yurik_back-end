@@ -16,7 +16,7 @@ export class AgreementMemberDto {
   public firstName: string;
   @ApiProperty({ title: "Фамилия участника договора", example: "Иванов" })
   public lastName: string;
-  @ApiProperty({ title: "Картинка", type: Image })
+  @ApiProperty({ title: "Картинка", type: ImageDto })
   public image: string | null;
   @ApiProperty({ title: "Отчество участника договора", example: "Иванович" })
   public middleName: string;

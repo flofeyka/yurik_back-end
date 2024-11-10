@@ -36,7 +36,7 @@ export class PdfService {
             });
 
             const pdfData = await streamReadPromise;
-            const uuid = v4()
+            const uuid = v4();
             fs.writeFileSync(`uploads/pdf/${uuid}.pdf`, pdfData);
             const pdfCreated: Pdf = await this.pdfRepository.save({ fileName: `${uuid}.pdf`, user: creator });
             return pdfCreated;

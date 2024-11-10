@@ -1,76 +1,83 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from "@nestjs/swagger";
 import {
   Column,
   Entity,
   JoinColumn,
   JoinTable,
-  ManyToMany,
+  ManyToMany, ManyToOne,
   OneToMany,
   OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { Image } from '../../images/image.entity';
-import { TelegramAccount } from './telegram-account.entity';
-import { PersonalData } from './user.personal_data';
-import { Chat } from 'src/chat/entities/chat.entity';
+  PrimaryGeneratedColumn
+} from "typeorm";
+import { Image } from "../../images/image.entity";
+import { TelegramAccount } from "./telegram-account.entity";
+import { PersonalData } from "./user.personal_data";
+import { Chat } from "src/chat/entities/chat.entity";
+import { AgreementDto } from "../../agreement/dtos/agreement-dto";
+import { Agreement } from "../../agreement/entities/agreement.entity";
 
 @Entity()
 export class User {
-  @ApiProperty({ title: 'Уникальный идентификатор', example: 1 })
+  @ApiProperty({ title: "Уникальный идентификатор", example: 1 })
   @PrimaryGeneratedColumn()
   public readonly id: number;
 
-  @ApiProperty({ title: 'Аватар пользователя' })
-  @OneToOne(() => Image, { eager: true, onDelete: 'SET NULL' })
+  @ApiProperty({ title: "Аватар пользователя" })
+  @OneToOne((): typeof Image => Image, { eager: true, onDelete: "SET NULL" })
   @JoinColumn()
   public image: Image;
 
-  @ApiProperty({ title: 'Имя. Обязательное поле', example: 'Максим' })
+  @ApiProperty({ title: "Имя. Обязательное поле", example: "Максим" })
   @Column({ nullable: true })
   public firstName: string;
 
-  @ApiProperty({ title: 'Фамилия. Обязательное поле', example: 'Максбетов' })
+  @ApiProperty({ title: "Фамилия. Обязательное поле", example: "Максбетов" })
   @Column({ nullable: true })
   public lastName: string;
 
-  @ApiProperty({ title: 'Отчество. Обязательное поле', example: 'Тагирович' })
+  @ApiProperty({ title: "Отчество. Обязательное поле", example: "Тагирович" })
   @Column({ nullable: true })
   public middleName: string;
 
   @ApiProperty({
-    title: 'Номер телефона. Обязательное поле',
-    example: "79123456789",
+    title: "Номер телефона. Обязательное поле",
+    example: "79123456789"
   })
   @Column({ nullable: true })
   public readonly phoneNumber: string;
 
-  @ApiProperty({ title: 'ID Telegram', example: 312531 })
+  @ApiProperty({ title: "Шаблоны договора", type: [AgreementDto] })
+  @ManyToMany((): typeof Agreement => Agreement)
+  @JoinTable()
+  public agreement_patterns: Agreement[];
+
+  @ApiProperty({ title: "ID Telegram", example: 312531 })
   @OneToOne(
-    () => TelegramAccount,
+    (): typeof TelegramAccount => TelegramAccount,
     (telegram_account: TelegramAccount) => telegram_account.user,
-    { eager: true },
+    { eager: true }
   )
   public telegram_account: TelegramAccount;
 
-  @Column({ nullable: true, type: 'date' })
-  @ApiProperty({ title: 'Дата рождения', example: '2023-03-22' })
+  @Column({ nullable: true, type: "date" })
+  @ApiProperty({ title: "Дата рождения", example: "2023-03-22" })
   public readonly BirthDate: Date;
 
   @Column({ nullable: true })
-  @ApiProperty({ title: 'Электронная почта', example: 'email@admin.ru' })
+  @ApiProperty({ title: "Электронная почта", example: "email@admin.ru" })
   public readonly email: string;
 
-  @ManyToMany(() => Chat)
+  @ManyToMany((): typeof Chat => Chat)
   @JoinTable()
-  public readonly chats: Chat[]
+  public readonly chats: Chat[];
 
-  @Column({default: false})
+  @Column({ default: false })
   public isAdmin: boolean;
 
   @OneToOne(
     () => PersonalData,
     (personalData: PersonalData) => personalData.user,
-    { eager: true, nullable: true, onDelete: "SET NULL", cascade: true, onUpdate: "CASCADE" },
+    { eager: true, nullable: true, onDelete: "SET NULL", cascade: true, onUpdate: "CASCADE" }
   )
   @JoinColumn()
   personalData: PersonalData;

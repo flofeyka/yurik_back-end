@@ -1,4 +1,11 @@
-import { BadGatewayException, BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadGatewayException,
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException
+} from "@nestjs/common";
 import { User } from "./entities/user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { InsertResult, Repository } from "typeorm";
@@ -81,6 +88,16 @@ export class UserService {
         telegram_account: true,
         image: {
           user: true
+        },
+        agreement_patterns: {
+          members: {
+            user: true
+          },
+          steps: {
+            user: {
+              user: true
+            }
+          }
         }
       }
     });

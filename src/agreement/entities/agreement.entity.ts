@@ -13,6 +13,7 @@ import { AgreementMember } from '../members/member.entity';
 import { AgreementStep } from '../step/entities/step.entity';
 import { AgreementImage } from './agreement-image.entity';
 import { Pdf } from 'src/pdf/pdf.entity';
+import { User } from "../../user/entities/user.entity";
 
 export interface Step {
   title: string;

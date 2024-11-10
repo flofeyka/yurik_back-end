@@ -25,6 +25,8 @@ import { StepController } from './step/step.controller';
 import { StepService } from './step/step.service';
 import { GigachatModule } from 'src/gigachat/gigachat.module';
 import { PdfModule } from 'src/pdf/pdf.module';
+import { AgreementPatternController } from "./pattern/pattern.controller";
+import { PatternService } from "./pattern/pattern.service";
 
 @Module({
   imports: [
@@ -47,8 +49,8 @@ import { PdfModule } from 'src/pdf/pdf.module';
     forwardRef(() => AppModule),
     PdfModule
   ],
-  controllers: [AgreementController, StepController, MemberController, LawyerController],
-  providers: [AgreementService, MemberService, StepService, LawyerService],
+  controllers: [AgreementController, StepController, MemberController, LawyerController, AgreementPatternController],
+  providers: [AgreementService, MemberService, StepService, LawyerService, PatternService],
   exports: [MemberService]
 })
 export class AgreementModule {}

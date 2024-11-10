@@ -16,12 +16,14 @@ export class AgreementMemberDto {
   public firstName: string;
   @ApiProperty({ title: "Фамилия участника договора", example: "Иванов" })
   public lastName: string;
-  @ApiProperty({ title: "Картинка", type: Image })
+  @ApiProperty({ title: "Картинка", type: ImageDto })
   public image: string | null;
   @ApiProperty({ title: "Отчество участника договора", example: "Иванович" })
   public middleName: string;
   @ApiProperty({ title: "Почта участника договора", example: "ivan@mail.ru" })
   public email: string;
+  @ApiProperty({ title: "Telegram ID участника ", example: 123123})
+  public telegramID: number;
   @ApiProperty({ title: "Статус участника договора", example: "Заказчик" })
   public status: "Заказчик" | "Подрядчик" | "Юрист";
   @ApiProperty({ title: "Статус приглашения", example: "Подтвердил" })
@@ -34,6 +36,7 @@ export class AgreementMemberDto {
     this.middleName = model.user.middleName;
     this.image = model.user.image ? new ImageDto(model.user.image).imgUrl : null;
     this.email = model.user.email;
+    this.telegramID = model.user.telegram_account.telegramID;
     this.status = model.status;
     this.inviteStatus = model.inviteStatus;
   }

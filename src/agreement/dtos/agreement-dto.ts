@@ -16,7 +16,7 @@ export class AgreementMemberDto {
   public firstName: string;
   @ApiProperty({ title: "Фамилия участника договора", example: "Иванов" })
   public lastName: string;
-  @ApiProperty({ title: "Картинка", type: ImageDto })
+  @ApiProperty({ title: "Картинка", type: "http://localhost:3000/api/images/picture/1aad9b7b-771a-4a37-823c-8de2dd4a8f02.jpg" })
   public image: string | null;
   @ApiProperty({ title: "Отчество участника договора", example: "Иванович" })
   public middleName: string;
@@ -25,7 +25,7 @@ export class AgreementMemberDto {
   @ApiProperty({ title: "Telegram ID участника ", example: 123123})
   public telegramID: number;
   @ApiProperty({ title: "Статус участника договора", example: "Заказчик" })
-  public status: "Заказчик" | "Подрядчик" | "Юрист";
+  public status: "Заказчик" | "Исполнитель" | "Юрист";
   @ApiProperty({ title: "Статус приглашения", example: "Подтвердил" })
   public inviteStatus: "Подтвердил" | "Приглашен" | "Отклонил";
 

@@ -242,6 +242,10 @@ export class AgreementService {
       );
     }
 
+    if (agreement.members.filter((member: AgreementMember) => member.inviteStatus === "Приглашен").length > 1) {
+      throw new BadRequestException("В договоре может быть только два подтвержденных участника.")
+    }
+
     const memberFound: AgreementMember = await this.memberRepository.findOne({
       where: {
         id: member.id

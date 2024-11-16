@@ -5,5 +5,5 @@ import { LegalInformationDto } from 'src/user/dtos/legal-information-dto';
 export class InviteUserDto {
   @ApiProperty({ title: 'Статус клиента в договоре', example: 'Заказчик' })
   @IsString()
-  status: 'Заказчик' | 'Подрядчик';
+  status: 'Заказчик' | 'Исполнитель';
 }

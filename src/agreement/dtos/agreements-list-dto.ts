@@ -16,7 +16,7 @@ export class AgreementsListDto {
     firstName: string,
     lastName: string,
     middleName: string,
-    status: "Заказчик" | "Подрядчик" | "Юрист",
+    status: "Заказчик" | "Исполнитель" | "Юрист",
     image: ImageDto | null
   }[]
   steps: {

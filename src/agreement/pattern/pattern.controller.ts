@@ -7,7 +7,7 @@ import { AuthGuard } from "../../auth/auth.guard";
 import { RequestType } from "../../../types/types";
 import { AgreementsListDto } from "../dtos/agreements-list-dto";
 
-@ApiTags("Шаблоны договора")
+@ApiTags("Agreement pattern API")
 @Controller("/agreement/pattern")
 export class AgreementPatternController {
   constructor(private readonly patternService: PatternService) {

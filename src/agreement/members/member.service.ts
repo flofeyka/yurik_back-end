@@ -32,17 +32,17 @@ export class MemberService {
     async inviteNewMember(
         initiatorId: number,
         memberId: number,
-        status: 'Заказчик' | 'Подрядчик',
+        status: 'Заказчик' | 'Исполнитель',
         agreement: Agreement,
     ): Promise<{ isInvited: boolean; message: string; agreement: AgreementDto }> {
         if (initiatorId === memberId) {
             throw new BadRequestException('Вы не можете добавить себя в договор.');
         }
-        if (agreement.members.length > 1) {
-            throw new BadRequestException('Договор уже перенасыщен.');
+        if (agreement.members.filter((member: AgreementMember): boolean => member.inviteStatus === "Приглашен").length > 1) {
+            throw new BadRequestException('Договор перенасыщен.');
         }
 
-        if (agreement.members.find((member: AgreementMember) => member.status === status)) {
+        if (agreement.members.find((member: AgreementMember): boolean => member.status === status)) {
             throw new BadRequestException(`${status} уже есть в договоре. Пожалуйста, выберете новый статус`);
         }
         if (agreement.status === 'В работе') {
@@ -117,7 +117,7 @@ export class MemberService {
     async addMember(
         member: {
             userId: number,
-            status: 'Заказчик' | 'Подрядчик';
+            status: 'Заказчик' | 'Исполнитель';
         },
         agreement: Agreement,
         inviteStatus: "Приглашен" | "Подтвердил" | "Отклонил" = "Приглашен"

@@ -122,7 +122,7 @@ export class AgreementService {
 
     agreement.is_edited = false;
 
-    if (editDealDto.dealText.text) {
+    if (editDealDto.dealText?.text) {
       const user: User = await this.userService.findUser(userId);
 
       if (editDealDto.dealText.generate) {

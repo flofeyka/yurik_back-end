@@ -11,12 +11,17 @@ import { AgreementMember } from '../members/member.entity';
 
 @Injectable()
 export class AgreementGuard implements CanActivate {
-  constructor(private readonly agreementService: AgreementService) { }
+  constructor(private readonly agreementService: AgreementService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: RequestType = context.switchToHttp().getRequest();
 
-    const id = request.body.agreementId || request.params.agreementId ||  request.params.id || request.body.id || request.query.id;
+    const id =
+      request.body.agreementId ||
+      request.params.agreementId ||
+      request.params.id ||
+      request.body.id ||
+      request.query.id;
 
     const agreementFound: Agreement | null =
       await this.agreementService.findAgreement(Number(id));
@@ -29,7 +34,20 @@ export class AgreementGuard implements CanActivate {
       agreementFound.members.find(
         (member: AgreementMember) => member.user.id === request.user.id,
       );
-    if (!memberFound && agreementFound.lawyer?.user.id !== request.user.id && !request.user.isAdmin) {
+    if (memberFound.user.role.role !== 'Пользователь') {
+      if (
+        memberFound.user.role.role === 'Юрист' &&
+        agreementFound.lawyer?.user.id !== request.user.id
+      ) {
+        throw new BadRequestException(
+          'Вы не являетесь действующим участником или юристом данного договора чтобы совершить это действие',
+        );
+      }
+
+      request.agreement = agreementFound;
+      return true;
+    }
+    if (!memberFound) {
       throw new BadRequestException(
         'Вы не являетесь действующим участником или юристом данного договора чтобы совершить это действие',
       );

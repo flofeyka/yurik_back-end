@@ -105,6 +105,8 @@ export class AgreementDto {
   public title: string;
   @ApiProperty({ title: "Содержание договора", example: "Двумя сторонами установлено..." })
   public text: string;
+  @ApiProperty({ title: "Описание договора", example: "Договор заключается в том, что..."})
+  public description: string;
   @ApiProperty({ title: "Инициатор договора", type: AgreementMemberDto })
   public initiator: AgreementMemberDto;
   @ApiProperty({ title: "Статус договора", example: "В процессе" })
@@ -138,6 +140,7 @@ export class AgreementDto {
     this.id = model.id;
     this.title = model.title;
     this.text = model.text;
+    this.description = model.description;
     this.initiator = new AgreementMemberDto(model.initiator);
     this.status = model.status;
     this.images = model.images?.map((image: AgreementImage) => `${process.env.API_URL}/images/picture/${image.image.name}`);

@@ -16,7 +16,6 @@ export class AuthGuard implements CanActivate {
 
     try {
       const authHeader = req.headers.authorization;
-
       if (!authHeader) {
         throw new UnauthorizedException({
           message: 'Пользователь не авторизован',

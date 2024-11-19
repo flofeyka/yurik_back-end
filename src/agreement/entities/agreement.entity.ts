@@ -31,6 +31,9 @@ export class Agreement {
   @Column()
   public title: string;
 
+  @Column({nullable: true})
+  public description: string;
+
   @Column({ nullable: true })
   public text: string;
 

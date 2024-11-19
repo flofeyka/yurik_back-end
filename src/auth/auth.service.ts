@@ -86,7 +86,7 @@ export class AuthService {
           telegram_account: true,
           image: {
             user: true
-          }
+          },
         },
       });
 
@@ -110,7 +110,7 @@ export class AuthService {
       id: user.id,
       telegramID: user.telegram_account.telegramID,
       lastName: user.lastName,
-      isAdmin: user.isAdmin
+      role: user.role
     };
 
     const token: string = this.jwtService.sign(payload);

@@ -21,8 +21,6 @@ export class MemberService {
     constructor(
         @InjectRepository(Agreement) private readonly agreementRepository: Repository<Agreement>,
         @InjectRepository(AgreementMember) private readonly memberRepository: Repository<AgreementMember>,
-        @InjectRepository(PersonalData) private readonly usersPersonalDataRepository: Repository<PersonalData>,
-        @InjectRepository(User) private readonly userRepository: Repository<User>,
         private readonly appService: AppService,
         private readonly userService: UserService,
         private readonly chatService: ChatService
@@ -35,10 +33,11 @@ export class MemberService {
         status: 'Заказчик' | 'Исполнитель',
         agreement: Agreement,
     ): Promise<{ isInvited: boolean; message: string; agreement: AgreementDto }> {
-        if (initiatorId === memberId) {
-            throw new BadRequestException('Вы не можете добавить себя в договор.');
-        }
-        if (agreement.members.filter((member: AgreementMember): boolean => member.inviteStatus === "Приглашен").length > 1) {
+        
+        // if (initiatorId === memberId) {
+        //     throw new BadRequestException('Вы не можете добавить себя в договор.');
+        // }
+        if (agreement.members.filter((member: AgreementMember): boolean => member.inviteStatus === "Подтвердил").length > 1) {
             throw new BadRequestException('Договор перенасыщен.');
         }
 
@@ -51,10 +50,14 @@ export class MemberService {
             );
         }
 
-        const initiator = this.findMember(agreement, initiatorId);
+        const initiator = await this.userService.findUser(initiatorId);
         const found: AgreementMember = agreement.members.find(
             (member) => member.user.id === memberId,
         );
+
+        if(found && initiator.id === found.user.id) {
+            throw new BadRequestException("Вы уже состоите в этом договоре");
+        }
 
         if (found && found.inviteStatus === 'Отклонил') {
             throw new BadRequestException(
@@ -76,8 +79,8 @@ export class MemberService {
         agreement.members.push(newMember);
         await this.agreementRepository.save(agreement);
 
-        await this.appService.sendDealNotification(newMember.user.telegram_account.telegramID, initiator.user.telegram_account.telegramID, newMember.user.firstName, "initiator", agreement.id);
-        await this.chatService.addMember(agreement.chat.id, memberId, initiatorId);
+        await this.appService.sendDealNotification(newMember.user.telegram_account.telegramID, initiator.telegram_account.telegramID, newMember.user.firstName, "initiator", agreement.id);
+        await this.chatService.addMember(agreement.chat.id, memberId, {id: initiator.id, isAdmin: initiator.role === "Админ"});
         return {
             isInvited: true,
             message: 'Пользователь был успешно приглашен к договору',

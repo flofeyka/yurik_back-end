@@ -39,6 +39,10 @@ export class User {
   @Column({ nullable: true })
   public middleName: string;
 
+  @ApiProperty({ title: "Роль", type: "Админ"})
+  @Column({ default: "Пользователь "})
+  public role: "Админ" | "Юрист" | "Пользователь";
+
   @ApiProperty({
     title: "Номер телефона. Обязательное поле",
     example: "79123456789"
@@ -70,9 +74,6 @@ export class User {
   @ManyToMany((): typeof Chat => Chat)
   @JoinTable()
   public readonly chats: Chat[];
-
-  @Column({ default: false })
-  public isAdmin: boolean;
 
   @OneToOne(
     () => PersonalData,

@@ -13,7 +13,15 @@ export class StepGuard implements CanActivate {
             const stepId = request.body.stepId || request.params.stepId || request.params.id || request.body.id || request.query.id;
 
             const step = await this.stepService.findStep(stepId);
-            if(step.user.user.id !== request.user.id || !request.user.isAdmin) {
+            
+            if(request.user.role !== "Пользователь") {
+                if(request.user.role !== "Админ" && request.agreement.lawyer.user.id !== request.user.id) {
+                    throw new BadRequestException("Вы не являетесь юристом или администратором, чтобы сделать это действие");
+                }
+                request.step = step;
+                return true;
+            }
+            if(step.user.user.id !== request.user.id) {
                 throw new BadRequestException("Вы не можете совершить это действие, так как не являетесь ответственным за этот шаг.")
             }
             request.step = step;

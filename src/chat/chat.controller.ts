@@ -223,7 +223,7 @@ export class ChatController {
   @Post("/:chatId/member")
   @UseGuards(AuthGuard)
   async addMember(@Param('chatId') chatId: UUID, @Query('userId') userId: number, @Req() request: RequestType) {
-    return await this.chatService.addMember(chatId, userId, request.user.id);
+    return await this.chatService.addMember(chatId, userId, {id: request.user.id, isAdmin: request.user.role === "Админ"});
   }
 
   @ApiOperation({ summary: "Удаление участника из чата" })

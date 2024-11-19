@@ -507,6 +507,9 @@ export class AgreementService {
           },
         },
         chat: true,
+        lawyer: {
+          user: true
+        }
       },
     });
 

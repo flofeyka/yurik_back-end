@@ -34,19 +34,19 @@ export class AgreementGuard implements CanActivate {
       agreementFound.members.find(
         (member: AgreementMember) => member.user.id === request.user.id,
       );
-    // if (memberFound.user.role.role !== 'Пользователь') {
-    //   if (
-    //     memberFound.user.role.role === 'Юрист' &&
-    //     agreementFound.lawyer?.user.id !== request.user.id
-    //   ) {
-    //     throw new BadRequestException(
-    //       'Вы не являетесь действующим участником или юристом данного договора чтобы совершить это действие',
-    //     );
-    //   }
-
-    //   request.agreement = agreementFound;
-    //   return true;
-    // }
+      console.log(request.user.role);
+    if (request.user.role !== 'Пользователь') {
+      if (
+        request.user.role !== 'Админ' &&
+        agreementFound.lawyer?.user.id !== request.user.id
+      ) {
+        throw new BadRequestException(
+          'Вы не являетесь действующим участником или юристом данного договора чтобы совершить это действие',
+        );
+      }
+      request.agreement = agreementFound;
+      return true;
+    }
     if (!memberFound) {
       throw new BadRequestException(
         'Вы не являетесь действующим участником или юристом данного договора чтобы совершить это действие',

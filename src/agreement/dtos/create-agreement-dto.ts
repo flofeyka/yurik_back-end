@@ -8,9 +8,16 @@ export class CreateAgreementDto {
     example: 'Договор возмездного оказания услуг',
   })
   @IsString()
-  readonly title: string;
+  public title: string;
+
+  @ApiProperty({
+    title: "Описание договора",
+    example: "Суть договора заключается в том, что..."
+  })
+  @IsString()
+  public description: string;
 
   @ApiProperty({ title: 'Кто инициирует договор ', example: 'Исполнитель' })
   @IsString()
-  readonly initiatorStatus: 'Исполнитель' | 'Заказчик';
+  public initiatorStatus: 'Исполнитель' | 'Заказчик';
 }

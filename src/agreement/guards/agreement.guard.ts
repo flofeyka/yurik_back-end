@@ -34,7 +34,7 @@ export class AgreementGuard implements CanActivate {
       agreementFound.members.find(
         (member: AgreementMember) => member.user.id === request.user.id,
       );
-      console.log(request.user.role);
+      console.log(memberFound);
     if (request.user.role !== 'Пользователь') {
       if (
         request.user.role !== 'Админ' &&

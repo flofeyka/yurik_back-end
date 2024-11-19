@@ -77,7 +77,10 @@ export class ChatService {
     return new ChatDto(newChat);
   }
 
-  async addMember(chatId: UUID, memberId: number, userId: number): Promise<ChatDto> {
+  async addMember(chatId: UUID, memberId: number, user: {
+    id: number;
+    isAdmin: boolean
+  }): Promise<ChatDto> {
     const chat: Chat = await this.chatRepository.findOne({
       where: { id: chatId },
       relations: {
@@ -87,7 +90,7 @@ export class ChatService {
     if (!chat) {
       throw new NotFoundException("Чат не найден");
     }
-    if (!chat.members.find(member => member.user.id === userId)) {
+    if (!chat.members.find(member => member.user.id === user.id) && !user.isAdmin) {
       throw new BadRequestException("Вы не являетесь участником чата, чтобы пригласить пользователя");
     }
     const member: ChatUser = await this.chatUserRepository.findOneBy({ user: { id: memberId } });

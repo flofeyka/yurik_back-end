@@ -40,7 +40,7 @@ export class User {
   public middleName: string;
 
   @ApiProperty({ title: "Роль", type: "Админ"})
-  @Column({ default: "Пользователь "})
+  @Column({ default: "Пользователь"})
   public role: "Админ" | "Юрист" | "Пользователь";
 
   @ApiProperty({

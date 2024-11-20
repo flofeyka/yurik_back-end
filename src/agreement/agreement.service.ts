@@ -147,7 +147,7 @@ export class AgreementService {
 
       if (editDealDto.dealText.generate) {
         const message: any = await this.gigachatService.sendMessage({
-          model: 'GigaChat',
+          model: 'GigaChat-Pro',
           messages: [
             {
               role: 'user',
@@ -194,7 +194,7 @@ export class AgreementService {
         });
 
         const checkout: any = await this.gigachatService.sendMessage({
-          model: 'GigaChat',
+          model: 'GigaChat-Pro',
           messages: [
             {
               role: 'assistant',

@@ -102,7 +102,7 @@ export class GigachatService {
       throw new BadRequestException('Диалог с этим id не был найден');
     }
     const payload = {
-      model: 'GigaChat',
+      model: 'GigaChat-Pro',
       messages: [
         ...dialogFound.messages.map((message: GigaChatMessage) => {
           return {

@@ -507,6 +507,7 @@ export class AgreementService {
         lawyer: {
           user: true,
         },
+        pdf: true
       },
     });
 

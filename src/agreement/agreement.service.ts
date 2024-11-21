@@ -93,6 +93,9 @@ export class AgreementService {
     const member = await this.memberRepository.find({where: {
       user: {
         id: userId
+      },
+      agreement: {
+        status: type
       }
     }, relations: {
       agreement: {

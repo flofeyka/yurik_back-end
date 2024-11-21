@@ -23,6 +23,7 @@ import { Agreement } from './entities/agreement.entity';
 import { AgreementMember } from './members/member.entity';
 import { MemberService } from './members/member.service';
 import { AgreementStep } from './step/entities/step.entity';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class AgreementService {
@@ -40,6 +41,7 @@ export class AgreementService {
     private readonly gigachatService: GigachatService,
     private readonly userService: UserService,
     private readonly pdfService: PdfService,
+    private readonly httpService: HttpService
   ) {}
 
   async createAgreement(
@@ -280,9 +282,15 @@ export class AgreementService {
       );
     }
 
+    if(agreement.initiator.user.id === userId) {
+      await this.httpService.axiosRef.post("https://rafailvv.online/send/agreement/approve", {
+        agreement_id: agreement.id
+      })
+    }
+
     if (
       agreement.members.filter(
-        (member: AgreementMember) => member.inviteStatus === 'Приглашен',
+        (member: AgreementMember) => member.inviteStatus === 'Подтвердил',
       ).length > 1
     ) {
       throw new BadRequestException(

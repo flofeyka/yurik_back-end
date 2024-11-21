@@ -7,25 +7,28 @@ import { AgreementStep } from '../step/entities/step.entity';
 export class AgreementsListDto {
   @ApiProperty({ title: 'ID договора', example: 1 })
   id: number;
-  @ApiProperty({ title: 'Название договора', example: 'Договор возмездного оказания услуг' })
+  @ApiProperty({
+    title: 'Название договора',
+    example: 'Договор возмездного оказания услуг',
+  })
   title: string;
   @ApiProperty({ title: 'Статус договора', example: 'В работе' })
   status: string;
 
   members: {
-    firstName: string,
-    lastName: string,
-    middleName: string,
-    status: "Заказчик" | "Исполнитель" | "Юрист",
-    image: ImageDto | null
-  }[]
+    firstName: string;
+    lastName: string;
+    middleName: string;
+    status: 'Заказчик' | 'Исполнитель' | 'Юрист';
+    image: ImageDto | null;
+  }[];
   steps: {
     title: string;
-    status: "Готов" | "Отклонён" | "В процессе" | "Ожидает" | "Завершён";
+    status: 'Готов' | 'Отклонён' | 'В процессе' | 'Ожидает' | 'Завершён';
     payment: null | {
       price: number;
-      paymentLink: string | undefined
-    }
+      paymentLink: string | undefined;
+    };
   }[];
 
   stage: number;
@@ -36,23 +39,24 @@ export class AgreementsListDto {
     this.id = model.id;
     this.title = model.title;
     this.status = model.status;
-    this.members = model.members?.map((member: AgreementMember) => {
-      return {
-        firstName: member.user.firstName,
-        lastName: member.user.lastName,
-        middleName: member.user.middleName,
-        status: member.status,
-        image: member.user.image ? new ImageDto(member.user.image) : null
-      }
-    });
+    this.members = model.members?.map((member: AgreementMember) => ({
+      firstName: member.user.firstName,
+      lastName: member.user.lastName,
+      middleName: member.user.middleName,
+      status: member.status,
+      image: member.user.image ? new ImageDto(member.user.image) : null,
+    }));
+
     this.steps = model.steps?.map((step: AgreementStep) => {
       return {
         title: step.title,
         status: step.status,
-        payment: step.payment ? {
-          price: step.payment.price,
-          paymentLink: step.payment.paymentLink || undefined
-        } : null
+        payment: step.payment
+          ? {
+              price: step.payment.price,
+              paymentLink: step.payment.paymentLink || undefined,
+            }
+          : null,
       };
     });
     this.stage = model.stage;

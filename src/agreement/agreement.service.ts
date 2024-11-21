@@ -90,27 +90,21 @@ export class AgreementService {
       | 'Черновик'
       | 'Завершён',
   ): Promise<AgreementsListDto[]> {
-    const agreements: Agreement[] = await this.agreementRepository.find({
-      where: {
+    const member = await this.memberRepository.find({where: {
+      user: {
+        id: userId
+      }
+    }, relations: {
+      agreement: {
         members: {
           user: {
-            id: userId,
-          },
-        },
-        status: type,
-      },
-      relations: {
-        members: {
-          user: {
-            image: {
-              user: true,
-            },
-          },
-        },
-      },
-    });
+            image: true
+          }
+        }
+      }
+    }})
 
-    return agreements.map(
+    return member.map(data => data.agreement).map(
       (agreement: Agreement): AgreementsListDto =>
         new AgreementsListDto(agreement),
     );
@@ -509,8 +503,8 @@ export class AgreementService {
         },
         chat: true,
         lawyer: {
-          user: true
-        }
+          user: true,
+        },
       },
     });
 

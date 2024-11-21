@@ -215,8 +215,8 @@ export class AgreementService {
         agreement.text,
         user,
       );
-      agreement.text = agreement.text.replace("*", "");
-      agreement.text = agreement.text.replace("**", "");
+      agreement.text = agreement.text.replace('*', '');
+      agreement.text = agreement.text.replace('**', '');
       agreement.text = agreement.text.replace('#', '');
       agreement.text = agreement.text.replace('##', '');
       agreement.text = agreement.text.replace('###', '');
@@ -299,6 +299,14 @@ export class AgreementService {
     memberFound.inviteStatus = 'Подтвердил';
 
     await this.memberRepository.save(memberFound);
+    if (
+      agreement.members.filter(
+        (member: AgreementMember) => member.inviteStatus === 'Подтвердил',
+      ).length === 1
+    ) {
+      agreement.status = 'В работе';
+      await this.agreementRepository.save(agreement);
+    }
 
     return {
       isConfirmed: true,
@@ -342,28 +350,6 @@ export class AgreementService {
     return {
       isDeclined: true,
       message: 'Вы успешно отклонили участие в договоре',
-    };
-  }
-
-  async enableAgreementAtWork(
-    userId: number,
-    agreement: Agreement,
-  ): Promise<{
-    message: string;
-    agreement: AgreementDto;
-  }> {
-    if (agreement.initiator.user.id !== userId) {
-      throw new BadRequestException(
-        'Вы не можете включить договор в работу, так как вы не являетесь его инициатором.',
-      );
-    }
-    agreement.status = 'В работе';
-    const agreementAtWork: Agreement =
-      await this.agreementRepository.save(agreement);
-
-    return {
-      message: 'Договор был успешно включён в работу.',
-      agreement: new AgreementDto(agreementAtWork, userId),
     };
   }
 

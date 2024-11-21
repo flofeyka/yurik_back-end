@@ -68,13 +68,13 @@ export class SmsService {
 
     const five_minutes: number = 1000 * 60 * 5;
 
-    if (smsFound.updatedAt.getTime() * five_minutes < Date.now()) {
+    if (smsFound.updatedAt.getTime() + five_minutes < Date.now()) {
       throw new UnauthorizedException('Смс код истек');
     }
 
-    // if(smsFound.used) {
-    //     throw new UnauthorizedException("Смс код уже был использован. Пожалуйста, отправьте новый.");
-    // }
+    if(smsFound.used) {
+        throw new UnauthorizedException("Смс код уже был использован. Пожалуйста, отправьте новый.");
+    }
 
     await this.smsRepository.update(smsFound.id, {
       used: true,

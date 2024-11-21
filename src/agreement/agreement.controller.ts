@@ -32,6 +32,7 @@ import { Agreement } from './entities/agreement.entity';
 import { AgreementValidityGuard } from './guards/agreement-validity.guard';
 import { AgreementGuard } from './guards/agreement.guard';
 import { UserPersonalDataGuard } from 'src/user/user-personal_data.guard';
+import { SmsGuard } from 'src/sms/sms.guard';
 
 @ApiTags('Agreement API')
 @Controller('agreement')
@@ -192,7 +193,7 @@ export class AgreementController {
     ],
   })
   @Post('/confirm/:id')
-  @UseGuards(AuthGuard, AgreementGuard, UserPersonalDataGuard)
+  @UseGuards(AuthGuard, AgreementGuard, UserPersonalDataGuard, SmsGuard)
   async confirmAgreement(@Req() request: RequestType): Promise<{
     isConfirmed: boolean;
     message: string;

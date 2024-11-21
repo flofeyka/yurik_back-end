@@ -65,8 +65,6 @@ export class AgreementService {
         status: agreementDto.initiatorStatus,
       },
       agreementFound,
-
-      'Подтвердил',
     );
 
     (agreementFound.members = [initiatorAdded]),

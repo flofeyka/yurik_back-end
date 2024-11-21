@@ -10,6 +10,9 @@ export class AgreementValidityGuard implements CanActivate {
 
         agreement.steps = agreement.steps.sort((a: AgreementStep, b: AgreementStep) => a.order - b.order);
 
+        if(!agreement.is_edited) {
+            throw new BadRequestException("Вы должны перегенерировать текст договора, т.к. в нем поменялись данные");
+        }
         if(!agreement.text || agreement.text.length < 100) {
             throw new BadRequestException("Текст договора должен быть больше 100 символов");
         }

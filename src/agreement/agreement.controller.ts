@@ -193,7 +193,7 @@ export class AgreementController {
     ],
   })
   @Post('/confirm/:id')
-  @UseGuards(AuthGuard, AgreementGuard, UserPersonalDataGuard, SmsGuard)
+  @UseGuards(AuthGuard, AgreementGuard, UserPersonalDataGuard, SmsGuard, AgreementValidityGuard)
   async confirmAgreement(@Req() request: RequestType): Promise<{
     isConfirmed: boolean;
     message: string;
@@ -223,52 +223,6 @@ export class AgreementController {
     message: string;
   }> {
     return this.agreementService.declineAgreement(
-      request.user.id,
-      request.agreement,
-    );
-  }
-
-  @ApiOperation({
-    summary: 'Включение договора в работу.',
-    description:
-      'Включение договора в работу. Выполняется в том случае, если обе стороны устраивает договор, этапы, обязательства, цена и т.д..',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    example: AgreementDto,
-  })
-  @ApiBadRequestResponse({
-    example: [
-      {
-        message: 'Текст договора должен быть больше 100 символов',
-        error: 'Bad Request',
-        statusCode: 400,
-      },
-      {
-        message: 'В договоре должен присутствовать хотя бы один шаг с оплатой',
-        error: 'Bad Request',
-        statusCode: 400,
-      },
-      {
-        message: 'Дата начала договора не может быть раньше текущей даты',
-        error: 'Bad Request',
-        statusCode: 400,
-      },
-      {
-        message:
-          'Дата конца договора не может быть раньше даты конца последнего этапа',
-        error: 'Bad Request',
-        statusCode: 400,
-      },
-    ],
-  })
-  @Post('/enable/:id')
-  @UseGuards(AuthGuard, AgreementGuard, AgreementValidityGuard)
-  async enableAgreement(@Req() request: RequestType): Promise<{
-    message: string;
-    agreement: AgreementDto;
-  }> {
-    return this.agreementService.enableAgreementAtWork(
       request.user.id,
       request.agreement,
     );

@@ -146,7 +146,7 @@ export class AgreementService {
       const user: User = await this.userService.findUser(userId);
 
       if (editDealDto.dealText.generate) {
-        const message: any = await this.gigachatService.sendMessage({
+        const message = await this.gigachatService.sendMessage({
           model: 'GigaChat-Pro',
           messages: [
             {
@@ -186,14 +186,14 @@ export class AgreementService {
                           .join(', ')}\n
             Дата начала договора: ${agreement.start}\n
             Дата окончания договора: ${agreement.end}\n
-            Только направь мне ответ в формате Markdown и без какого-либо комментария. Составь полный текст договора с подписями и данными сторон. Составляй без лишних разговоров, как есть. Сгенерируй Markdown-разметку c отступами.\n
+            Только направь мне ответ и без какого-либо комментария. Составь полный текст договора с подписями и данными сторон. Составляй без лишних разговоров, как есть. Сгенерируй текст c отступами.\n
             ${editDealDto.dealText.text}
             `,
             },
           ],
         });
 
-        const checkout: any = await this.gigachatService.sendMessage({
+        const checkout = await this.gigachatService.sendMessage({
           model: 'GigaChat-Pro',
           messages: [
             {
@@ -203,13 +203,14 @@ export class AgreementService {
             {
               role: 'user',
               content:
-                'Допиши договор полностью. Составляй без лишних разговоров, как есть. Сгенерируй Markdown-разметку c отступами.\n',
+                'Допиши договор полностью. Составляй без лишних разговоров, как есть. Сгенерируй текст c отступами.\n',
             },
           ],
         });
 
-        agreement.text = checkout.content.replace(/\n/g, '<br/>');
-        agreement.text = agreement.text.replace('```', '');
+        // agreement.text = checkout.content.replace(/\n/g, '<br/>');
+        // agreement.text = agreement.text.replace('```', '');
+        agreement.text = checkout.content;
       } else {
         agreement.text = editDealDto.dealText.text;
       }

@@ -20,8 +20,8 @@ export class SmsService {
 
   async sendSms(phoneNumber: string): Promise<boolean> {
     const smsFound: Sms = await this.smsRepository.findOneBy({ phoneNumber });
-    const THREE_MINUTES: number = 1000 * 60 * 3;
-    if (smsFound && smsFound.updatedAt.getTime() + THREE_MINUTES < Date.now()) {
+    const ONE_MINUTE: number = 1000 * 60;
+    if (smsFound && smsFound.updatedAt.getTime() + ONE_MINUTE < Date.now()) {
       throw new BadRequestException(
         'Смс код уже был отправлен. Следующий можно будет отправить через 3 минуты',
       );

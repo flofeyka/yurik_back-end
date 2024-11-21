@@ -20,12 +20,12 @@ export class SmsService {
 
   async sendSms(phoneNumber: string): Promise<boolean> {
     const smsFound: Sms = await this.smsRepository.findOneBy({ phoneNumber });
-    const ONE_MINUTE: number = 1000 * 60;
-    if (smsFound && smsFound.updatedAt.getTime() + ONE_MINUTE < Date.now()) {
-      throw new BadRequestException(
-        'Смс код уже был отправлен. Следующий можно будет отправить через 3 минуты',
-      );
-    }
+    // const ONE_MINUTE: number = 1000 * 60;
+    // if (smsFound && smsFound.updatedAt.getTime() + ONE_MINUTE < Date.now()) {
+    //   throw new BadRequestException(
+    //     'Смс код уже был отправлен. Следующий можно будет отправить через 1 минуту',
+    //   );
+    // }
     if (!phoneNumber || phoneNumber.length !== 11 || phoneNumber.split("")[0] !== '7') {
       throw new BadRequestException('Неверный номер телефона');
     }

@@ -1,11 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsByteLength,
   IsDate,
   IsDateString,
   IsEmail,
   IsNotEmpty,
   IsPhoneNumber,
   IsString,
+  Length,
 } from 'class-validator';
 
 export class UserInfoDto {
@@ -32,6 +34,7 @@ export class UserInfoDto {
   readonly middleName: string;
 
   @IsString()
+  @Length(11, 11)
   @ApiProperty({
     description: 'Номер телефона. Обязательное поле',
     example: '79123456789',

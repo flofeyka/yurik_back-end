@@ -42,6 +42,10 @@ export class UserService {
       throw new BadGatewayException("Возраст пользователя должен быть больше 18 лет");
     }
 
+    if(userDto.phoneNumber && userDto.phoneNumber.split("")[0] !== "7") {
+      throw new BadRequestException("Номер телефона должен строго начинаться с 7")
+    }
+
     const userPersonalData: PersonalData = await this.personalDataRepository.findOne({
       where: { user: { id: userId } }, relations: {
         user: true

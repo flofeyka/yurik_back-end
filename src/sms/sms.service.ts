@@ -35,7 +35,7 @@ export class SmsService {
     const smsText: string = `Смс-код для Yurik: ${codeValue}. Действует 5 минут. Не сообщайте код никому! `;
 
     const response = await this.httpService.axiosRef.get(
-      `https://gateway.api.sc/get/?user=79393954195&pwd=58%5E[DnSwwm&name_deliver=Title&sadr=SMS%20Info&dadr=${phoneNumber}&text=${smsText}`,
+      `https://gateway.api.sc/get/?user=${process.env.SMS_LOGIN}&pwd=${process.env.SMS_PASSWORD}&name_deliver=Title&sadr=SMS%20Info&dadr=${phoneNumber}&text=${smsText}`,
     );
 
     if (response.status !== 200) {

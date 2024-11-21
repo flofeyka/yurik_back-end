@@ -26,7 +26,7 @@ export class SmsService {
         'Смс код уже был отправлен. Следующий можно будет отправить через 3 минуты',
       );
     }
-    if (phoneNumber.length !== 11) {
+    if (!phoneNumber || phoneNumber.length !== 11 || phoneNumber.split("")[0] !== '7') {
       throw new BadRequestException('Неверный номер телефона');
     }
 
@@ -35,8 +35,9 @@ export class SmsService {
     const smsText: string = `Смс-код для Yurik: ${codeValue}. Действует 5 минут. Не сообщайте код никому! `;
 
     const response = await this.httpService.axiosRef.get(
-      `https://gateway.api.sc/get/?user=${process.env.SMS_LOGIN}&pwd=${process.env.SMS_PASSWORD}&name_deliver=Title&sadr=SMS%20Info&dadr=${phoneNumber}&text=${smsText}`,
+      `https://gateway.api.sc/get/?user=${process.env.SMS_LOGIN}&pwd=${process.env.SMS_PASSWORD}&name_deliver=Yurik&sadr=LinkMind&dadr=${phoneNumber}&text=${smsText}`,
     );
+    console.log(response);
 
     if (response.status !== 200) {
       throw new BadGatewayException('Не удалось отправить смс');

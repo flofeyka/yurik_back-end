@@ -18,13 +18,9 @@ export class SmsGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: RequestType = context.switchToHttp().getRequest();
-    const user: User =
-      request.user && (await this.userService.findUser(request.user.id));
+    const user: User = await this.userService.findUser(request.user.id);
     const isCorrectSms: boolean = await this.smsService.checkSms(
-      request.query.phone ||
-        user?.phoneNumber ||
-        request.body.phone ||
-        request.body.phoneNumber,
+        user.phoneNumber,
       request.query.code || request.body.code,
     );
 

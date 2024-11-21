@@ -15,7 +15,7 @@ export class PdfService {
 
     public async convertMarkdownToPdf(markdown: string, creator: User): Promise<Pdf> {
         try {
-            const pdfResponse = await this.httpService.axiosRef.post('https://md-to-pdf.fly.dev', {
+            const pdfResponse = await this.httpService.axiosRef.post('http://yurkitgbot.ru:8000/', {
                 markdown,
             },
                 {

@@ -90,27 +90,32 @@ export class AgreementService {
       | 'Черновик'
       | 'Завершён',
   ): Promise<AgreementsListDto[]> {
-    const member = await this.memberRepository.find({where: {
-      user: {
-        id: userId
+    const member = await this.memberRepository.find({
+      where: {
+        user: {
+          id: userId,
+        },
+        agreement: {
+          status: type,
+        },
       },
-      agreement: {
-        status: type
-      }
-    }, relations: {
-      agreement: {
-        members: {
-          user: {
-            image: true
-          }
-        }
-      }
-    }})
+      relations: {
+        agreement: {
+          members: {
+            user: {
+              image: true,
+            },
+          },
+        },
+      },
+    });
 
-    return member.map(data => data.agreement).map(
-      (agreement: Agreement): AgreementsListDto =>
-        new AgreementsListDto(agreement),
-    );
+    return member
+      .map((data) => data.agreement)
+      .map(
+        (agreement: Agreement): AgreementsListDto =>
+          new AgreementsListDto(agreement),
+      );
   }
 
   async getAgreement(
@@ -143,71 +148,66 @@ export class AgreementService {
       const user: User = await this.userService.findUser(userId);
 
       if (editDealDto.dealText.generate) {
+        if (editDealDto.dealText.text.length > 150) {
+          throw new BadRequestException(
+            'Длина договора не может быть больше 150 символов',
+          );
+        }
+
         const message = await this.gigachatService.sendMessage({
           model: 'GigaChat-Pro',
           messages: [
             {
               role: 'user',
-              content: `Cоставь текст договора по следующему описанию.
-            Какие данные я могу предоставить ${agreement.members
-              .map((member: AgreementMember): string => {
-                return `Участник договора ${member.status}: ${member.user.lastName} ${member.user.firstName} ${member.user.middleName}, паспортные данные \n
-              Серия: ${member.user.personalData.serial}\n
-              Номер: ${member.user.personalData.number}\n
-              Дата рождения: ${member.user.BirthDate}\n
-              Адрес прописки: ${member.user.personalData.address}\n
-              Дата выдачи паспорта: ${member.user.personalData.passportDate}\n
-              Место выдачи: ${member.user.personalData.authority}\n
-              ИНН: ${member.user.personalData.TIN}\n
-              `;
-              })
-              .join(', ')}\n
-                        Все этапы договора: ${agreement.steps
-                          .map((step: AgreementStep): string => {
-                            return `Этап: ${step.title}\n
-              Дата начала этапа: ${step.start}\n
-              Дата окончания этапа: ${step.end}\n
-              Ответственный за этап: ${step.user.user.lastName} ${step.user.user.firstName} ${step.user.user.middleName}, паспортные данные \n
-              Серия: ${step.user.user.personalData.serial}\n
-              Номер: ${step.user.user.personalData.number}\n
-              Дата рождения: ${step.user.user.BirthDate}\n
-              Адрес прописки: ${step.user.user.personalData.address}\n
-              Дата выдачи паспорта: ${step.user.user.personalData.passportDate}\n
-              Место выдачи: ${step.user.user.personalData.authority}\n
-              ИНН: ${step.user.user.personalData.TIN}\n
-              Статус ответственного за этап: ${step.user.status}\n
-              Является ли этап платежным: ${step.payment ? 'Да' : 'Нет'}\n
-              Описание: ${step.comment}\n
-              `;
-                          })
+              content: `Составьте официальный договор на тему «${agreement.title}» с описанием «${editDealDto.dealText.text}» Договор должен быть полностью оформлен как официальный документ, без лишних комментариев или примеров.
+                Инструкции:
+                Используйте предоставленные данные о заказчике, испонителе и перечене работ для заполнения всех необходимых разделов договора.
+                Написан в официально-деловом стиле.
+                Договор не предполагает содержание приложений. 
+                Структурируйте договор с учетом стандартных разделов: преамбула, предмет договора, права и обязанности сторон, сроки выполнения работ, порядок расчетов, ответственность сторон, порядок разрешения споров, заключительные положения и прочее.
+                Включите данные сторон, этапы выполнения работ, условия оплаты и другие важные детали.
+                Включите пункт ,что договор подписывается в приложении и считается действительным без физической подписи сторон. 
+                Исключить раздел подписи сторон.
+                Форматируйте текст с отступами и абзацами для удобства чтения.
+                Заполнить все поля в договоре, нельзя оставлять их пустыми.
+                Данные для договора: \n
+                Дата начала договора: ${new Date(agreement.start).getUTCDate() + '.' + (new Date(agreement.start).getUTCMonth() + 1) + '.' + new Date(agreement.start).getUTCFullYear()}\n
+                Дата окончания договора: ${new Date(agreement.end).getUTCDate() + '.' + (new Date(agreement.end).getUTCMonth() + 1) + '.' + new Date(agreement.end).getUTCFullYear()}\n
+              ${agreement.members
+                .map(
+                  (member: AgreementMember): string => `${member.status}:\n
+                  ФИО: ${member.user.lastName} ${member.user.firstName} ${member.user.middleName}, 
+                  паспортные данные: \n
+                  Серия: ${member.user.personalData.serial}\n
+                  Номер: ${member.user.personalData.number}\n
+                  Дата рождения: ${member.user.BirthDate}\n
+                  Адрес прописки: ${member.user.personalData.address}\n
+                  Дата выдачи паспорта: ${member.user.personalData.passportDate}\n
+                  Место выдачи: ${member.user.personalData.authority}\n
+                  ИНН: ${member.user.personalData.TIN}\n
+              `,
+                )
+                .join(', ')}\n
+                        Перечень работ: ${agreement.steps
+                          .map(
+                            (
+                              step: AgreementStep,
+                            ): string => `Этап: ${step.title}\n
+                            Дата начала этапа: ${new Date(step.start).getUTCDate() + '.' + (new Date(step.start).getUTCMonth() + 1) + '.' + new Date(step.start).getUTCFullYear()}\n
+                            Дата конца этапа: ${new Date(step.end).getUTCDate() + '.' + (new Date(step.end).getUTCMonth() + 1) + '.' + new Date(step.end).getUTCFullYear()}\n
+                            Оплата за этап: ${step.payment && step.payment?.price > 0 ? `${step.payment.price}` : 'отсутствует'}\n
+                            Описание: ${step.comment}\n 
+                            `,
+                          )
                           .join(', ')}\n
-            Дата начала договора: ${agreement.start}\n
-            Дата окончания договора: ${agreement.end}\n
-            Только направь мне ответ и без какого-либо комментария. Составь полный текст договора с подписями и данными сторон. Составляй без лишних разговоров, как есть. Сгенерируй текст c отступами.\n
-            ${editDealDto.dealText.text}
+                          Дата заключения договора ${new Date(Date.now()).getUTCDate() + '.' + (new Date(Date.now()).getUTCMonth() + 1) + '.' + new Date(Date.now()).getUTCFullYear()}\n
+                          Вставитьте данные персональные данные заказчика и исполнителя вначале договора.
+            Пришлите мне сам текст договора без лишних комментариев, примечаний и нижних полей.\n
             `,
             },
           ],
         });
-
-        const checkout = await this.gigachatService.sendMessage({
-          model: 'GigaChat-Pro',
-          messages: [
-            {
-              role: 'assistant',
-              content: message.content,
-            },
-            {
-              role: 'user',
-              content:
-                'Допиши договор полностью. Составляй без лишних разговоров, как есть. Сгенерируй текст c отступами.\n',
-            },
-          ],
-        });
-
-        // agreement.text = checkout.content.replace(/\n/g, '<br/>');
-        // agreement.text = agreement.text.replace('```', '');
-        agreement.text = checkout.content;
+        agreement.text = message.content;
       } else {
         agreement.text = editDealDto.dealText.text;
       }
@@ -217,6 +217,11 @@ export class AgreementService {
         agreement.text,
         user,
       );
+      agreement.text = agreement.text.replace("*", "");
+      agreement.text = agreement.text.replace("**", "");
+      agreement.text = agreement.text.replace('#', '');
+      agreement.text = agreement.text.replace('##', '');
+      agreement.text = agreement.text.replace('###', '');
     }
 
     const agreementSaved: Agreement = await this.agreementRepository.save({
@@ -497,7 +502,9 @@ export class AgreementService {
       relations: {
         images: true,
         members: {
-          user: true,
+          user: {
+            personalData: true,
+          },
         },
         steps: {
           images: {

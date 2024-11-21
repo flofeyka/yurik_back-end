@@ -102,7 +102,7 @@ export class GigachatService {
       throw new BadRequestException('Диалог с этим id не был найден');
     }
     const payload = {
-      model: 'GigaChat-Pro',
+      model: 'GigaChat',
       messages: [
         ...dialogFound.messages.map((message: GigaChatMessage) => {
           return {
@@ -144,6 +144,8 @@ export class GigachatService {
 
   public async sendMessage(payload) {
     const requestAccessToken = await this.getToken();
+    console.log(payload.messages[0].content);
+
     const response = await this.httpService.axiosRef.post(
       'https://gigachat.devices.sberbank.ru/api/v1/chat/completions',
       payload && JSON.stringify(payload),
@@ -160,6 +162,7 @@ export class GigachatService {
       console.log(e)
       throw new BadRequestException("Не удалось отправить сообщение");
     });
+
 
     return {...response.data.choices[0].message, type: "Gigachat"};
   }

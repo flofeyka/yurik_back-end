@@ -48,6 +48,7 @@ export class SmsService {
       phoneNumber: phoneNumber,
       smsUniqueIds: [response.data],
       code: codeValue,
+      used: false
     } as Sms);
 
     return true;
@@ -68,9 +69,9 @@ export class SmsService {
 
     const five_minutes: number = 1000 * 60 * 5;
 
-    if (smsFound.updatedAt.getTime() + five_minutes > Date.now()) {
-      throw new UnauthorizedException('Смс код истек');
-    }
+    // if ((smsFound.updatedAt.getTime() + five_minutes) < Date.now()) {
+    //   throw new UnauthorizedException('Смс код истек');
+    // }
 
     if(smsFound.used) {
         throw new UnauthorizedException("Смс код уже был использован. Пожалуйста, отправьте новый.");

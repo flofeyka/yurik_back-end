@@ -20,7 +20,6 @@ import { UserModule } from './user/user.module';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      ssl: true,
       host: process.env.POSTGRES_HOST,
       database: process.env.POSTGRES_DB,
       password: process.env.POSTGRES_PASSWORD,

@@ -10,7 +10,7 @@ export class AppService {
     async sendNotification(message: string, telegramID: number): Promise<boolean> {
         try {
             if (telegramID) {
-                const response: AxiosResponse = await this.httpService.axiosRef.post("https://rafailvv.online/send/message", {
+                const response: AxiosResponse = await this.httpService.axiosRef.post("https://bot.yurkitgbot.ru/send/message", {
                     user_id: telegramID,
                     message_text: `Вам пришло новое уведомление:\n${message}`
                 })
@@ -23,7 +23,7 @@ export class AppService {
 
     async sendDealNotification(user_id: number, initiator_id: number, user_name: string, initiator_name: string, contract_id: number): Promise<boolean> {
         try {
-            const response: AxiosResponse = await this.httpService.axiosRef.post("https://rafailvv.online/send/contract", {
+            const response: AxiosResponse = await this.httpService.axiosRef.post("https://bot.yurkitgbot.ru/send/contract", {
                 user_id, initiator_id, user_name, initiator_name, contract_id, pdf_link: ""
             });
 

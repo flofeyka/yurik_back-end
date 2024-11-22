@@ -72,15 +72,15 @@ export class AgreementValidityGuard implements CanActivate {
             );
         }
 
-        if (
-            !agreement.members.every(
-                (member: AgreementMember) => member.inviteStatus === 'Подтвердил',
-            )
-        ) {
-            throw new BadRequestException(
-                'Участие в договоре ещё не было подтверждено всеми участниками. Пожалуйста, свяжитесь с ними.',
-            );
-        }
+        // if (
+        //     !agreement.members.every(
+        //         (member: AgreementMember) => member.inviteStatus === 'Подтвердил',
+        //     )
+        // ) {
+        //     throw new BadRequestException(
+        //         'Участие в договоре ещё не было подтверждено всеми участниками. Пожалуйста, свяжитесь с ними.',
+        //     );
+        // }
 
         return true;
 

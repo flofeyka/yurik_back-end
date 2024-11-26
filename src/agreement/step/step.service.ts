@@ -95,7 +95,7 @@ export class StepService {
   }
 
   async completeStep(step: AgreementStep, userId: number): Promise<AgreementStepDto> {
-    if(step.agreement.status !== "Активный") {
+    if(step.agreement.status !== "Активный" && step.agreement.status !== "Требуется действие") {
       throw new BadRequestException("Договор еще неактивен")
     }
     if (step.status !== "В процессе" && step.status !== "Ожидает") {

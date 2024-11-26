@@ -349,7 +349,7 @@ export class AgreementService {
           }
         )
       ],
-      status: agreement.status === "Активный" ? "Расторгнут" : agreement.status
+      status: agreement.status === "Активный" || agreement.status === "Требуется действие" ? "Расторгнут" : agreement.status
     });
 
     return {

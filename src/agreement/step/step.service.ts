@@ -95,10 +95,10 @@ export class StepService {
   }
 
   async completeStep(step: AgreementStep, userId: number): Promise<AgreementStepDto> {
-    if(step.agreement.status !== "Активный" && step.agreement.status !== "Требуется действие") {
+    if(step.agreement.status !== "Активный") {
       throw new BadRequestException("Договор еще неактивен")
     }
-    if (step.status !== "В процессе" && step.status !== "Ожидает") {
+    if (step.status !== "В процессе" && step.status !== "Ожидает" && step.status !== "Требуется действие") {
       throw new BadRequestException("Нельзя завершить этап, так как он не находится в статусе ожидания или в процессе");
     }
     const member: AgreementMember = this.memberService.findMember(step.agreement, userId);

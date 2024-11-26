@@ -44,7 +44,7 @@ export class MemberService {
         if (agreement.members.find((member: AgreementMember): boolean => member.status === status)) {
             throw new BadRequestException(`${status} уже есть в договоре. Пожалуйста, выберете новый статус`);
         }
-        if (agreement.status === 'В работе') {
+        if (agreement.status === 'Активный') {
             throw new BadRequestException(
                 'Вы не можете добавить нового участника в уже подписанный договор.',
             );
@@ -79,7 +79,7 @@ export class MemberService {
         agreement.members.push(newMember);
         await this.agreementRepository.save(agreement);
 
-        await this.appService.sendDealNotification(newMember.user.telegram_account.telegramID, initiator.telegram_account.telegramID, newMember.user.firstName, "initiator", agreement.id);
+        // await this.appService.sendDealNotification(newMember.user.telegram_account.telegramID, initiator.telegram_account.telegramID, newMember.user.firstName, "initiator", agreement.id);
         await this.chatService.addMember(agreement.chat.id, memberId, {id: initiator.id, isAdmin: initiator.role === "Админ"});
         return {
             isInvited: true,

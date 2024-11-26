@@ -24,7 +24,7 @@ export class LawyerService {
             );
         }
 
-        if (agreement.status === 'Отклонён') {
+        if (agreement.status === 'Расторгнут') {
             throw new BadRequestException(
                 'Вы не можете пригласить юриста в отклоненный договор',
             );

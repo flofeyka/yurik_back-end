@@ -65,13 +65,13 @@ export class Agreement {
 
   @Column({ default: 'Черновик' })
   public status:
-    | 'В работе'
-    | 'Отклонён'
+    | 'Активный'
+    | 'Расторгнут'
     | 'У юриста'
     | 'В поиске юриста'
-    | 'В процессе подтверждения'
+    | 'Требуется действие'
     | 'Черновик'
-    | 'Завершён'
+    | 'Выполнен'
 
   @OneToMany(() => AgreementStep, (step: AgreementStep) => step.agreement, {
     eager: true,

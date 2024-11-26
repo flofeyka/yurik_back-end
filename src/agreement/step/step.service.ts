@@ -70,7 +70,7 @@ export class StepService {
     }
 
     async takeStep(step: AgreementStep, agreement: Agreement): Promise<AgreementStepDto> {
-        if (agreement.status !== "В работе") {
+        if (agreement.status !== "Активный") {
             throw new BadRequestException("Нельзя взять этап в недействующем договоре");
         }
         if (step.status !== "Ожидает") {

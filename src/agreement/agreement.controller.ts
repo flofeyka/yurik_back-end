@@ -54,13 +54,13 @@ export class AgreementController {
     @Req() request: RequestType,
     @Query('type')
     type:
-      | 'В работе'
-      | 'Отклонён'
+      | 'Активный'
+      | 'Расторгнут'
       | 'У юриста'
       | 'В поиске юриста'
-      | 'В процессе подтверждения'
+      | 'Требуется действие'
       | 'Черновик'
-      | 'Завершён',
+      | 'Выполнен',
   ): Promise<AgreementsListDto[]> {
     return this.agreementService.getAgreements(request.user.id, type);
   }

@@ -16,25 +16,25 @@ export class AgreementStep {
   @PrimaryGeneratedColumn('uuid')
   id: UUID;
 
-  @ManyToOne(() => Agreement, (agreement: Agreement) => agreement.steps, {onDelete: "CASCADE"})
+  @ManyToOne((): typeof Agreement => Agreement, (agreement: Agreement): AgreementStep[] => agreement.steps, {onDelete: "CASCADE"})
   agreement: Agreement;
 
   @Column()
   title: string;
 
-  @OneToMany(() => StepImage, (image: StepImage) => image.step, { cascade: true, eager: true, onDelete: "SET NULL", onUpdate: "CASCADE" })
+  @OneToMany((): typeof StepImage => StepImage, (image: StepImage): AgreementStep => image.step, { cascade: true, eager: true, onDelete: "SET NULL", onUpdate: "CASCADE" })
   @JoinColumn()
   images: StepImage[];
 
   @ManyToOne(
-    () => AgreementMember,
-    (agreementMember: AgreementMember) => agreementMember.agreement,
+    (): typeof AgreementMember => AgreementMember,
+    (agreementMember: AgreementMember): Agreement => agreementMember.agreement,
     { nullable: true, eager: true, onUpdate: "CASCADE", onDelete: "CASCADE" },
   )
   user: AgreementMember;
 
   @Column({ default: "Ожидает" })
-  status: "Готов" | "Отклонён" | "В процессе" | "Ожидает" | "Завершён";
+  status: "Готов" | "Отклонён" | "В процессе" | "Ожидает" | "Завершён" | "Требуется действие";
 
   @Column({ nullable: true, type: "json" })
   payment: {

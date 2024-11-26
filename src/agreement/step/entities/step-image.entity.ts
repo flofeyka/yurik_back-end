@@ -8,11 +8,11 @@ export class StepImage {
     @PrimaryGeneratedColumn('uuid')
     id: UUID;
 
-    @OneToOne(() => Image, {onDelete: "CASCADE"})
+    @OneToOne((): typeof Image => Image, {onDelete: "CASCADE"})
     @JoinColumn()
     image: Image;
 
-    @ManyToOne(() => AgreementStep, (step: AgreementStep) => step.images, {onDelete: "CASCADE", onUpdate: "CASCADE"})
+    @ManyToOne((): typeof AgreementStep => AgreementStep, (step: AgreementStep): StepImage[] => step.images, {onDelete: "CASCADE", onUpdate: "CASCADE"})
     @JoinColumn()
     step: AgreementStep;
 }

@@ -24,7 +24,7 @@ export class AgreementsListDto {
   }[];
   steps: {
     title: string;
-    status: 'Готов' | 'Отклонён' | 'В процессе' | 'Ожидает' | 'Завершён';
+    status: 'Готов' | 'Отклонён' | 'В процессе' | 'Ожидает' | 'Завершён' | 'Требуется действие';
     payment: null | {
       price: number;
       paymentLink: string | undefined;

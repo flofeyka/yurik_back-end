@@ -1,11 +1,17 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
-import { ApiBadRequestResponse, ApiNotFoundResponse, ApiOperation, ApiProperty, ApiResponse, ApiTags } from "@nestjs/swagger";
+import {
+    ApiBadRequestResponse,
+    ApiNotFoundResponse,
+    ApiOperation,
+    ApiProperty,
+    ApiResponse,
+    ApiTags
+} from "@nestjs/swagger";
 import { UUID } from "crypto";
 import { AuthGuard } from "src/auth/auth.guard";
 import { RequestType } from "types/types";
 import { AgreementDto, AgreementStepDto } from "../dtos/agreement-dto";
 import { Step } from "../dtos/edit-steps-dto";
-import { ImagesDto } from "../dtos/images-dto";
 import { AgreementGuard } from "../guards/agreement.guard";
 import { ChangeOrder } from "./dtos/change-order-dto";
 import { EditStepDto } from "./dtos/edit-step-dto";

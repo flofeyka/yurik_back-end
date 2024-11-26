@@ -6,6 +6,7 @@ export class ProfileDto {
     firstName: string;
     lastName: string;
     middleName: string;
+    phoneNumber: string;
     image: string;
   
   
@@ -14,6 +15,7 @@ export class ProfileDto {
         this.firstName = user.firstName;
         this.lastName = user.lastName;
         this.middleName = user.middleName;
+        this.phoneNumber = user.phoneNumber;
         this.image = user.image ? new ImageDto(user.image).imgUrl : null;
     }
 }

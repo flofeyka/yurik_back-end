@@ -11,6 +11,6 @@ export class Deposit {
   @JoinColumn()
   public owner: User;
 
-  @Column({ default: 0 }) //мб поменяется
+  @Column({ default: 100 }) //мб поменяется
   public count: number;
 }

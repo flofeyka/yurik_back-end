@@ -33,11 +33,14 @@ import { AgreementValidityGuard } from './guards/agreement-validity.guard';
 import { AgreementGuard } from './guards/agreement.guard';
 import { UserPersonalDataGuard } from 'src/user/user-personal_data.guard';
 import { SmsGuard } from 'src/sms/sms.guard';
+import { AgreementDepositService } from './deposit/deposit.service';
 
 @ApiTags('Agreement API')
 @Controller('agreement')
 export class AgreementController {
-  constructor(private readonly agreementService: AgreementService) {}
+  constructor(
+    private readonly agreementService: AgreementService
+  ) {}
 
   @ApiOperation({
     summary: 'Получение списка пользовательских договоров',

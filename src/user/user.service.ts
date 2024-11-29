@@ -17,6 +17,7 @@ import { ImagesService } from "../images/images.service";
 import { PersonalData } from "./entities/user.personal_data";
 import { Image } from "src/images/image.entity";
 import { ProfileDto } from "./dtos/profile-dto";
+import { AgreementDepositService } from "src/agreement/deposit/deposit.service";
 
 @Injectable()
 export class UserService {
@@ -25,7 +26,7 @@ export class UserService {
     @InjectRepository(TelegramAccount) private readonly telegramAccountsRepository: Repository<TelegramAccount>,
     @InjectRepository(PersonalData) private readonly personalDataRepository: Repository<PersonalData>,
     @Inject(forwardRef(() => ImagesService))
-    private readonly imagesService: ImagesService
+    private readonly imagesService: ImagesService,
   ) {
   };
 

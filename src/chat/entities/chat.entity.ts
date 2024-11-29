@@ -1,5 +1,6 @@
 import { Agreement } from 'src/agreement/entities/agreement.entity';
 import {
+  Column,
   Entity,
   JoinColumn,
   JoinTable,
@@ -22,6 +23,9 @@ export class Chat {
   @OneToOne(() => Image)
   @JoinColumn()
   image: Image;
+
+  @Column({nullable: true})
+  title: string;
 
   @ManyToMany(() => ChatUser, (user: ChatUser) => user.chats, { eager: true })
   @JoinTable()

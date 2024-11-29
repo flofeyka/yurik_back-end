@@ -24,6 +24,8 @@ import { AgreementMember } from "./members/member.entity";
 import { MemberService } from "./members/member.service";
 import { AgreementStep } from "./step/entities/step.entity";
 import { HttpService } from "@nestjs/axios";
+import { AgreementDepositService } from "./deposit/deposit.service";
+import { Deposit } from "./deposit/deposit.entity";
 
 @Injectable()
 export class AgreementService {
@@ -41,7 +43,8 @@ export class AgreementService {
     private readonly gigachatService: GigachatService,
     private readonly userService: UserService,
     private readonly pdfService: PdfService,
-    private readonly httpService: HttpService
+    private readonly httpService: HttpService,
+    private readonly depositService: AgreementDepositService
   ) {
   }
 
@@ -49,6 +52,15 @@ export class AgreementService {
     userId: number,
     agreementDto: CreateAgreementDto
   ): Promise<AgreementDto> {
+    const depositFound: Deposit = await this.depositService.getUserDeposit(userId);
+    if(!depositFound) {
+      throw new NotFoundException("Создайте договорный счет, чтобы продолжить");
+    }
+
+    if(depositFound.count < 1) {
+      throw new BadRequestException("Недостаточно средств на счете. Пополните договорный счёт.");
+    }
+    
     const agreementCreated: InsertResult = await this.agreementRepository
       .createQueryBuilder()
       .insert()
@@ -73,7 +85,7 @@ export class AgreementService {
     (agreementFound.members = [initiatorAdded]),
       (agreementFound.initiator = initiatorAdded);
     const user: User = await this.userService.findUser(userId);
-    agreementFound.chat = await this.chatService.addChat([user]);
+    agreementFound.chat = await this.chatService.addChat([user], agreementFound.title);
     const memberUpdated: Agreement =
       await this.agreementRepository.save(agreementFound);
 

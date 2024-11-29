@@ -28,6 +28,9 @@ import { UserModule } from './user/user.module';
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
       autoLoadEntities: true,
+      ssl: {
+        rejectUnauthorized: true
+      }
     }),
     forwardRef(() => AuthModule),
     UserModule,

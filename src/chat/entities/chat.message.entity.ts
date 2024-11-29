@@ -1,6 +1,7 @@
 import { UUID } from 'crypto';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -26,4 +27,7 @@ export class ChatMessage {
 
   @ManyToOne(() => ChatUser, (chatUser: ChatUser) => chatUser.messages, { eager: true })
   member: ChatUser;
+
+  @CreateDateColumn()
+  public created_at: Date;
 }

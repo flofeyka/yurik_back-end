@@ -94,8 +94,8 @@ export class ChatController {
   @HttpCode(HttpStatus.CREATED)
   async createChat(@Body() {
     users
-  }: { users: Array<{ id: number }> }, @Req() request: RequestType) {
-    return await this.chatService.createChat(users, request.user.id);
+  }: { users: Array<{ id: number }> }, @Req() request: RequestType, @Query("title") title: string) {
+    return await this.chatService.createChat(users, request.user.id, title);
   }
 
   @ApiOperation({ summary: "Добавление участника в чат" })

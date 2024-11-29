@@ -26,6 +26,9 @@ import { GigachatModule } from "src/gigachat/gigachat.module";
 import { PdfModule } from "src/pdf/pdf.module";
 import { AgreementPatternController } from "./pattern/pattern.controller";
 import { PatternService } from "./pattern/pattern.service";
+import { AgreementDepositController } from "./deposit/deposit.controller";
+import { AgreementDepositService } from "./deposit/deposit.service";
+import { Deposit } from "./deposit/deposit.entity";
 
 @Module({
   imports: [
@@ -37,7 +40,8 @@ import { PatternService } from "./pattern/pattern.service";
       Lawyer,
       AgreementImage,
       PersonalData,
-      StepImage
+      StepImage,
+      Deposit
     ]),
     SmsModule,
     HttpModule,
@@ -48,8 +52,8 @@ import { PatternService } from "./pattern/pattern.service";
     forwardRef((): typeof AppModule => AppModule),
     PdfModule
   ],
-  controllers: [AgreementController, StepController, MemberController, LawyerController, AgreementPatternController],
-  providers: [AgreementService, MemberService, StepService, LawyerService, PatternService],
+  controllers: [AgreementController, StepController, MemberController, LawyerController, AgreementPatternController, AgreementDepositController],
+  providers: [AgreementService, MemberService, StepService, LawyerService, PatternService, AgreementDepositService],
   exports: [MemberService]
 })
 export class AgreementModule {}

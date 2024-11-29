@@ -60,20 +60,21 @@ export class ChatService {
     return await this.chatUserRepository.findOneBy({ id: newChatUser.identifiers[0].id })
   }
 
-  public async addChat(users: { id: number }[]): Promise<Chat> {
+  public async addChat(users: { id: number }[], title: string): Promise<Chat> {
     const members = await Promise.all(users.map(async (user: User) => await this.createChatUser(user.id)));
     const newChat = await this.chatRepository.save({
-      members
+      members,
+      title
     });
 
     return newChat;
   }
 
-  async createChat(users: { id: number }[] = [], userId: number): Promise<ChatDto> {
+  async createChat(users: { id: number }[] = [], userId: number, title): Promise<ChatDto> {
     if (users?.find(user => user.id === userId)) {
       throw new BadRequestException("Нельзя создать чат с самим собой");
     }
-    const newChat = await this.addChat([...users, { id: userId }])
+    const newChat = await this.addChat([...users, { id: userId }], title);
     return new ChatDto(newChat);
   }
 

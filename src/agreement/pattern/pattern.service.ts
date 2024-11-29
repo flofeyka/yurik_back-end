@@ -39,7 +39,6 @@ export class PatternService {
 
   async getPatternList(userId: number): Promise<AgreementsListDto[]> {
     const user: User = await this.userService.findUser(userId);
-    console.log(user);
     return user.agreement_patterns.map((agreement: Agreement): AgreementsListDto => new AgreementsListDto(agreement));
   }
 }

@@ -9,7 +9,9 @@ import { Server, Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
 import { ChatService } from './chat.service';
 
-@WebSocketGateway({})
+@WebSocketGateway({
+  origin: true
+})
 export class ChatGateway {
   constructor(private readonly chatService: ChatService, private readonly authService: AuthService) { }
 

@@ -10,7 +10,12 @@ import { AuthService } from 'src/auth/auth.service';
 import { ChatService } from './chat.service';
 
 @WebSocketGateway({
-  origin: true
+  cors: {
+    origin: '*', // Allow any origin
+    methods: ['GET', 'POST'], // Specify allowed methods
+    allowedHeaders: ['Authorization', 'Content-Type'], // Specify allowed headers
+    credentials: true, // Allow credentials if necessary
+  },
 })
 export class ChatGateway {
   constructor(private readonly chatService: ChatService, private readonly authService: AuthService) { }

@@ -30,6 +30,9 @@ export class MessageDto {
     @ApiProperty({ title: "Содержание сообщения", example: "Привет. Как дела?" })
     public readonly message: string;
 
+    @ApiProperty({ title: "Дата создания сообщения", example: "2023-08-14T12:34:56.789Z" })
+    public readonly createdAt: Date;
+
     constructor(model: ChatMessage) {
         this.id = model?.id;
         this.member = new ChatUserDto(model.member);
@@ -38,5 +41,6 @@ export class MessageDto {
             members: model?.chat?.members.map((member: ChatUser) => new ChatUserDto(member))
         };
         this.message = model?.message;
+        this.createdAt = model?.created_at;
     }
 }

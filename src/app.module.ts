@@ -27,10 +27,7 @@ import { UserModule } from './user/user.module';
       username: process.env.POSTGRES_USER,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
-      autoLoadEntities: true,
-      ssl: {
-        rejectUnauthorized: true
-      }
+      autoLoadEntities: true
     }),
     forwardRef(() => AuthModule),
     UserModule,

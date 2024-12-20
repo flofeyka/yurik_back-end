@@ -3,29 +3,30 @@ import {
   forwardRef,
   Inject,
   Injectable,
-  NotFoundException
-} from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { ChatService } from "src/chat/chat.service";
-import { GigachatService } from "src/gigachat/gigachat.service";
-import { PdfService } from "src/pdf/pdf.service";
-import { User } from "src/user/entities/user.entity";
-import { UserService } from "src/user/user.service";
-import { DeleteResult, InsertResult, Repository } from "typeorm";
-import { Image } from "../images/image.entity";
-import { ImagesService } from "../images/images.service";
-import { AgreementDto } from "./dtos/agreement-dto";
-import { AgreementsListDto } from "./dtos/agreements-list-dto";
-import { CreateAgreementDto } from "./dtos/create-agreement-dto";
-import { EditAgreementDto } from "./dtos/edit-agreement-dto";
-import { AgreementImage } from "./entities/agreement-image.entity";
-import { Agreement } from "./entities/agreement.entity";
-import { AgreementMember } from "./members/member.entity";
-import { MemberService } from "./members/member.service";
-import { AgreementStep } from "./step/entities/step.entity";
-import { HttpService } from "@nestjs/axios";
-import { AgreementDepositService } from "./deposit/deposit.service";
-import { Deposit } from "./deposit/deposit.entity";
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ChatService } from 'src/chat/chat.service';
+import { GigachatService } from 'src/gigachat/gigachat.service';
+import { PdfService } from 'src/pdf/pdf.service';
+import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
+import { DeleteResult, InsertResult, Repository } from 'typeorm';
+import { Image } from '../images/image.entity';
+import { ImagesService } from '../images/images.service';
+import { AgreementDto } from './dtos/agreement-dto';
+import { AgreementsListDto } from './dtos/agreements-list-dto';
+import { CreateAgreementDto } from './dtos/create-agreement-dto';
+import { EditAgreementDto } from './dtos/edit-agreement-dto';
+import { AgreementImage } from './entities/agreement-image.entity';
+import { Agreement } from './entities/agreement.entity';
+import { AgreementMember } from './members/member.entity';
+import { MemberService } from './members/member.service';
+import { AgreementStep } from './step/entities/step.entity';
+import { HttpService } from '@nestjs/axios';
+import { AgreementDepositService } from './deposit/deposit.service';
+import { Deposit } from './deposit/deposit.entity';
+import { StepService } from './step/step.service';
 
 @Injectable()
 export class AgreementService {
@@ -44,48 +45,55 @@ export class AgreementService {
     private readonly userService: UserService,
     private readonly pdfService: PdfService,
     private readonly httpService: HttpService,
-    private readonly depositService: AgreementDepositService
-  ) {
-  }
+    private readonly depositService: AgreementDepositService,
+    @InjectRepository(AgreementStep)
+    private readonly stepRepository: Repository<AgreementStep>,
+  ) {}
 
   async createAgreement(
     userId: number,
-    agreementDto: CreateAgreementDto
+    agreementDto: CreateAgreementDto,
   ): Promise<AgreementDto> {
-    const depositFound: Deposit = await this.depositService.getUserDeposit(userId);
-    if(!depositFound) {
-      throw new NotFoundException("Создайте договорный счет, чтобы продолжить");
+    const depositFound: Deposit =
+      await this.depositService.getUserDeposit(userId);
+    if (!depositFound) {
+      throw new NotFoundException('Создайте договорный счет, чтобы продолжить');
     }
 
-    if(depositFound.count < 1) {
-      throw new BadRequestException("Недостаточно средств на счете. Пополните договорный счёт.");
+    if (depositFound.count < 1) {
+      throw new BadRequestException(
+        'Недостаточно средств на счете. Пополните договорный счёт.',
+      );
     }
-    
+
     const agreementCreated: InsertResult = await this.agreementRepository
       .createQueryBuilder()
       .insert()
       .into(Agreement)
       .values({
-        ...agreementDto
+        ...agreementDto,
       })
       .execute();
 
     const agreementFound: Agreement = await this.findAgreement(
-      agreementCreated.identifiers[0].id
+      agreementCreated.identifiers[0].id,
     );
 
     const initiatorAdded: AgreementMember = await this.memberService.addMember(
       {
         userId,
-        status: agreementDto.initiatorStatus
+        status: agreementDto.initiatorStatus,
       },
-      agreementFound
+      agreementFound,
     );
 
     (agreementFound.members = [initiatorAdded]),
       (agreementFound.initiator = initiatorAdded);
     const user: User = await this.userService.findUser(userId);
-    agreementFound.chat = await this.chatService.addChat([user], agreementFound.title);
+    agreementFound.chat = await this.chatService.addChat(
+      [user],
+      agreementFound.title,
+    );
     const memberUpdated: Agreement =
       await this.agreementRepository.save(agreementFound);
 
@@ -95,45 +103,45 @@ export class AgreementService {
   async getAgreements(
     userId: number,
     type:
-      | "Активный"
-      | "Расторгнут"
-      | "У юриста"
-      | "В поиске юриста"
-      | "Требуется действие"
-      | "Черновик"
-      | "Выполнен"
+      | 'Активный'
+      | 'Расторгнут'
+      | 'У юриста'
+      | 'В поиске юриста'
+      | 'Требуется действие'
+      | 'Черновик'
+      | 'Выполнен',
   ): Promise<AgreementsListDto[]> {
     const member = await this.memberRepository.find({
       where: {
         user: {
-          id: userId
+          id: userId,
         },
         agreement: {
-          status: type
-        }
+          status: type,
+        },
       },
       relations: {
         agreement: {
           members: {
             user: {
-              image: true
-            }
-          }
-        }
-      }
+              image: true,
+            },
+          },
+        },
+      },
     });
 
     return member
       .map((data) => data.agreement)
       .map(
         (agreement: Agreement): AgreementsListDto =>
-          new AgreementsListDto(agreement)
+          new AgreementsListDto(agreement),
       );
   }
 
   async getAgreement(
     agreement: Agreement,
-    userId: number
+    userId: number,
   ): Promise<AgreementDto> {
     return new AgreementDto(agreement, userId);
   }
@@ -141,17 +149,17 @@ export class AgreementService {
   async editAgreement(
     agreement: Agreement,
     editDealDto: EditAgreementDto,
-    userId: number
+    userId: number,
   ): Promise<AgreementDto> {
-    if (agreement.status !== "Черновик") {
+    if (agreement.status !== 'Черновик') {
       throw new BadRequestException(
-        "Вы не можете отредактировать этот договор, т.к. он уже был утвержден и подписан."
+        'Вы не можете отредактировать этот договор, т.к. он уже был утвержден и подписан.',
       );
     }
 
     if (agreement.initiator.user.id !== userId) {
       throw new BadRequestException(
-        "Вы не можете редактировать данный договор, т.к. не являетесь его инициатором. Обратитесь к инициатору в чате договора."
+        'Вы не можете редактировать данный договор, т.к. не являетесь его инициатором. Обратитесь к инициатору в чате договора.',
       );
     }
 
@@ -163,15 +171,15 @@ export class AgreementService {
       if (editDealDto.dealText.generate) {
         if (editDealDto.dealText.text.length > 150) {
           throw new BadRequestException(
-            "Длина договора не может быть больше 150 символов"
+            'Длина договора не может быть больше 150 символов',
           );
         }
 
         const message = await this.gigachatService.sendMessage({
-          model: "GigaChat-Pro",
+          model: 'GigaChat-Pro',
           messages: [
             {
-              role: "user",
+              role: 'user',
               content: `Составьте официальный договор на тему «${agreement.title}» с описанием «${editDealDto.dealText.text}» Договор должен быть полностью оформлен как официальный документ, без лишних комментариев или примеров.
                 Инструкции:
                 Используйте предоставленные данные о заказчике, испонителе и перечене работ для заполнения всех необходимых разделов договора.
@@ -184,8 +192,8 @@ export class AgreementService {
                 Форматируйте текст с отступами и абзацами для удобства чтения.
                 Заполнить все поля в договоре, нельзя оставлять их пустыми.
                 Данные для договора: \n
-                Дата начала договора: ${new Date(agreement.start).getUTCDate() + "." + (new Date(agreement.start).getUTCMonth() + 1) + "." + new Date(agreement.start).getUTCFullYear()}\n
-                Дата окончания договора: ${new Date(agreement.end).getUTCDate() + "." + (new Date(agreement.end).getUTCMonth() + 1) + "." + new Date(agreement.end).getUTCFullYear()}\n
+                Дата начала договора: ${new Date(agreement.start).getUTCDate() + '.' + (new Date(agreement.start).getUTCMonth() + 1) + '.' + new Date(agreement.start).getUTCFullYear()}\n
+                Дата окончания договора: ${new Date(agreement.end).getUTCDate() + '.' + (new Date(agreement.end).getUTCMonth() + 1) + '.' + new Date(agreement.end).getUTCFullYear()}\n
               ${agreement.members
                 .map(
                   (member: AgreementMember): string => `${member.status}:\n
@@ -198,27 +206,27 @@ export class AgreementService {
                   Дата выдачи паспорта: ${member.user.personalData.passportDate}\n
                   Место выдачи: ${member.user.personalData.authority}\n
                   ИНН: ${member.user.personalData.TIN}\n
-              `
+              `,
                 )
-                .join(", ")}\n
+                .join(', ')}\n
                         Перечень работ: ${agreement.steps
-                .map(
-                  (
-                    step: AgreementStep
-                  ): string => `Этап: ${step.title}\n
-                            Дата начала этапа: ${new Date(step.start).getUTCDate() + "." + (new Date(step.start).getUTCMonth() + 1) + "." + new Date(step.start).getUTCFullYear()}\n
-                            Дата конца этапа: ${new Date(step.end).getUTCDate() + "." + (new Date(step.end).getUTCMonth() + 1) + "." + new Date(step.end).getUTCFullYear()}\n
-                            Оплата за этап: ${step.payment && step.payment?.price > 0 ? `${step.payment.price}` : "отсутствует"}\n
+                          .map(
+                            (
+                              step: AgreementStep,
+                            ): string => `Этап: ${step.title}\n
+                            Дата начала этапа: ${new Date(step.start).getUTCDate() + '.' + (new Date(step.start).getUTCMonth() + 1) + '.' + new Date(step.start).getUTCFullYear()}\n
+                            Дата конца этапа: ${new Date(step.end).getUTCDate() + '.' + (new Date(step.end).getUTCMonth() + 1) + '.' + new Date(step.end).getUTCFullYear()}\n
+                            Оплата за этап: ${step.payment && step.payment?.price > 0 ? `${step.payment.price}` : 'отсутствует'}\n
                             Описание: ${step.comment}\n 
-                            `
-                )
-                .join(", ")}\n
-                          Дата заключения договора ${new Date(Date.now()).getUTCDate() + "." + (new Date(Date.now()).getUTCMonth() + 1) + "." + new Date(Date.now()).getUTCFullYear()}\n
+                            `,
+                          )
+                          .join(', ')}\n
+                          Дата заключения договора ${new Date(Date.now()).getUTCDate() + '.' + (new Date(Date.now()).getUTCMonth() + 1) + '.' + new Date(Date.now()).getUTCFullYear()}\n
                           Вставитьте данные персональные данные заказчика и исполнителя вначале договора.
             Пришлите мне сам текст договора без лишних комментариев, примечаний и нижних полей.\n
-            `
-            }
-          ]
+            `,
+            },
+          ],
         });
         agreement.text = message.content;
       } else {
@@ -228,19 +236,19 @@ export class AgreementService {
       agreement.is_edited = true;
       agreement.pdf = await this.pdfService.convertMarkdownToPdf(
         agreement.text,
-        user
+        user,
       );
-      agreement.text = agreement.text.replace("*", "");
-      agreement.text = agreement.text.replace("**", "");
-      agreement.text = agreement.text.replace("#", "");
-      agreement.text = agreement.text.replace("##", "");
-      agreement.text = agreement.text.replace("###", "");
+      agreement.text = agreement.text.replace('*', '');
+      agreement.text = agreement.text.replace('**', '');
+      agreement.text = agreement.text.replace('#', '');
+      agreement.text = agreement.text.replace('##', '');
+      agreement.text = agreement.text.replace('###', '');
     }
 
     const agreementSaved: Agreement = await this.agreementRepository.save({
       ...agreement,
       ...editDealDto,
-      text: agreement.text
+      text: agreement.text,
     });
 
     return new AgreementDto(agreementSaved, userId);
@@ -248,99 +256,118 @@ export class AgreementService {
 
   async deleteAgreement(
     agreement: Agreement,
-    userId: number
+    userId: number,
   ): Promise<{
     success: boolean;
     message: string;
   }> {
     if (agreement.initiator.user.id !== userId) {
       throw new BadRequestException(
-        "Вы не являетесь инициатором договора, чтобы его удалить."
+        'Вы не являетесь инициатором договора, чтобы его удалить.',
       );
     }
 
-    if (agreement.status !== "Черновик") {
+    if (agreement.status !== 'Черновик') {
       throw new BadRequestException(
-        "Договор нельзя удалить, так как он уже был подписан"
+        'Договор нельзя удалить, так как он уже был подписан',
       );
     }
 
     const deleteResult: DeleteResult = await this.agreementRepository.delete({
-      id: agreement.id
+      id: agreement.id,
     });
     if (deleteResult.affected !== 1) {
-      throw new BadRequestException("Не удалось удалить договор");
+      throw new BadRequestException('Не удалось удалить договор');
     }
 
     return {
       success: true,
-      message: "Договор был успешно удален"
+      message: 'Договор был успешно удален',
     };
   }
 
   async confirmAgreement(
     userId: number,
-    agreement: Agreement
+    agreement: Agreement,
   ): Promise<{
     isConfirmed: boolean;
     message: string;
   }> {
     const member: AgreementMember = this.memberService.findMember(
       agreement,
-      userId
+      userId,
     );
-    if (member.inviteStatus === "Подтвердил") {
+    if (member.inviteStatus === 'Подтвердил') {
       throw new BadRequestException(
-        "Вы уже подтвердили свое участие в договоре"
+        'Вы уже подтвердили свое участие в договоре',
       );
     }
 
-    if (agreement.initiator.user.id === userId) {
-      await this.httpService.axiosRef.post("https://bot.yurkitgbot.ru/send/agreement/approve", {
-        agreement_id: agreement.id
-      });
-    }
+    // if (agreement.initiator.user.id === userId) {
+    //   await this.httpService.axiosRef.post(
+    //     'https://bot.yurkitgbot.ru/send/agreement/approve',
+    //     {
+    //       agreement_id: agreement.id,
+    //     },
+    //   );
+    // }
 
     if (
       agreement.members.filter(
-        (member: AgreementMember) => member.inviteStatus === "Подтвердил"
+        (member: AgreementMember) => member.inviteStatus === 'Подтвердил',
       ).length > 1
     ) {
       throw new BadRequestException(
-        "В договоре может быть только два подтвержденных участника."
+        'В договоре может быть только два подтвержденных участника.',
       );
     }
 
     const memberFound: AgreementMember = await this.memberRepository.findOne({
       where: {
-        id: member.id
-      }
+        id: member.id,
+      },
     });
 
-    memberFound.inviteStatus = "Подтвердил";
+    memberFound.inviteStatus = 'Подтвердил';
 
     await this.memberRepository.save(memberFound);
-    agreement.status = agreement.members.filter(
-      (member: AgreementMember) => member.inviteStatus === "Подтвердил"
-    ).length === 1 ? "Активный" : "Требуется действие";
+    if (
+      agreement.members.filter(
+        (member: AgreementMember) => member.inviteStatus === 'Подтвердил',
+      ).length === 1
+    ) {
+      agreement.status = 'Активный';
+      const step = await this.stepRepository.findOne({
+        where: {
+          order: 1,
+          agreement: {
+            id: agreement.id,
+          },
+        },
+      });
+      step.status = 'В процессе';
+      await this.stepRepository.save(step);
+    } else {
+      agreement.status = 'Требуется действие';
+    }
     await this.agreementRepository.save(agreement);
 
     return {
       isConfirmed: true,
-      message: "Вы успешно подтвердили участие в договоре"
+      message: 'Вы успешно подтвердили участие в договоре',
     };
   }
 
   async declineAgreement(
     userId: number,
-    agreement: Agreement
+    agreement: Agreement,
   ): Promise<{ isDeclined: boolean; message: string }> {
     if (
-      agreement.status === "Активный" &&
+      agreement.status === 'Активный' &&
       agreement.initiator.user.id !== userId
     ) {
       throw new BadRequestException(
-        "Вы не можете разорвать договор если вы не являетесь его инициатором"
+        'Вы не можете разорвать договор если вы не являетесь его инициатором',
       );
     }
 
@@ -349,63 +376,67 @@ export class AgreementService {
       members: [
         ...agreement.members.map(
           (
-            member: AgreementMember
+            member: AgreementMember,
           ): {
-            inviteStatus: "Приглашен" | "Подтвердил" | "Отклонил";
+            inviteStatus: 'Приглашен' | 'Подтвердил' | 'Отклонил';
           } => {
             return {
               ...member,
               inviteStatus:
-                member.user.id === userId ? "Отклонил" : member.inviteStatus
+                member.user.id === userId ? 'Отклонил' : member.inviteStatus,
             };
-          }
-        )
+          },
+        ),
       ],
-      status: agreement.status === "Активный" || agreement.status === "Требуется действие" ? "Расторгнут" : agreement.status
+      status:
+        agreement.status === 'Активный' ||
+        agreement.status === 'Требуется действие'
+          ? 'Расторгнут'
+          : agreement.status,
     });
 
     return {
       isDeclined: true,
-      message: "Вы успешно отклонили участие в договоре"
+      message: 'Вы успешно отклонили участие в договоре',
     };
   }
 
   async completeAgreement(
     agreement: Agreement,
-    userId: number
+    userId: number,
   ): Promise<AgreementDto> {
     if (agreement.initiator.user.id !== userId) {
       throw new BadRequestException(
-        "Вы не можете завершить договор, так как вы не являетесь его инициатором."
+        'Вы не можете завершить договор, так как вы не являетесь его инициатором.',
       );
     }
 
-    if (agreement.status !== "Активный") {
-      throw new BadRequestException("Договор не находится в работе.");
+    if (agreement.status !== 'Активный') {
+      throw new BadRequestException('Договор не находится в работе.');
     }
 
     if (
       agreement.steps.find(
         (step: AgreementStep): boolean =>
-          step.status === "В процессе" || step.status == "Ожидает"
+          step.status === 'В процессе' || step.status == 'Ожидает',
       )
     ) {
-      throw new BadRequestException("Не все шаги завершены.");
+      throw new BadRequestException('Не все шаги завершены.');
     }
 
     if (
       agreement.steps.every(
-        (step: AgreementStep): boolean => step.status === "Отклонён"
+        (step: AgreementStep): boolean => step.status === 'Отклонён',
       )
     ) {
       throw new BadRequestException(
-        "Вы не можете завершить договор, так как все шаги отклонены. Пожалуйста, отклоните договор."
+        'Вы не можете завершить договор, так как все шаги отклонены. Пожалуйста, отклоните договор.',
       );
     }
 
     const agreementSaved: Agreement = await this.agreementRepository.save({
       ...agreement,
-      status: "Выполнен"
+      status: 'Выполнен',
     });
 
     return new AgreementDto(agreementSaved, userId);
@@ -413,33 +444,33 @@ export class AgreementService {
 
   async rejectAgreement(
     agreement: Agreement,
-    userId: number
+    userId: number,
   ): Promise<AgreementDto> {
     if (agreement.initiator.user.id !== userId) {
       throw new BadRequestException(
-        "Вы не можете отклонить договор, так как вы не являетесь его инициатором."
+        'Вы не можете отклонить договор, так как вы не являетесь его инициатором.',
       );
     }
 
-    if (agreement.status !== "Активный") {
-      throw new BadRequestException("Договор не находится в работе.");
+    if (agreement.status !== 'Активный') {
+      throw new BadRequestException('Договор не находится в работе.');
     }
 
     if (
-      !agreement.steps.find((step: AgreementStep) => step.status === "Отклонён")
+      !agreement.steps.find((step: AgreementStep) => step.status === 'Отклонён')
     ) {
       throw new BadRequestException(
-        "Чтобы разорвать договор должен быть отклонён хотя бы один шаг "
+        'Чтобы разорвать договор должен быть отклонён хотя бы один шаг ',
       );
     }
 
-    agreement.status = "Расторгнут";
+    agreement.status = 'Расторгнут';
     const agreementSaved: Agreement =
       await this.agreementRepository.save(agreement);
     await this.chatService.deleteMember(
       agreement.chat.id,
       userId,
-      agreement.initiator.user.id
+      agreement.initiator.user.id,
     );
     return new AgreementDto(agreementSaved, userId);
   }
@@ -447,27 +478,27 @@ export class AgreementService {
   async addAgreementPhotos(
     agreement: Agreement,
     images: string[],
-    userId: number
+    userId: number,
   ): Promise<AgreementDto> {
     if (agreement.images.length + images.length > 10) {
       throw new BadRequestException(
-        "Соглашение может иметь не более 10 фотографий."
+        'Соглашение может иметь не более 10 фотографий.',
       );
     }
     const imagesFound: AgreementImage[] = await Promise.all(
       images.map(async (image: string): Promise<AgreementImage> => {
         if (
           agreement.images.find(
-            (i: AgreementImage): boolean => image === i.image.name
+            (i: AgreementImage): boolean => image === i.image.name,
           )
         ) {
-          throw new BadRequestException("Фотография уже была добавлена.");
+          throw new BadRequestException('Фотография уже была добавлена.');
         }
         const imageFound: Image =
           await this.imagesService.getImageByName(image);
         if (!imageFound) {
           throw new NotFoundException(
-            `Фотография с названием ${image} не существует`
+            `Фотография с названием ${image} не существует`,
           );
         }
         const agreementImage: InsertResult = await this.agreementImageRepository
@@ -476,20 +507,20 @@ export class AgreementService {
           .into(AgreementImage)
           .values({
             agreement: agreement,
-            image: imageFound
+            image: imageFound,
           })
           .execute();
         return await this.agreementImageRepository.findOne({
           where: {
-            id: agreementImage.identifiers[0].id
-          }
+            id: agreementImage.identifiers[0].id,
+          },
         });
-      })
+      }),
     );
 
     const agreementSaved: Agreement = await this.agreementRepository.save({
       ...agreement,
-      images: [...imagesFound, ...agreement.images]
+      images: [...imagesFound, ...agreement.images],
     });
 
     return new AgreementDto(agreementSaved, userId);
@@ -498,30 +529,30 @@ export class AgreementService {
   async findAgreement(id: number): Promise<Agreement> {
     const agreementFound: Agreement = await this.agreementRepository.findOne({
       where: {
-        id
+        id,
       },
       relations: {
         images: true,
         members: {
           user: {
-            personalData: true
-          }
+            personalData: true,
+          },
         },
         steps: {
           images: {
-            image: true
-          }
+            image: true,
+          },
         },
         chat: true,
         lawyer: {
-          user: true
+          user: true,
         },
-        pdf: true
-      }
+        pdf: true,
+      },
     });
 
     if (!agreementFound) {
-      throw new NotFoundException("Договор с этим идентификатором не найден");
+      throw new NotFoundException('Договор с этим идентификатором не найден');
     }
 
     return agreementFound;

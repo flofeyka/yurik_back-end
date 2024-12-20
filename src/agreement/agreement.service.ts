@@ -303,14 +303,14 @@ export class AgreementService {
       );
     }
 
-    // if (agreement.initiator.user.id === userId) {
-    //   await this.httpService.axiosRef.post(
-    //     'https://bot.yurkitgbot.ru/send/agreement/approve',
-    //     {
-    //       agreement_id: agreement.id,
-    //     },
-    //   );
-    // }
+    if (agreement.initiator.user.id === userId) {
+      await this.httpService.axiosRef.post(
+        'https://bot.yurkitgbot.ru/send/agreement/approve',
+        {
+          agreement_id: agreement.id,
+        },
+      );
+    }
 
     if (
       agreement.members.filter(

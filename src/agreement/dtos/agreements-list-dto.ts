@@ -47,7 +47,7 @@ export class AgreementsListDto {
       image: member.user.image ? new ImageDto(member.user.image) : null,
     }));
 
-    this.steps = model.steps?.map((step: AgreementStep) => {
+    this.steps = model.steps?.sort((a,b) => a.order - b.order)?.map((step: AgreementStep) => {
       return {
         title: step.title,
         status: step.status,

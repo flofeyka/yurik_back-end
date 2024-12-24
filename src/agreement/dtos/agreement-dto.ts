@@ -8,6 +8,7 @@ import { StepImage } from "../step/entities/step-image.entity";
 import { ApiProperty } from "@nestjs/swagger";
 import { ImageDto } from "src/images/dtos/ImageDto";
 import { PdfDto } from "src/pdf/pdf-dto";
+import { UUID } from "crypto";
 
 export class AgreementMemberDto {
   @ApiProperty({ title: "ID участника договора", example: 12 })
@@ -129,6 +130,8 @@ export class AgreementDto {
   public steps: AgreementStepDto[] | undefined;
   @ApiProperty({ title: "Стадия договора", example: 1})
   public stage: number;
+  @ApiProperty({ title: "Айди чата"})
+  public chatId: UUID;
   @ApiProperty({ title: "Дата начала", example: "2023-12-12" })
   public start: Date;
   @ApiProperty({ title: "Дата конца", example: "2024-12-12" })
@@ -147,6 +150,7 @@ export class AgreementDto {
     this.members = model.members?.map((member: AgreementMember) => new AgreementMemberDto(member));
     this.steps = model.steps?.sort((a,b) => a.order - b.order).map((step: AgreementStep) => new AgreementStepDto(step, userId));
     this.pdfLink = model.pdf ? new PdfDto(model.pdf).pdfLink : null;
+    this.chatId = model.chat.id;
     this.stage = model.stage;
     this.start = model.start;
     this.end = model.end;

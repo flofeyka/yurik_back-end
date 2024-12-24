@@ -34,7 +34,7 @@ export class AgreementStep {
   user: AgreementMember;
 
   @Column({ default: "Ожидает" })
-  status: "Готов" | "Отклонён" | "В процессе" | "Ожидает" | "Завершён" | "Требуется действие";
+  status: "Отклонён" | "В процессе" | "Ожидает" | "Завершён" | "Требуется действие";
 
   @Column({ nullable: true, type: "json" })
   payment: {

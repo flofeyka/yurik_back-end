@@ -164,9 +164,9 @@ export class StepService {
           where: {
             agreement: { id: step.agreement.id },
             order: step.order + 1,
-          }
+          },
         });
-        console.log('DEBIL: ', stepFound)
+        console.log('DEBIL: ', stepFound);
 
         stepFound.status = 'В процессе';
         await this.stepRepository.save(stepFound);
@@ -181,6 +181,23 @@ export class StepService {
     }
 
     const saved: AgreementStep = await this.stepRepository.save(step);
+
+    const steps = await this.stepRepository.find({
+      where: { agreement: { id: step.agreement.id } },
+    });
+
+    if (
+      steps.filter(
+        (step) => step.status !== 'Завершён' && step.status !== 'Отклонён',
+      ).length === 0
+    ) {
+      const agreement = await this.agreementRepository.findOne({
+        where: { id: step.agreement.id },
+      });
+      agreement.status = 'Выполнен';
+      await this.agreementRepository.save(agreement);
+    }
+
     return new AgreementStepDto(saved, userId);
   }
 

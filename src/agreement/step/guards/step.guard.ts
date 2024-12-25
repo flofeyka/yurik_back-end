@@ -31,7 +31,6 @@ export class StepGuard implements CanActivate {
       request.step = step;
       return true;
     }
-    console.log(step.agreement);
     if (!this.memberService.findMember(step.agreement, request.user.id)) {
       throw new BadGatewayException("Вы не можете совершить это действите, так как не являетесь участником договора этапа");
     }

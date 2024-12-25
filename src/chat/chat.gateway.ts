@@ -28,7 +28,8 @@ export class ChatGateway {
 
   async handleConnection(client: Socket, ...args: any[]) {
     try {
-      const authHeader = client?.handshake?.headers.authorization.split(' ')[1];
+      const authHeader =
+        client?.handshake?.headers.authorization?.split(' ')[1];
       const candidat = await this.authService.findToken(authHeader);
       if (!candidat.isAuth) {
         throw new WsException('Пользователь неавторизован');

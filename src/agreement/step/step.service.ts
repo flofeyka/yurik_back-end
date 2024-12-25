@@ -155,6 +155,7 @@ export class StepService {
     const anotherMember: AgreementMember = step.agreement.members.find(
       (member: AgreementMember): boolean => member.user.id !== userId,
     );
+
     if (userId !== step.user.user.id) {
       const steps = await this.stepRepository.find({
         where: { agreement: { id: step.agreement.id } },
@@ -166,16 +167,19 @@ export class StepService {
             order: step.order + 1,
           },
         });
-        console.log('DEBIL: ', stepFound);
 
         stepFound.status = 'В процессе';
         await this.stepRepository.save(stepFound);
+        await this.appService.sendNotification(
+          `<b>${member.user.firstName} ${member.user.lastName}</b> подтвердил выполнение этапа <b>«${step.title}»</b> в рамках договора <b>«${step.agreement.title}»</b>. Вы можете приступать к следующему этапу.`,
+          anotherMember.user.telegram_account.telegramID,
+        );
       }
       step.status = 'Завершён';
     } else {
       step.status = 'Требуется действие';
       await this.appService.sendNotification(
-        `${member.user.firstName} ${member.user.lastName} подтвердил этап ${step.title} в договоре ${step.agreement.title}. Пожалуйста, подтвердите выполнение для перехода к следующему этапу договора`,
+        `<b>${member.user.firstName} ${member.user.lastName}</b> подтвердил этап <b>${step.title}</b> в договоре <b>${step.agreement.title}</b>. Пожалуйста, подтвердите выполнение для перехода к следующему этапу договора`,
         anotherMember.user.telegram_account.telegramID,
       );
     }
@@ -195,6 +199,10 @@ export class StepService {
         where: { id: step.agreement.id },
       });
       agreement.status = 'Выполнен';
+      await this.appService.sendNotification(
+        `<b>${member.user.firstName}</b> <b>${member.user.lastName}</b> подтвердил выполнение этапа <b>«${step.title}»</b> в рамках договора <b>«${agreement.title}»</b>. Все обязательства по договору успешно выполнены.`,
+        anotherMember.user.telegram_account.telegramID,
+      );
       await this.agreementRepository.save(agreement);
     }
 

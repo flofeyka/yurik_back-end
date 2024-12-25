@@ -178,7 +178,6 @@ export class ChatService {
         },
       },
     });
-    console.log(chat.members);
     if (!chat.members.find((member) => member.user.id === userId)) {
       throw new WsException('Вы не являетесь участником чата');
     }

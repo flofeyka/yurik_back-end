@@ -144,7 +144,6 @@ export class GigachatService {
 
   public async sendMessage(payload) {
     const requestAccessToken = await this.getToken();
-    console.log(payload.messages[0].content);
 
     const response = await this.httpService.axiosRef.post(
       'https://gigachat.devices.sberbank.ru/api/v1/chat/completions',

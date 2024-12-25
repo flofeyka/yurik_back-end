@@ -22,7 +22,6 @@ export class AgreementDepositController {
   @Get('/my')
   @UseGuards(AuthGuard)
   async getDeposit(@Req() request: RequestType): Promise<Deposit> {
-    console.log(request.user.id);
     return await this.depositService.getUserDeposit(request.user.id);
   }
 }

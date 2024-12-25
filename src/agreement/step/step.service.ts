@@ -156,7 +156,7 @@ export class StepService {
       (member: AgreementMember): boolean => member.user.id !== userId,
     );
 
-    if (userId !== step.user.user.id) {
+    if (userId === step.user.user.id) {
       const steps = await this.stepRepository.find({
         where: { agreement: { id: step.agreement.id } },
       });

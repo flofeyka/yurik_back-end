@@ -27,6 +27,7 @@ export class ChatGateway {
   public clients: { id: number; clientId: string }[] = [];
 
   async handleConnection(client: Socket, ...args: any[]) {
+    console.log(client);
     try {
       const authHeader =
         client?.handshake?.headers.authorization?.split(' ')[1];

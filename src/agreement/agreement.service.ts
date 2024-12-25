@@ -27,6 +27,7 @@ import { HttpService } from '@nestjs/axios';
 import { AgreementDepositService } from './deposit/deposit.service';
 import { Deposit } from './deposit/deposit.entity';
 import { StepService } from './step/step.service';
+import { AppService } from 'src/app.service';
 
 @Injectable()
 export class AgreementService {
@@ -48,6 +49,7 @@ export class AgreementService {
     private readonly depositService: AgreementDepositService,
     @InjectRepository(AgreementStep)
     private readonly stepRepository: Repository<AgreementStep>,
+    private readonly appService: AppService,
   ) {}
 
   async createAgreement(
@@ -303,15 +305,6 @@ export class AgreementService {
       );
     }
 
-    if (agreement.initiator.user.id === userId) {
-      await this.httpService.axiosRef.post(
-        'https://bot.yurkitgbot.ru/send/agreement/approve',
-        {
-          agreement_id: agreement.id,
-        },
-      );
-    }
-
     if (
       agreement.members.filter(
         (member: AgreementMember) => member.inviteStatus === 'Подтвердил',
@@ -326,6 +319,11 @@ export class AgreementService {
       where: {
         id: member.id,
       },
+      relations: {
+        user: {
+          telegram_account: true,
+        },
+      },
     });
 
     memberFound.inviteStatus = 'Подтвердил';
@@ -337,6 +335,12 @@ export class AgreementService {
       ).length === 1
     ) {
       agreement.status = 'Активный';
+      await this.appService.sendNotification(
+        `<b>${memberFound.user.firstName} ${memberFound.user.lastName}</b> подписал договор <b>«${agreement.title}»</b>. Договор утвержден обеими сторонами и вступил в силу.`,
+        agreement.members.find(
+          (member: AgreementMember) => member.user.id !== userId,
+        ).user.telegram_account.telegramID,
+      );
       const step = await this.stepRepository.findOne({
         where: {
           order: 1,
@@ -348,6 +352,12 @@ export class AgreementService {
       step.status = 'В процессе';
       await this.stepRepository.save(step);
     } else {
+      await this.httpService.axiosRef.post(
+        'https://bot.yurkitgbot.ru/send/agreement/approve',
+        {
+          agreement_id: agreement.id,
+        },
+      );
       agreement.status = 'Требуется действие';
     }
     await this.agreementRepository.save(agreement);
@@ -536,6 +546,7 @@ export class AgreementService {
         members: {
           user: {
             personalData: true,
+            telegram_account: true,
           },
         },
         steps: {

@@ -43,7 +43,7 @@ export class Agreement {
   @OneToMany(
     () => AgreementMember,
     (member: AgreementMember) => member.agreement,
-    { onDelete: 'SET NULL' },
+    { onDelete: 'SET NULL', onUpdate: "CASCADE" },
   )
   @JoinColumn()
   public members: AgreementMember[];

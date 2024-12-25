@@ -129,6 +129,7 @@ export class AgreementService {
               image: true,
             },
           },
+          chat: true
         },
       },
     });

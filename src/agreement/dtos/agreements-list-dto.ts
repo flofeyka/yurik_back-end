@@ -3,6 +3,7 @@ import { ImageDto } from 'src/images/dtos/ImageDto';
 import { Agreement } from '../entities/agreement.entity';
 import { AgreementMember } from '../members/member.entity';
 import { AgreementStep } from '../step/entities/step.entity';
+import { UUID } from 'crypto';
 
 export class AgreementsListDto {
   @ApiProperty({ title: 'ID договора', example: 1 })
@@ -30,7 +31,7 @@ export class AgreementsListDto {
       paymentLink: string | undefined;
     };
   }[];
-
+  chat_id: UUID;
   stage: number;
   start: Date;
   end: Date;
@@ -39,6 +40,7 @@ export class AgreementsListDto {
     this.id = model.id;
     this.title = model.title;
     this.status = model.status;
+    this.chat_id = model.chat.id;
     this.members = model.members?.map((member: AgreementMember) => ({
       firstName: member.user.firstName,
       lastName: member.user.lastName,

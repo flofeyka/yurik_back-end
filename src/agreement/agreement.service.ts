@@ -135,7 +135,7 @@ export class AgreementService {
     });
 
     return member
-      .map((data) => data.agreement)
+      .map((data) => data.agreement).sort((a,b) => new Date(b.start).getTime() - new Date(a.start).getTime() )
       .map(
         (agreement: Agreement): AgreementsListDto =>
           new AgreementsListDto(agreement),

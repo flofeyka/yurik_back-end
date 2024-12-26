@@ -402,9 +402,6 @@ export class StepService {
             user: true,
           },
           steps: true,
-          lawyer: {
-            user: true,
-          },
         },
       },
     });

@@ -30,7 +30,7 @@ export class StepGuard implements CanActivate {
     if (request.user.role !== 'Пользователь') {
       if (
         request.user.role !== 'Админ' &&
-        request.agreement?.lawyer.user.id !== request.user.id
+        step.agreement.members.find(member => member.status === 'Юрист')?.user.id !== request.user.id
       ) {
         throw new BadRequestException(
           'Вы не являетесь юристом или администратором, чтобы сделать это действие',

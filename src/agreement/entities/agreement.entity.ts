@@ -1,21 +1,18 @@
 import { Chat } from 'src/chat/entities/chat.entity';
+import { Pdf } from 'src/pdf/pdf.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn
 } from 'typeorm';
-import { Lawyer } from '../lawyer/lawyer.entity';
 import { AgreementMember } from '../members/member.entity';
 import { AgreementStep } from '../step/entities/step.entity';
 import { AgreementImage } from './agreement-image.entity';
-import { Pdf } from 'src/pdf/pdf.entity';
-import { User } from "../../user/entities/user.entity";
 
 export interface Step {
   title: string;
@@ -81,13 +78,6 @@ export class Agreement {
   })
   @JoinColumn()
   public steps: AgreementStep[];
-
-  @ManyToOne(() => Lawyer, (lawyer: Lawyer) => lawyer.agreements, {
-    nullable: true,
-    eager: true,
-    onDelete: "SET NULL"
-  })
-  public lawyer: Lawyer;
   
   @Column({ nullable: true })
   public stage: number;
@@ -95,7 +85,6 @@ export class Agreement {
   @Column({ nullable: true })
   public start: Date;
 
-  
   @Column({ nullable: true })
   public end: Date;
 

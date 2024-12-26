@@ -1,24 +1,86 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { User } from 'src/user/entities/user.entity';
-import { Lawyer } from './lawyer.entity';
-import { AgreementMember } from '../members/member.entity';
-import { Agreement } from '../entities/agreement.entity';
+import { BadGatewayException, BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AppService } from 'src/app.service';
+import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { AgreementDto } from '../dtos/agreement-dto';
-import { UserService } from 'src/user/user.service';
+import { Agreement } from '../entities/agreement.entity';
+import { AgreementMember } from '../members/member.entity';
 
 @Injectable()
 export class LawyerService {
   constructor(
-    @InjectRepository(Lawyer)
-    private readonly lawyerRepository: Repository<Lawyer>,
-    @InjectRepository(AgreementMember)
-    private readonly memberRepository: Repository<AgreementMember>,
-    @InjectRepository(Agreement)
-    private readonly agreementRepository: Repository<Agreement>,
+    @InjectRepository(AgreementMember) private readonly memberRepository: Repository<AgreementMember>,
+    @InjectRepository(Agreement) private readonly agreementRepository: Repository<Agreement>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly userService: UserService,
+    private readonly appService: AppService,
   ) {}
+
+  async sendRandomLawyer(userId: number, agreement: Agreement) {
+    if (agreement.initiator.user.id !== userId) {
+      throw new BadRequestException(
+        'Вы не можете пригласить юриста в договор, так как не являетесь его инициатором.',
+      );
+    }
+
+    if (agreement.status === 'Расторгнут') {
+      throw new BadRequestException(
+        'Вы не можете пригласить юриста в отклоненный договор',
+      );
+    }
+
+    if (agreement.status === 'У юриста') {
+      throw new BadRequestException(
+        'Договор уже находится на рассмотрении у юриста.',
+      );
+    }
+
+    if (agreement.status === 'В поиске юриста') {
+      throw new BadRequestException('Договор уже в списке очереди у юриста.');
+    }
+
+    const randomLawyer = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.telegram_account', 'telegram_account')
+      .where('user.role = :role', { role: 'Юрист' })
+      .andWhere('user.id != :id', { id: userId })
+      .andWhere('user.id NOT IN (:...memberIds)', {
+        memberIds: agreement.members.map((member) => member.user.id),
+      })
+      .orderBy('RANDOM()')
+      .getOne();
+
+    if (!randomLawyer) {
+      throw new BadRequestException('Нет свободных юристов');
+    }
+
+    const { firstName, lastName, middleName } = agreement.initiator.user;
+
+    const newMember = await this.memberRepository.save({
+      agreement,
+      user: randomLawyer,
+      status: "Юрист",
+      inviteStatus: "Подтвердил"
+    })
+
+    await this.appService.sendNotification(
+      `<b>${lastName} ${firstName} ${middleName}</b> обратился за юридической помощью по договору ${agreement.title}`,
+      randomLawyer.telegram_account.telegramID,
+    );
+
+
+  
+    agreement.status = 'У юриста';
+    agreement.members = [...agreement.members, newMember];
+    await this.agreementRepository.save(agreement);
+
+    return {
+      success: true,
+      message: 'Случайный юрист успешно получил новый договор',
+    };
+  }
 
   async sendToLawyer(userId: number, agreement: Agreement) {
     if (agreement.initiator.user.id !== userId) {
@@ -51,7 +113,10 @@ export class LawyerService {
     return true;
   }
 
-  async getLawyerAgreements(userId: number): Promise<AgreementDto[]> {
+  async getLawyerAgreements(role: "Юрист" | "Пользователь" | "Админ", user_id: number): Promise<AgreementDto[]> {
+    if(role !== "Юрист" && role !== "Админ") {
+      throw new BadGatewayException("Вы не являетесь администратором или юристом, чтобы совершить это действие")
+    }
     const agreements: Agreement[] = await this.agreementRepository.find({
       where: {
         status: 'В поиске юриста',
@@ -67,12 +132,13 @@ export class LawyerService {
     });
 
     return agreements.map(
-      (agreement: Agreement) => new AgreementDto(agreement, userId),
+      (agreement: Agreement) => new AgreementDto(agreement, user_id),
     );
   }
 
   async takeLawyerAgreement(
-    lawyer: Lawyer,
+    role: "Админ" | "Пользователь" | "Юрист",
+    user_id: number,
     agreementId: number,
   ): Promise<{ message: string; success: boolean }> {
     const agreement: Agreement = await this.agreementRepository.findOne({
@@ -88,7 +154,7 @@ export class LawyerService {
 
     if (
       agreement.members.find(
-        (member: AgreementMember) => member.user.id === lawyer.user.id,
+        (member: AgreementMember) => member.user.id === user_id,
       )
     ) {
       throw new BadRequestException(
@@ -102,42 +168,22 @@ export class LawyerService {
       );
     }
 
-    await this.lawyerRepository.save({
-      ...lawyer,
-      agreements: [...lawyer.agreements, agreement],
-    });
+    const user = await this.userService.findUser(user_id);
 
-    await this.agreementRepository.update(
-      {
-        id: agreementId,
-      },
-      {
-        status: 'У юриста',
-        lawyer: lawyer,
-      },
-    );
+    const newMember = await this.memberRepository.save({
+      agreement,
+      user,
+      status: "Юрист"
+    })
+    
+
+    agreement.status = "У юриста";
+    agreement.members = [...agreement.members, newMember];
+    await this.agreementRepository.save(agreement);
 
     return {
       message: 'Вы успешно взяли договор в работу.',
       success: true,
     };
-  }
-
-  async createLawyer(userId: number): Promise<Lawyer> {
-    const user: User = await this.userService.findUser(userId);
-
-    const lawyer: Lawyer = await this.lawyerRepository.findOne({
-      where: {
-        user: {
-          id: userId,
-        },
-      },
-    });
-
-    if (lawyer) {
-      throw new BadRequestException('Вы уже являетесь юристом.');
-    }
-
-    return await this.lawyerRepository.save({ user });
   }
 }

@@ -1,12 +1,14 @@
 import { Chat } from 'src/chat/entities/chat.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   OneToMany,
   OneToOne,
-  PrimaryGeneratedColumn
+  PrimaryGeneratedColumn,
+  UpdateDateColumn
 } from 'typeorm';
 import { Lawyer } from '../lawyer/lawyer.entity';
 import { AgreementMember } from '../members/member.entity';
@@ -93,7 +95,13 @@ export class Agreement {
   @Column({ nullable: true })
   public start: Date;
 
-
+  
   @Column({ nullable: true })
   public end: Date;
+
+  @UpdateDateColumn()
+  public updatedAt: Date;
+
+  @CreateDateColumn()
+  public createdAt: Date;
 }

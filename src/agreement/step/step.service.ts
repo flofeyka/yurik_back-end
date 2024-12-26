@@ -8,6 +8,7 @@ import { UUID } from 'crypto';
 import { Image } from 'src/images/image.entity';
 import { ImagesService } from 'src/images/images.service';
 import { DeleteResult, InsertResult, Repository } from 'typeorm';
+import { AppService } from '../../app.service';
 import { AgreementDto, AgreementStepDto } from '../dtos/agreement-dto';
 import { Step } from '../dtos/edit-steps-dto';
 import { Agreement } from '../entities/agreement.entity';
@@ -17,7 +18,6 @@ import { ChangeOrder } from './dtos/change-order-dto';
 import { EditStepDto } from './dtos/edit-step-dto';
 import { StepImage } from './entities/step-image.entity';
 import { AgreementStep } from './entities/step.entity';
-import { AppService } from '../../app.service';
 
 @Injectable()
 export class StepService {

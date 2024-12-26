@@ -129,13 +129,14 @@ export class AgreementService {
               image: true,
             },
           },
-          chat: true
+          chat: true,
         },
       },
     });
 
     return member
-      .map((data) => data.agreement).sort((a,b) => new Date(b.start).getTime() - new Date(a.start).getTime() )
+      .map((data) => data.agreement)
+      .sort((a, b) => new Date(b.start).getTime() - new Date(a.start).getTime())
       .map(
         (agreement: Agreement): AgreementsListDto =>
           new AgreementsListDto(agreement),
@@ -463,25 +464,39 @@ export class AgreementService {
       );
     }
 
+    const anotherMember = agreement.members.find(
+      (member) => member.user.id !== userId,
+    );
+
     if (agreement.status !== 'Активный') {
       throw new BadRequestException('Договор не находится в работе.');
     }
 
-    if (
-      !agreement.steps.find((step: AgreementStep) => step.status === 'Отклонён')
-    ) {
-      throw new BadRequestException(
-        'Чтобы разорвать договор должен быть отклонён хотя бы один шаг ',
-      );
-    }
+    const steps = await this.stepRepository.find({
+      where: {
+        agreement: {
+          id: agreement.id,
+        },
+      },
+    });
+
+    steps.forEach((step: AgreementStep) => {
+      if (step.status !== 'Завершён') {
+        step.status = 'Отклонён';
+        this.stepRepository.save(step);
+      }
+    });
 
     agreement.status = 'Расторгнут';
     const agreementSaved: Agreement =
       await this.agreementRepository.save(agreement);
-    await this.chatService.deleteMember(
-      agreement.chat.id,
-      userId,
-      agreement.initiator.user.id,
+    agreementSaved.steps = steps;
+    await this.chatService
+      .deleteMember(agreement.chat.id, userId, agreement.initiator.user.id)
+      .catch((e) => console.log(e));
+    await this.appService.sendNotification(
+      `${agreement.initiator.user.firstName} ${agreement.initiator.user.lastName} расторгнул договор ${agreement.title}`,
+      anotherMember.user.telegram_account.telegramID,
     );
     return new AgreementDto(agreementSaved, userId);
   }

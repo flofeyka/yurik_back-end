@@ -138,6 +138,10 @@ export class AgreementDto {
   public end: Date;
   @ApiProperty({ title: "Ссылка на PDF", example: "http://localhost:3000/api/pdf/1.pdf" })
   public pdfLink: string | null;
+  @ApiProperty({ title: "Дата создания", example: "2023-12-12" })
+  public createdAt: Date;
+  @ApiProperty({ title: "Дата обновления", example: "2023-12-12" })
+  public updatedAt: Date;
 
   constructor(model: Agreement, userId: number) {
     this.id = model.id;
@@ -154,5 +158,7 @@ export class AgreementDto {
     this.stage = model.stage;
     this.start = model.start;
     this.end = model.end;
+    this.createdAt = model.createdAt;
+    this.updatedAt = model.updatedAt;
   }
 }

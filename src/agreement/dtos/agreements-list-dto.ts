@@ -35,6 +35,8 @@ export class AgreementsListDto {
   stage: number;
   start: Date;
   end: Date;
+  createdAt: Date;
+  updatedAt: Date;
 
   constructor(model: Agreement) {
     this.id = model.id;
@@ -64,5 +66,7 @@ export class AgreementsListDto {
     this.stage = model.stage;
     this.start = model.start;
     this.end = model.end;
+    this.createdAt = model.createdAt;
+    this.updatedAt = model.updatedAt;
   }
 }

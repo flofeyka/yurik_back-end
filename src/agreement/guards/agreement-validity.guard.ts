@@ -1,29 +1,45 @@
-import { BadRequestException, CanActivate, ExecutionContext } from "@nestjs/common";
-import { Observable } from "rxjs";
-import { AgreementMember } from "../members/member.entity";
-import { AgreementStep } from "../step/entities/step.entity";
+import {
+  BadRequestException,
+  CanActivate,
+  ExecutionContext,
+} from '@nestjs/common';
+import { Observable } from 'rxjs';
+import { AgreementMember } from '../members/member.entity';
+import { AgreementStep } from '../step/entities/step.entity';
 
 export class AgreementValidityGuard implements CanActivate {
-  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
     const { agreement } = request;
     const errors: {
-      path: "text" | "steps" | "start-date" | "end-date" | "date" | "members" | "status",
-      error: string
+      path:
+        | 'text'
+        | 'steps'
+        | 'start-date'
+        | 'end-date'
+        | 'date'
+        | 'members'
+        | 'status';
+      error: string;
     }[] = [];
 
-    agreement.steps = agreement.steps.sort((a: AgreementStep, b: AgreementStep) => a.order - b.order);
+    agreement.steps = agreement.steps.sort(
+      (a: AgreementStep, b: AgreementStep) => a.order - b.order,
+    );
 
     if (!agreement.is_edited) {
       errors.push({
-        path: "text",
-        error: "Вы должны перегенерировать текст договора, т.к. в нем поменялись данные"
+        path: 'text',
+        error:
+          'Вы должны перегенерировать текст договора, т.к. в нем поменялись данные',
       });
     }
     if (!agreement.text || agreement.text.length < 100) {
       errors.push({
-        path: "text",
-        error: "Текст договора должен быть больше 100 символов"
+        path: 'text',
+        error: 'Текст договора должен быть больше 100 символов',
       });
     }
 
@@ -33,15 +49,15 @@ export class AgreementValidityGuard implements CanActivate {
 
     if (!agreement.start || !agreement.end) {
       errors.push({
-        path: "date",
-        error: "У договора не указаны дата начала или его окончания"
+        path: 'date',
+        error: 'У договора не указаны дата начала или его окончания',
       });
     }
 
     if (new Date(agreement.start) > new Date(agreement.end)) {
       errors.push({
-        path: "start-date",
-        error: "Дата начала договора не может быть позже даты конца"
+        path: 'start-date',
+        error: 'Дата начала договора не может быть позже даты конца',
       });
     }
 
@@ -49,8 +65,8 @@ export class AgreementValidityGuard implements CanActivate {
 
     if (new Date(Date.now() - ONE_DAY) > new Date(agreement.start)) {
       errors.push({
-        path: "start-date",
-        error: "Дата начала договора не может быть раньше текущей даты"
+        path: 'start-date',
+        error: 'Дата начала договора не может быть раньше текущей даты',
       });
     }
 
@@ -75,22 +91,22 @@ export class AgreementValidityGuard implements CanActivate {
     //     }
     // }
 
-
     if (agreement.members.length < 2) {
       errors.push({
-        path: "members",
-        error: "Вы не можете совершить это действие, так как у договора нет второй стороны."
+        path: 'members',
+        error:
+          'Вы не можете совершить это действие, так как у договора нет второй стороны.',
       });
     }
 
-    if (agreement.status === "В работе") {
+    if (agreement.status === 'В работе') {
       errors.push({
-        path: "status",
-        error: "Договор уже находится в работе."
+        path: 'status',
+        error: 'Договор уже находится в работе.',
       });
     }
 
-    if(errors.length > 0) {
+    if (errors.length > 0) {
       throw new BadRequestException(errors);
     }
 
@@ -105,6 +121,5 @@ export class AgreementValidityGuard implements CanActivate {
     // }
 
     return true;
-
   }
 }

@@ -5,7 +5,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  PrimaryGeneratedColumn
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Agreement } from '../entities/agreement.entity';
 
@@ -14,7 +14,11 @@ export class AgreementMember {
   @PrimaryGeneratedColumn('uuid')
   id: UUID;
 
-  @ManyToOne(() => User, { eager: true, onDelete: "CASCADE", onUpdate: "CASCADE" })
+  @ManyToOne(() => User, {
+    eager: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   @JoinColumn()
   user: User;
 

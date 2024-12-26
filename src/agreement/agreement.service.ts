@@ -1,3 +1,4 @@
+import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
   forwardRef,
@@ -6,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AppService } from 'src/app.service';
 import { ChatService } from 'src/chat/chat.service';
 import { GigachatService } from 'src/gigachat/gigachat.service';
 import { PdfService } from 'src/pdf/pdf.service';
@@ -14,6 +16,8 @@ import { UserService } from 'src/user/user.service';
 import { DeleteResult, InsertResult, Repository } from 'typeorm';
 import { Image } from '../images/image.entity';
 import { ImagesService } from '../images/images.service';
+import { Deposit } from './deposit/deposit.entity';
+import { AgreementDepositService } from './deposit/deposit.service';
 import { AgreementDto } from './dtos/agreement-dto';
 import { AgreementsListDto } from './dtos/agreements-list-dto';
 import { CreateAgreementDto } from './dtos/create-agreement-dto';
@@ -23,11 +27,6 @@ import { Agreement } from './entities/agreement.entity';
 import { AgreementMember } from './members/member.entity';
 import { MemberService } from './members/member.service';
 import { AgreementStep } from './step/entities/step.entity';
-import { HttpService } from '@nestjs/axios';
-import { AgreementDepositService } from './deposit/deposit.service';
-import { Deposit } from './deposit/deposit.entity';
-import { StepService } from './step/step.service';
-import { AppService } from 'src/app.service';
 
 @Injectable()
 export class AgreementService {

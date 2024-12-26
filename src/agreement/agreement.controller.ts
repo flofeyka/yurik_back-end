@@ -5,12 +5,11 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Param,
   Post,
   Put,
   Query,
   Req,
-  UseGuards,
+  UseGuards
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -20,6 +19,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { SmsGuard } from 'src/sms/sms.guard';
+import { UserPersonalDataGuard } from 'src/user/user-personal_data.guard';
 import { RequestType } from '../../types/types';
 import { AuthGuard } from '../auth/auth.guard';
 import { AgreementService } from './agreement.service';
@@ -31,16 +32,11 @@ import { ImagesDto } from './dtos/images-dto';
 import { Agreement } from './entities/agreement.entity';
 import { AgreementValidityGuard } from './guards/agreement-validity.guard';
 import { AgreementGuard } from './guards/agreement.guard';
-import { UserPersonalDataGuard } from 'src/user/user-personal_data.guard';
-import { SmsGuard } from 'src/sms/sms.guard';
-import { AgreementDepositService } from './deposit/deposit.service';
 
 @ApiTags('Agreement API')
 @Controller('agreement')
 export class AgreementController {
-  constructor(
-    private readonly agreementService: AgreementService
-  ) {}
+  constructor(private readonly agreementService: AgreementService) {}
 
   @ApiOperation({
     summary: 'Получение списка пользовательских договоров',
@@ -196,7 +192,13 @@ export class AgreementController {
     ],
   })
   @Post('/confirm/:id')
-  @UseGuards(AuthGuard, AgreementGuard, UserPersonalDataGuard, SmsGuard, AgreementValidityGuard)
+  @UseGuards(
+    AuthGuard,
+    AgreementGuard,
+    UserPersonalDataGuard,
+    SmsGuard,
+    AgreementValidityGuard,
+  )
   async confirmAgreement(@Req() request: RequestType): Promise<{
     isConfirmed: boolean;
     message: string;

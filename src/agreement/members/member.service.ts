@@ -4,22 +4,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { AppService } from 'src/app.service';
+import { ChatService } from 'src/chat/chat.service';
+import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
+import { InsertResult, Repository } from 'typeorm';
 import { AgreementDto } from '../dtos/agreement-dto';
 import { Agreement } from '../entities/agreement.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { AgreementMember } from './member.entity';
-import { InsertResult, Repository } from 'typeorm';
-import { AgreementStep } from '../step/entities/step.entity';
-import { Lawyer } from '../lawyer/lawyer.entity';
-import { UserService } from 'src/user/user.service';
-import { ImagesService } from 'src/images/images.service';
-import { AgreementImage } from '../entities/agreement-image.entity';
-import { PersonalData } from 'src/user/entities/user.personal_data';
-import { User } from 'src/user/entities/user.entity';
-import { AppService } from 'src/app.service';
-import { LegalInformationDto } from 'src/user/dtos/legal-information-dto';
-import { AgreementService } from '../agreement.service';
-import { ChatService } from 'src/chat/chat.service';
 
 @Injectable()
 export class MemberService {
@@ -45,7 +38,7 @@ export class MemberService {
     if (
       agreement.members.filter(
         (member: AgreementMember): boolean =>
-          member.inviteStatus === 'Подтвердил',
+          member.inviteStatus === 'Подтвердил' && member.status !== "Юрист",
       ).length > 1
     ) {
       throw new BadRequestException('Договор перенасыщен.');
@@ -95,7 +88,7 @@ export class MemberService {
     agreement.members.push(newMember);
     await this.agreementRepository.save(agreement);
 
-    // await this.appService.sendDealNotification(newMember.user.telegram_account.telegramID, initiator.telegram_account.telegramID, newMember.user.firstName, "initiator", agreement.id);
+    await this.appService.sendDealNotification(newMember.user.telegram_account.telegramID, initiator.telegram_account.telegramID, newMember.user.firstName, "initiator", agreement.id).catch(e => console.log(e));
     await this.chatService.addMember(agreement.chat.id, memberId, {
       id: initiator.id,
       isAdmin: initiator.role === 'Админ',

@@ -18,7 +18,6 @@ import { AgreementDepositService } from './deposit/deposit.service';
 import { AgreementImage } from './entities/agreement-image.entity';
 import { Agreement } from './entities/agreement.entity';
 import { LawyerController } from './lawyer/lawyer.controller';
-import { Lawyer } from './lawyer/lawyer.entity';
 import { LawyerService } from './lawyer/lawyer.service';
 import { MemberController } from './members/member.controller';
 import { AgreementMember } from './members/member.entity';
@@ -37,7 +36,6 @@ import { StepService } from './step/step.service';
       User,
       AgreementMember,
       AgreementStep,
-      Lawyer,
       AgreementImage,
       PersonalData,
       StepImage,

@@ -29,9 +29,9 @@ import { ReferralModule } from "./referral/referral.module";
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
       autoLoadEntities: true,
-      // ssl: {
-      //   rejectUnauthorized: true
-      // },
+      ssl: {
+        rejectUnauthorized: true
+      },
     }),
     forwardRef(() => AuthModule),
     UserModule,

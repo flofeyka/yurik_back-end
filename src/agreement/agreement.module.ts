@@ -66,6 +66,6 @@ import { StepService } from './step/step.service';
     PatternService,
     AgreementDepositService,
   ],
-  exports: [MemberService],
+  exports: [MemberService, AgreementDepositService],
 })
 export class AgreementModule {}

@@ -9,12 +9,17 @@ import { AppModule } from '../app.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthToken } from './entities/authToken.entity';
+import { ReferralModule } from "../referral/referral.module";
+import { AgreementModule } from "../agreement/agreement.module";
+import { Deposit } from "../agreement/deposit/deposit.entity";
 
 @Global()
 @Module({
   imports: [
     forwardRef(() => UserModule),
     SmsModule,
+    ReferralModule,
+    AgreementModule,
     forwardRef(() => AppModule),
     JwtModule.register({
       global: true,
@@ -23,7 +28,7 @@ import { AuthToken } from './entities/authToken.entity';
         expiresIn: '14d',
       },
     }),
-    TypeOrmModule.forFeature([User, AuthToken, TelegramAccount]),
+    TypeOrmModule.forFeature([User, AuthToken, TelegramAccount, Deposit]),
   ],
   controllers: [AuthController],
   providers: [AuthService],

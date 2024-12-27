@@ -49,6 +49,7 @@ export class AgreementService {
     @InjectRepository(AgreementStep)
     private readonly stepRepository: Repository<AgreementStep>,
     private readonly appService: AppService,
+    @InjectRepository(Deposit) private readonly depositRepository: Repository<Deposit>
   ) {}
 
   async createAgreement(
@@ -80,6 +81,10 @@ export class AgreementService {
       agreementCreated.identifiers[0].id,
     );
 
+    depositFound.discount = 0;
+    depositFound.count = depositFound.count - 1;
+    await this.depositRepository.save(depositFound);
+
     const initiatorAdded: AgreementMember = await this.memberService.addMember(
       {
         userId,
@@ -88,15 +93,11 @@ export class AgreementService {
       agreementFound,
     );
 
-    (agreementFound.members = [initiatorAdded]),
-      (agreementFound.initiator = initiatorAdded);
+    agreementFound.members = [initiatorAdded];
+    agreementFound.initiator = initiatorAdded;
     const user: User = await this.userService.findUser(userId);
-    agreementFound.chat = await this.chatService.addChat(
-      [user],
-      agreementFound.title,
-    );
-    const memberUpdated: Agreement =
-      await this.agreementRepository.save(agreementFound);
+    agreementFound.chat = await this.chatService.addChat([user], agreementFound.title,);
+    const memberUpdated: Agreement = await this.agreementRepository.save(agreementFound);
 
     return new AgreementDto(memberUpdated, userId);
   }
@@ -362,7 +363,6 @@ export class AgreementService {
       agreement.status = 'Требуется действие';
     }
     await this.agreementRepository.save(agreement);
-
     return {
       isConfirmed: true,
       message: 'Вы успешно подтвердили участие в договоре',

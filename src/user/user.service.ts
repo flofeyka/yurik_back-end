@@ -18,6 +18,7 @@ import { PersonalData } from "./entities/user.personal_data";
 import { Image } from "src/images/image.entity";
 import { ProfileDto } from "./dtos/profile-dto";
 import { AgreementDepositService } from "src/agreement/deposit/deposit.service";
+import { Referral } from "../referral/referral.entity";
 
 @Injectable()
 export class UserService {
@@ -30,11 +31,12 @@ export class UserService {
   ) {
   };
 
-  async createUser(userDto: CreateUserDto, telegramAccount: TelegramAccount): Promise<User> {
+  async createUser(userDto: CreateUserDto, telegramAccount: TelegramAccount, ref?: Referral): Promise<User> {
     const user: User = new User();
     user.lastName = userDto.lastName;
     user.firstName = userDto.firstName;
     user.telegram_account = telegramAccount;
+    user.referral = ref || null;
     return await this.usersRepository.save(user);
   }
 

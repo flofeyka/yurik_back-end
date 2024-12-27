@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsString, IsUUID } from "class-validator";
+import { UUID } from "crypto";
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -19,4 +20,9 @@ export class CreateUserDto {
   @IsString()
   @ApiProperty({ description: "ID Telegram в зашифрованном виде" })
   readonly telegramID: string;
+
+  @IsNotEmpty()
+  @IsUUID()
+  @ApiProperty({ description: "UUID Ref" })
+  readonly ref: UUID;
 }

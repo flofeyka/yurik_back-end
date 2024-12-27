@@ -11,6 +11,10 @@ import { UserDto } from "src/user/dtos/user-dto";
 import { TelegramAccount } from "src/user/entities/telegram-account.entity";
 import { AppService } from "../app.service";
 import { AuthTokenPayload } from "types/types";
+import { Referral } from "../referral/referral.entity";
+import { ReferralService } from "../referral/referral.service";
+import { AgreementDepositService } from "../agreement/deposit/deposit.service";
+import { Deposit } from "../agreement/deposit/deposit.entity";
 
 export interface tokenAndUserType {
   token: string;
@@ -28,6 +32,9 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly appService: AppService,
+    private readonly refService: ReferralService,
+    private readonly depositService: AgreementDepositService,
+    @InjectRepository(Deposit) private readonly depositRepository: Repository<Deposit>
   ) { }
 
   async getUsersData(userId: number): Promise<UserDto> {
@@ -54,11 +61,24 @@ export class AuthService {
       throw new BadRequestException("Телеграм-аккаунт уже зарегистрирован");
     }
 
+    const ref: Referral | null = await this.refService.findRef(userDto?.ref);
+    console.log(ref.user);
 
     const newUser: User = await this.userService.createUser(
       userDto,
       telegramAccountFound,
+      ref,
     );
+    const deposit: Deposit = await this.depositService.createDeposit(newUser.id);
+    newUser.deposit = deposit;
+    await this.usersRepository.save(newUser);
+
+    if(newUser.referral) {
+      deposit.count = 1;
+      ref.user.deposit.discount = 50;
+      await this.depositRepository.save(ref.user.deposit);
+      await this.depositRepository.save(deposit);
+    }
     await this.telegramAccountsRepository.save({
       ...telegramAccountFound,
       user: newUser

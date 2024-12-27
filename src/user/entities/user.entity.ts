@@ -16,6 +16,7 @@ import { Chat } from "src/chat/entities/chat.entity";
 import { AgreementDto } from "../../agreement/dtos/agreement-dto";
 import { Agreement } from "../../agreement/entities/agreement.entity";
 import { Deposit } from "src/agreement/deposit/deposit.entity";
+import { Referral } from "../../referral/referral.entity";
 
 @Entity()
 export class User {
@@ -78,7 +79,10 @@ export class User {
 
   @OneToOne((): typeof Deposit => Deposit, { eager: true, onDelete: "SET NULL", onUpdate: "CASCADE" })
   @JoinColumn()
-  public readonly deposit: Deposit;
+  public deposit: Deposit;
+
+  @ManyToOne((): typeof Referral => Referral, {nullable: true})
+  public referral: Referral
 
   @OneToOne(
     () => PersonalData,

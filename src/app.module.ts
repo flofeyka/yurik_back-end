@@ -11,6 +11,7 @@ import { ImagesModule } from './images/images.module';
 import { PdfModule } from './pdf/pdf.module';
 import { SmsModule } from './sms/sms.module';
 import { UserModule } from './user/user.module';
+import { ReferralModule } from "./referral/referral.module";
 
 @Module({
   imports: [
@@ -28,9 +29,9 @@ import { UserModule } from './user/user.module';
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
       autoLoadEntities: true,
-      ssl: {
-        rejectUnauthorized: true
-      },
+      // ssl: {
+      //   rejectUnauthorized: true
+      // },
     }),
     forwardRef(() => AuthModule),
     UserModule,
@@ -41,6 +42,7 @@ import { UserModule } from './user/user.module';
     HttpModule,
     ImagesModule,
     PdfModule,
+    ReferralModule
   ],
   exports: [AppService],
   providers: [AppService],
